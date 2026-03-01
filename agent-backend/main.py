@@ -30,19 +30,27 @@ async def analyze_stock(request: AnalysisRequest):
             "ticker": request.ticker,
             "financial_data": {},
             "macro_data": {},
+            "chart_data": {"prices": [], "cashflow": []},
             "agent_responses": [],
-            "final_verdict": ""
+            "final_verdict": "",
+            "dalio_response": {}
         }
         
         # Run graph
         result = await app_graph.ainvoke(initial_state)
         print(f"Analysis completed for {request.ticker}")
         
+        f_engine = result.get("financial_data", {}).get("fundamental_engine", {})
+        print(f"DEBUG: Fundamental Engine Keys: {list(f_engine.keys())}")
+        
         return sanitize_data({
             "ticker": result.get("ticker", request.ticker),
             "agent_responses": result.get("agent_responses", []),
             "final_verdict": result.get("final_verdict", "No final verdict generated."),
-            "chart_data": result.get("chart_data", {"prices": [], "cashflow": []})
+            "chart_data": result.get("chart_data", {"prices": [], "cashflow": []}),
+            "fundamental_metrics": f_engine,
+            "dalio_response": result.get("dalio_response", {}),
+            "tradingview": result.get("financial_data", {}).get("tradingview", {})
         })
     except Exception as e:
         print(f"CRITICAL ERROR in /analyze for {request.ticker}: {str(e)}")

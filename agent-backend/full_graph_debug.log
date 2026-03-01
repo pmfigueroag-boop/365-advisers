@@ -1,0 +1,13 @@
+--- Data Fetcher: Obteniendo datos para MSFT ---
+CRITICAL ERROR in fetch_financial_data for MSFT: Timestamp('2021-06-30 00:00:00')
+--- Data Fetcher: Datos obtenidos correctamente ---
+--- Agente Bollinger: Iniciando análisis de volatilidad ---
+DEBUG: Bollinger node received tech RSI: None
+--- Agente Buffett: Iniciando análisis ---
+--- Agente Gann: Iniciando análisis de niveles ---
+--- Agente Icahn: Iniciando análisis activista ---
+--- Agente Lynch: Iniciando análisis ---
+--- Agente MACD: Iniciando análisis de tendencia ---
+--- Agente Marks: Iniciando análisis macro ---
+--- Agente RSI: Iniciando análisis de momentum ---
+--- Agente Dalio: Iniciando síntesis final ---

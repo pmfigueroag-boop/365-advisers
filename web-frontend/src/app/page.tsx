@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { PriceChart, CashFlowChart } from "@/components/Charts";
+import TradingViewChart from "@/components/TradingViewChart";
+import TradingViewTechnicalWidget from "@/components/TradingViewTechnicalWidget";
 import {
   TrendingUp,
   TrendingDown,
@@ -19,7 +21,71 @@ interface AgentSignal {
   confidence: number;
   analysis: string;
   key_metrics: any;
+  selected_metrics?: string[];
+  discarded_metrics?: string[];
 }
+
+const FundamentalTable = ({ engine }: { engine: any }) => {
+  if (!engine) return null;
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      {Object.entries(engine).map(([category, metrics]: [string, any]) => (
+        <div key={category} className="glass-card p-4 border-[#30363d] bg-[#0d1117]/30">
+          <h4 className="text-[10px] font-black uppercase text-[#d4af37] mb-3 tracking-widest">{category.replace('_', ' ')}</h4>
+          <div className="space-y-2">
+            {Object.entries(metrics).map(([key, val]: [string, any]) => (
+              <div key={key} className="flex justify-between items-center">
+                <span className="text-[10px] text-gray-500 capitalize">{key.replace(/_/g, ' ')}</span>
+                <span className={`text-[10px] font-mono ${val === 'DATA_INCOMPLETE' ? 'text-red-500/50' : 'text-gray-200'}`}>
+                  {typeof val === 'number' ?
+                    (val > 1 || val < -1 ? val.toLocaleString('en-US', { maximumFractionDigits: 2 }) : (val * 100).toFixed(2) + '%')
+                    : val}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const TradingViewTechnical = ({ data }: { data: any }) => {
+  if (!data || data.error) return null;
+  const recommendation = data.summary?.RECOMMENDATION || "UNKNOWN";
+
+  return (
+    <div className="glass-card p-6 border-[#30363d] bg-[#0d1117]/40">
+      <div className="flex justify-between items-center mb-6">
+        <h4 className="text-sm font-black uppercase tracking-widest text-[#d4af37]">TradingView Consensus</h4>
+        <span className={`px-3 py-1 rounded-full text-xs font-black tracking-widest ${recommendation.includes('BUY') ? 'bg-green-500/20 text-green-400' :
+          recommendation.includes('SELL') ? 'bg-red-500/20 text-red-400' :
+            'bg-gray-500/20 text-gray-400'
+          }`}>
+          {recommendation}
+        </span>
+      </div>
+      <div className="grid grid-cols-3 gap-4 text-center">
+        <div className="p-3 bg-black/20 rounded-xl border border-[#30363d]">
+          <span className="block text-[10px] text-gray-500 uppercase font-black mb-1">Oscillators</span>
+          <span className="text-sm font-mono text-gray-200">{data.oscillators?.RECOMMENDATION || 'N/A'}</span>
+        </div>
+        <div className="p-3 bg-black/20 rounded-xl border border-[#30363d]">
+          <span className="block text-[10px] text-gray-500 uppercase font-black mb-1">Moving Avg</span>
+          <span className="text-sm font-mono text-gray-200">{data.moving_averages?.RECOMMENDATION || 'N/A'}</span>
+        </div>
+        <div className="p-3 bg-black/20 rounded-xl border border-[#30363d]">
+          <span className="block text-[10px] text-gray-500 uppercase font-black mb-1">Summary</span>
+          <div className="flex justify-center gap-2 mt-1">
+            <span className="text-[10px] text-green-500 font-black">B: {data.summary?.BUY || 0}</span>
+            <span className="text-[10px] text-gray-500 font-black">H: {data.summary?.NEUTRAL || 0}</span>
+            <span className="text-[10px] text-red-500 font-black">S: {data.summary?.SELL || 0}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function Home() {
   const [ticker, setTicker] = useState("");
@@ -94,10 +160,10 @@ export default function Home() {
             {/* Price Chart */}
             <section className="lg:col-span-2 glass-card p-6 border-[#30363d]">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400">Desempeño del Ticker</h3>
-                <span className="text-xs text-[#d4af37] font-mono">{analysis.ticker} | 1Y History</span>
+                <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400">Advanced TradingView Chart</h3>
+                <span className="text-xs text-[#d4af37] font-mono">{analysis.ticker} | Real-Time</span>
               </div>
-              <PriceChart data={analysis.chart_data?.prices || []} />
+              <TradingViewChart symbol={analysis.ticker} />
             </section>
 
             {/* Final Verdict */}
@@ -106,10 +172,15 @@ export default function Home() {
                 <ShieldCheck size={20} />
                 <h2 className="text-sm uppercase tracking-[0.2em] font-black">Veredicto Dalio</h2>
               </div>
-              <div className="flex-1">
-                <p className="text-xl leading-relaxed font-medium italic text-gray-200">
+              <div className="flex-1 overflow-y-auto custom-scrollbar">
+                <p className="text-xl leading-relaxed font-black gold-gradient italic mb-4">
                   "{analysis.final_verdict}"
                 </p>
+                {analysis.dalio_response?.summary_table && (
+                  <div className="prose prose-invert prose-xs max-w-none prose-table:border prose-table:border-[#d4af37]/20 prose-td:p-2 prose-th:p-2 bg-black/20 p-4 rounded-lg">
+                    <div dangerouslySetInnerHTML={{ __html: analysis.dalio_response.summary_table.replace(/\n/g, '<br/>') }} />
+                  </div>
+                )}
               </div>
               <div className="mt-6 pt-6 border-t border-[#d4af37]/20 flex justify-between items-center">
                 <span className="text-xs text-gray-500 uppercase">Decision Orchestrator</span>
@@ -118,7 +189,27 @@ export default function Home() {
             </section>
           </div>
 
-          {/* Middle Section: Cash Flow Chart */}
+          {/* Middle Section: Fundamental Engine & TradingView Technicals */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div className="lg:col-span-3 space-y-4">
+              <div className="flex items-center gap-2">
+                <ShieldCheck size={18} className="text-[#d4af37]" />
+                <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400">Motor Fundamental Determinístico</h3>
+              </div>
+              <FundamentalTable engine={analysis.fundamental_metrics} />
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <TrendingUp size={18} className="text-[#d4af37]" />
+                <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400">TV Validation</h3>
+              </div>
+              <div className="glass-card p-6 border-[#30363d] bg-[#0d1117]/40">
+                <TradingViewTechnicalWidget symbol={analysis.ticker} />
+              </div>
+            </div>
+          </div>
+
+          {/* Graphs Section */}
           <div className="grid grid-cols-1 gap-6">
             <section className="glass-card p-6 border-[#30363d]">
               <div className="flex items-center gap-2 mb-6">
@@ -148,9 +239,29 @@ export default function Home() {
                     </span>
                   </div>
                   <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                    <p className="text-[11px] text-gray-400 leading-relaxed text-pretty">
+                    <p className="text-[11px] text-gray-400 leading-relaxed text-pretty mb-3">
                       {agent.analysis}
                     </p>
+                    {agent.selected_metrics && agent.selected_metrics.length > 0 && (
+                      <div className="space-y-1">
+                        <span className="text-[8px] font-black text-[#d4af37] uppercase tracking-widest">Métricas Priorizadas</span>
+                        <div className="flex flex-wrap gap-1">
+                          {agent.selected_metrics.map((m: any, idx: number) => {
+                            const label = typeof m === 'string' ? m : (m.metric || m.name || `Metric ${idx}`);
+                            const tooltip = typeof m === 'object' ? (m.justification || m.reason) : null;
+                            return (
+                              <span
+                                key={idx}
+                                title={tooltip}
+                                className="px-1.5 py-0.5 bg-[#d4af37]/10 text-[#f9e29c] rounded-sm text-[8px] font-mono border border-[#d4af37]/20 cursor-help"
+                              >
+                                {label}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div className="mt-4 pt-3 border-t border-[#30363d] flex justify-between items-center bg-[#0d1117]/50 -mx-5 -mb-5 p-4 rounded-b-xl">
                     <span className="text-[9px] text-gray-500 uppercase font-bold tracking-widest">Confidence</span>
