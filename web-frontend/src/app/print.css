@@ -1,0 +1,130 @@
+/* ============================================================
+   365 ADVISERS — Print / PDF Export Styles
+   Applies only when window.print() is triggered.
+   ============================================================ */
+
+@media print {
+
+    /* ── Reset page ── */
+    @page {
+        size: A4 portrait;
+        margin: 16mm 14mm 16mm 14mm;
+    }
+
+    /* ── Global overrides ── */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    body {
+        background: #0d1117 !important;
+        color: #e6edf3 !important;
+        font-family: "Geist", -apple-system, system-ui, sans-serif !important;
+        font-size: 9pt !important;
+    }
+
+    /* ── Hide screen-only UI ── */
+    #analyze-btn,
+    #watchlist-btn,
+    #force-refresh-btn,
+    #compare-btn,
+    #run-comparison-btn,
+    #compare-input,
+    #export-pdf-btn,
+    [data-noprint],
+    nav,
+    input,
+    .no-print,
+    /* Watchlist sidebar */
+    aside {
+        display: none !important;
+    }
+
+    /* ── Hide ticker search input wrapper ── */
+    header .relative {
+        display: none !important;
+    }
+
+    /* ── Show print-only elements ── */
+    .print-only {
+        display: block !important;
+    }
+
+    /* ── Root layout: remove flex gap for print ── */
+    .flex.min-h-screen {
+        display: block !important;
+    }
+
+    /* ── Header: minimal ── */
+    header {
+        border-bottom: 1px solid #30363d !important;
+        padding-bottom: 8pt !important;
+        margin-bottom: 12pt !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+    }
+
+    /* Progress bar — hidden via .no-print class added in page.tsx */
+
+
+    /* ── Agent cards grid ── */
+    .grid {
+        display: grid !important;
+    }
+
+    /* ── Agent cards ── */
+    .glass-card {
+        page-break-inside: avoid !important;
+        border: 1px solid #30363d !important;
+        border-radius: 8pt !important;
+        padding: 8pt !important;
+        margin-bottom: 6pt !important;
+        background: #161b22 !important;
+    }
+
+    /* ── TradingView charts: hide (can't print iframes) ── */
+    iframe,
+    [class*="tradingview"],
+    [class*="TradingView"] {
+        display: none !important;
+    }
+
+    /* ── Charts section: hide SVG price/cashflow charts ── */
+    .recharts-wrapper,
+    canvas {
+        display: none !important;
+    }
+
+    /* ── Text: ensure legibility ── */
+    p,
+    span,
+    div {
+        orphans: 3;
+        widows: 3;
+    }
+
+    /* ── Section headers ── */
+    h2,
+    h3 {
+        page-break-after: avoid !important;
+    }
+
+    /* ── Dalio section ── */
+    .dalio-section {
+        page-break-before: auto !important;
+        page-break-inside: avoid !important;
+    }
+
+    /* ── Footer / watermark ── */
+    body::after {
+        content: "365 Advisers · Confidential Investment Analysis · Generated " attr(data-print-date);
+        display: block;
+        text-align: center;
+        font-size: 7pt;
+        color: #6e7681;
+        margin-top: 20pt;
+        border-top: 1px solid #30363d;
+        padding-top: 6pt;
+    }
+}

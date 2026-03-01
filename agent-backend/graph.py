@@ -288,3 +288,61 @@ workflow.set_entry_point("DataFetcher")
 workflow.add_edge("Dalio", END)
 
 app_graph = workflow.compile()
+
+
+async def run_analysis_stream(ticker: str):
+    """
+    Async generator that runs the LangGraph and yields SSE-ready dicts.
+    Events: data_ready | agent_update | dalio_verdict | error | done
+    """
+    initial_state = {
+        "ticker": ticker,
+        "financial_data": {},
+        "macro_data": {},
+        "chart_data": {"prices": [], "cashflow": []},
+        "agent_responses": [],
+        "final_verdict": "",
+        "dalio_response": {}
+    }
+
+    agent_names = {"Lynch", "Buffett", "Marks", "Icahn", "Bollinger", "RSI", "MACD", "Gann"}
+
+    try:
+        async for chunk in app_graph.astream(initial_state):
+            for node_name, node_output in chunk.items():
+                if node_name == "DataFetcher":
+                    fin = node_output.get("financial_data", {})
+                    yield {
+                        "event": "data_ready",
+                        "data": sanitize_data({
+                            "ticker": ticker,
+                            "name": fin.get("name", ticker),
+                            "tech_indicators": fin.get("tech_indicators", {}),
+                            "tradingview": fin.get("tradingview", {}),
+                            "fundamental_metrics": fin.get("fundamental_engine", {}),
+                        })
+                    }
+
+                elif node_name in agent_names:
+                    responses = node_output.get("agent_responses", [])
+                    for agent in responses:
+                        yield {
+                            "event": "agent_update",
+                            "data": sanitize_data(agent)
+                        }
+
+                elif node_name == "Dalio":
+                    yield {
+                        "event": "dalio_verdict",
+                        "data": sanitize_data({
+                            "final_verdict": node_output.get("final_verdict", ""),
+                            "dalio_response": node_output.get("dalio_response", {})
+                        })
+                    }
+
+        yield {"event": "done", "data": {}}
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        yield {"event": "error", "data": {"message": str(e)}}
