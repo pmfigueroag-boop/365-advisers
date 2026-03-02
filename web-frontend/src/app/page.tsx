@@ -25,7 +25,10 @@ import {
   Download,
   History,
   LineChart,
+  HelpCircle,
+  Menu,
 } from "lucide-react";
+import HelpPanel from "@/components/HelpPanel";
 
 import { useAnalysisStream, AgentSignal } from "@/hooks/useAnalysisStream";
 import { useWatchlist, WatchlistItem } from "@/hooks/useWatchlist";
@@ -37,6 +40,7 @@ import { useTechnicalAnalysis } from "@/hooks/useTechnicalAnalysis";
 import IndicatorGrid from "@/components/IndicatorGrid";
 import { useFundamentalStream } from "@/hooks/useFundamentalStream";
 import ResearchMemoCard from "@/components/ResearchMemoCard";
+import OnboardingOverlay, { useOnboarding } from "@/components/OnboardingOverlay";
 import { useCombinedStream } from "@/hooks/useCombinedStream";
 import CombinedDashboard from "@/components/CombinedDashboard";
 
@@ -155,7 +159,15 @@ function WatchlistSidebar({
                           </span>
                           {item.lastSignal && <SignalBadge signal={item.lastSignal} />}
                         </div>
-                        <p className="text-[9px] text-gray-500 truncate">{item.name}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-[9px] text-gray-500 truncate">{item.name}</p>
+                          {item.lastScore !== undefined && item.prevScore !== undefined && item.lastScore !== item.prevScore && (
+                            <span className={`text-[8px] font-mono font-black flex-shrink-0 ${item.lastScore > item.prevScore ? "text-green-400" : "text-red-400"
+                              }`}>
+                              {item.lastScore > item.prevScore ? "+" : ""}{(item.lastScore - item.prevScore).toFixed(1)}
+                            </span>
+                          )}
+                        </div>
                         {item.lastAnalyzedAt && (
                           <p className="text-[8px] text-gray-700 mt-0.5">
                             {new Date(item.lastAnalyzedAt).toLocaleDateString("en-US", {
@@ -315,9 +327,13 @@ const ProgressBar = ({ completed, total, status }: { completed: number; total: n
 export default function Home() {
   const [ticker, setTicker] = useState("");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [legacyGridOpen, setLegacyGridOpen] = useState(false);
+  const [chartsOpen, setChartsOpen] = useState(false);
+  const [showProGate, setShowProGate] = useState(false);
+  const { showOnboarding, dismiss: dismissOnboarding } = useOnboarding();
 
   // Main analysis tab: "fundamental" | "technical" | "combined"
-  const [mainTab, setMainTab] = useState<"fundamental" | "technical" | "combined">("fundamental");
+  const [mainTab, setMainTab] = useState<"fundamental" | "technical" | "combined">("combined");
 
   // Compare mode state
   const [compareMode, setCompareMode] = useState(false);
@@ -325,6 +341,26 @@ export default function Home() {
   const [compareState, setCompareState] = useState<CompareState>({ status: "idle", results: [] });
 
   const [sidebarTab, setSidebarTab] = useState<"watchlist" | "history">("watchlist");
+  const [helpOpen, setHelpOpen] = useState(false);
+
+  // Auto-collapse sidebar on mobile screens on first render
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      setSidebarCollapsed(true);
+    }
+  }, []);
+
+  // Shift+? opens/closes the Help panel
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.shiftKey && e.key === "?") {
+        e.preventDefault();
+        setHelpOpen((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   const { state, analyze, forceRefresh, TOTAL_AGENTS } = useAnalysisStream();
   const technical = useTechnicalAnalysis();
@@ -350,7 +386,11 @@ export default function Home() {
   // Update watchlist badge + save to history when analysis completes
   useEffect(() => {
     if (status === "complete" && dataReady?.ticker && derivedSignal) {
-      watchlist.updateSignal(dataReady.ticker, derivedSignal);
+      watchlist.updateSignal(
+        dataReady.ticker,
+        derivedSignal,
+        fundamental.state.committee?.score ?? undefined
+      );
       history.add({
         ticker: dataReady.ticker,
         name: dataReady.name ?? dataReady.ticker,
@@ -416,23 +456,50 @@ export default function Home() {
           from { opacity: 0; transform: translateY(16px); }
           to   { opacity: 1; transform: translateY(0); }
         }
+        @keyframes badgePop {
+          0%   { opacity: 0; transform: scale(0.6); }
+          70%  { transform: scale(1.08); }
+          100% { opacity: 1; transform: scale(1); }
+        }
+        @keyframes verdictReveal {
+          0%   { opacity: 0; transform: translateY(12px) scale(0.97); }
+          60%  { transform: translateY(-2px) scale(1.01); }
+          100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
       `}</style>
 
       {/* Root layout: sidebar + main */}
       <div className="flex min-h-screen gap-4 p-4 md:p-6 max-w-[1600px] mx-auto">
 
+        {/* ── Mobile sidebar backdrop overlay ── */}
+        {!sidebarCollapsed && (
+          <div
+            className="fixed inset-0 z-30 bg-black/60 md:hidden"
+            onClick={() => setSidebarCollapsed(true)}
+            aria-hidden="true"
+          />
+        )}
+
         {/* ── Sidebar ── */}
+        {/* Desktop: takes space in the flex row. Mobile: fixed left drawer overlay */}
         <aside
-          className={`flex-shrink-0 flex flex-col transition-all duration-300 ${sidebarCollapsed ? "w-10" : "w-60"
-            }`}
+          className={`
+            flex-shrink-0 flex flex-col transition-all duration-300
+            md:relative md:top-auto md:left-auto md:z-auto md:translate-x-0
+            fixed top-0 left-0 z-40 h-full
+            ${sidebarCollapsed
+              ? "w-10 -translate-x-full md:translate-x-0"
+              : "w-60 translate-x-0"
+            }
+          `}
           style={{ minHeight: "100vh" }}
         >
           <div className="glass-card border-[#30363d] flex flex-col h-full overflow-hidden">
+            {/* Collapsed state on desktop: show a sliver with expand button */}
             {sidebarCollapsed ? (
-              /* Collapsed state: just a sliver with expand button */
               <button
                 onClick={() => setSidebarCollapsed(false)}
-                className="flex-1 flex flex-col items-center justify-center gap-4 text-gray-600 hover:text-[#d4af37] transition-colors"
+                className="hidden md:flex flex-1 flex-col items-center justify-center gap-4 text-gray-600 hover:text-[#d4af37] transition-colors"
                 title="Expand sidebar"
               >
                 <ChevronRight size={14} />
@@ -511,6 +578,15 @@ export default function Home() {
           {/* Header */}
           <header className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-3">
+              {/* Hamburger — only visible on mobile */}
+              <button
+                id="mobile-sidebar-btn"
+                className="md:hidden p-2 rounded-lg border border-[#30363d] text-gray-500 hover:text-[#d4af37] hover:border-[#d4af37]/40 transition-colors"
+                onClick={() => setSidebarCollapsed((v) => !v)}
+                title="Toggle sidebar"
+              >
+                <Menu size={18} />
+              </button>
               <div className="bg-[#d4af37] p-2 rounded-lg">
                 <TrendingUp size={28} className="text-black" />
               </div>
@@ -560,15 +636,16 @@ export default function Home() {
                 </>
               )}
 
-              {/* Export PDF — show only when analysis complete */}
+              {/* Export PDF — Pro gated */}
               {status === "complete" && dataReady && (
                 <button
                   id="export-pdf-btn"
-                  onClick={() => window.print()}
-                  title="Download analysis as PDF"
-                  className="p-2.5 rounded-xl border bg-[#161b22] border-[#30363d] text-gray-500 hover:border-[#d4af37]/40 hover:text-[#d4af37] transition-all"
+                  onClick={() => setShowProGate(true)}
+                  title="Download analysis as PDF (Pro)"
+                  className="p-2.5 rounded-xl border bg-[#161b22] border-[#30363d] text-gray-500 hover:border-[#d4af37]/40 hover:text-[#d4af37] transition-all relative"
                 >
                   <Download size={14} />
+                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-[#d4af37] rounded-full flex items-center justify-center text-[6px] font-black text-black">✦</span>
                 </button>
               )}
 
@@ -598,6 +675,19 @@ export default function Home() {
                   }`}
               >
                 <GitCompare size={16} />
+              </button>
+
+              {/* Help panel trigger */}
+              <button
+                id="help-btn"
+                onClick={() => setHelpOpen(true)}
+                title="Centro de ayuda (Shift + ?)"
+                className={`p-2.5 rounded-xl border transition-all ${helpOpen
+                  ? "bg-[#d4af37]/10 border-[#d4af37]/40 text-[#d4af37]"
+                  : "bg-[#161b22] border-[#30363d] text-gray-500 hover:border-[#d4af37]/40 hover:text-[#d4af37]"
+                  }`}
+              >
+                <HelpCircle size={16} />
               </button>
             </div>
           </header>
@@ -639,7 +729,7 @@ export default function Home() {
 
           {/* ── Analysis Mode Tab Bar ── */}
           {!compareMode && (status !== "idle" || technical.state.status !== "idle") && (
-            <div className="flex gap-1 p-1 glass-card border-[#30363d] rounded-xl w-fit">
+            <div className="flex gap-1 p-1 glass-card border-[#30363d] rounded-xl w-full md:w-fit overflow-x-auto">
               <button
                 onClick={() => setMainTab("fundamental")}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${mainTab === "fundamental"
@@ -699,24 +789,104 @@ export default function Home() {
             />
           )}
 
-          {/* ── Empty State ── */}
+          {/* \u2500\u2500 Smart Empty State \u2500\u2500 */}
           {status === "idle" && !compareMode && (
+            <div className="flex flex-col flex-1" style={{ animation: "fadeSlideIn 0.4s ease both" }}>
 
-            <div className="flex flex-col items-center justify-center flex-1 text-center">
-              <div className="w-20 h-20 bg-[#161b22] rounded-3xl flex items-center justify-center mb-6 border border-[#30363d]">
-                <Activity size={40} className="text-[#d4af37]/20" />
-              </div>
-              <h2 className="text-xl font-bold mb-3">Investment Analysis Engine</h2>
-              <p className="text-gray-500 max-w-sm mx-auto leading-relaxed text-sm">
-                Enter a symbol to activate the 8-agent committee. Save tickers to your watchlist for quick access.
-              </p>
-              <div className="mt-6 flex gap-4 text-xs font-mono text-gray-600">
-                <span className="flex items-center gap-1"><ShieldCheck size={12} /> Fundamental</span>
-                <span className="flex items-center gap-1"><Search size={12} /> Web Search</span>
-                <span className="flex items-center gap-1"><Star size={12} /> Watchlist</span>
-              </div>
+              {watchlist.items.length > 0 ? (
+                /* \u2500\u2500 Watchlist Quick-Access Dashboard */
+                <div className="space-y-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-base font-black uppercase tracking-widest text-gray-300">Coverage List</h2>
+                      <p className="text-xs text-gray-600 mt-0.5">Select an asset to convene the Investment Committee</p>
+                    </div>
+                    <span className="text-[9px] font-mono text-gray-700 bg-[#161b22] border border-[#30363d] rounded-lg px-2 py-1">
+                      {watchlist.items.length} asset{watchlist.items.length !== 1 ? "s" : ""} tracked
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {watchlist.items.map((item, i) => {
+                      const sig = item.lastSignal ?? "—";
+                      const sigColor =
+                        sig === "BUY" ? "text-green-400 border-green-500/30 bg-green-500/8" :
+                          sig === "SELL" ? "text-red-400 border-red-500/30 bg-red-500/8" :
+                            sig === "HOLD" ? "text-yellow-400 border-yellow-500/30 bg-yellow-500/8" :
+                              "text-gray-500 border-[#30363d] bg-transparent";
+
+                      return (
+                        <button
+                          key={item.ticker}
+                          onClick={() => handleAnalyze(item.ticker)}
+                          className="glass-card p-5 border-[#30363d] text-left hover:border-[#d4af37]/40 hover:bg-[#d4af37]/3 transition-all group"
+                          style={{ animation: `fadeSlideIn 0.35s ease ${i * 0.07}s both` }}
+                        >
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <p className="text-lg font-black tracking-tight text-white">{item.ticker}</p>
+                              <p className="text-[10px] text-gray-600 truncate max-w-[140px]">{item.name ?? item.ticker}</p>
+                            </div>
+                            {sig !== "—" && (
+                              <span className={`text-[9px] font-black px-2 py-1 rounded-md border uppercase flex-shrink-0 ${sigColor}`}>
+                                {sig}
+                              </span>
+                            )}
+                          </div>
+
+                          {item.addedAt && (
+                            <p className="text-[8px] text-gray-700 mb-3">
+                              Last analyzed: {new Date(item.addedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                            </p>
+                          )}
+
+                          <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-gray-600 group-hover:text-[#d4af37] transition-colors">
+                            <Zap size={10} />
+                            Run Committee
+                          </div>
+                        </button>
+                      );
+                    })}
+
+                    {/* "+" add new card */}
+                    <div className="glass-card p-5 border-[#30363d] border-dashed flex flex-col items-center justify-center gap-2 text-gray-700 min-h-[110px]">
+                      <Search size={18} className="opacity-40" />
+                      <p className="text-[10px] font-bold uppercase tracking-widest opacity-50">Analyze new asset</p>
+                      <p className="text-[8px] text-gray-700 opacity-40">Type a ticker in the search bar</p>
+                    </div>
+                  </div>
+
+                  {/* capability pills */}
+                  <div className="flex gap-3 flex-wrap text-[8px] font-mono text-gray-700 pt-1">
+                    <span className="flex items-center gap-1"><ShieldCheck size={9} /> Fundamental</span>
+                    <span className="flex items-center gap-1"><LineChart size={9} /> Technical</span>
+                    <span className="flex items-center gap-1"><Zap size={9} /> Combined</span>
+                    <span className="flex items-center gap-1"><Star size={9} /> Watchlist</span>
+                    <span className="flex items-center gap-1"><History size={9} /> History</span>
+                  </div>
+                </div>
+
+              ) : (
+                /* \u2500\u2500 Pristine empty state (no watchlist) */
+                <div className="flex flex-col items-center justify-center flex-1 text-center">
+                  <div className="w-20 h-20 bg-[#161b22] rounded-3xl flex items-center justify-center mb-6 border border-[#30363d]">
+                    <Activity size={40} className="text-[#d4af37]/20" />
+                  </div>
+                  <h2 className="text-xl font-bold mb-3">Investment Analysis Engine</h2>
+                  <p className="text-gray-500 max-w-sm mx-auto leading-relaxed text-sm">
+                    Select an asset to convene the Investment Committee — fundamental, technical, and combined in one report.
+                  </p>
+                  <div className="mt-6 flex gap-4 text-xs font-mono text-gray-600 flex-wrap justify-center">
+                    <span className="flex items-center gap-1"><ShieldCheck size={12} /> Fundamental</span>
+                    <span className="flex items-center gap-1"><LineChart size={12} /> Technical</span>
+                    <span className="flex items-center gap-1"><Zap size={12} /> Combined</span>
+                    <span className="flex items-center gap-1"><Star size={12} /> Watchlist</span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
+
 
           {/* ── Error State ── */}
           {status === "error" && (
@@ -759,43 +929,59 @@ export default function Home() {
                   />
                 )}
 
-              {/* Charts & Verdict */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <section className="lg:col-span-2 glass-card p-6 border-[#30363d]">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400">Advanced TradingView Chart</h3>
-                    <span className="text-xs text-[#d4af37] font-mono">{dataReady.ticker} | Real-Time</span>
-                  </div>
-                  <TradingViewChart symbol={dataReady.ticker} />
-                </section>
-
-                <section className="glass-card p-6 border-[#d4af37]/30 bg-[#d4af37]/5 flex flex-col">
-                  <div className="flex items-center gap-2 mb-4 text-[#d4af37]">
-                    <ShieldCheck size={18} />
-                    <h2 className="text-sm uppercase tracking-[0.2em] font-black">Veredicto Dalio</h2>
-                  </div>
-                  {dalio ? (
-                    <div className="flex-1 overflow-y-auto custom-scrollbar">
-                      <p className="text-lg leading-relaxed font-black gold-gradient italic mb-4" style={{ animation: "fadeSlideIn 0.5s ease both" }}>
-                        "{dalio.final_verdict}"
-                      </p>
-                      {dalio.dalio_response?.summary_table && (
-                        <div className="prose prose-invert prose-xs max-w-none bg-black/20 p-4 rounded-lg">
-                          <div dangerouslySetInnerHTML={{ __html: dalio.dalio_response.summary_table.replace(/\n/g, "<br/>") }} />
+              {/* Charts ─ collapsible accordion */}
+              <div className="border border-[#30363d]/60 rounded-xl overflow-hidden">
+                <button
+                  onClick={() => setChartsOpen(v => !v)}
+                  className="w-full flex items-center gap-2 px-4 py-3 text-left hover:bg-white/5 transition-colors"
+                >
+                  <ChevronRight size={13} className={`text-gray-600 transition-transform duration-200 ${chartsOpen ? "rotate-90" : ""}`} />
+                  <LineChart size={13} className="text-gray-600" />
+                  <span className="text-xs font-black uppercase tracking-widest text-gray-600">Charts</span>
+                  <span className="ml-1 text-[9px] font-mono bg-[#30363d]/80 text-gray-500 rounded px-1.5 py-0.5">TradingView · Cash Flow</span>
+                  <ChevronRight size={10} className={`ml-auto text-gray-700 transition-transform duration-200 ${chartsOpen ? "rotate-90" : ""}`} />
+                </button>
+                {chartsOpen && (
+                  <div className="px-4 pb-4 pt-1 border-t border-[#30363d]/40 space-y-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                      <section className="lg:col-span-2 glass-card p-6 border-[#30363d]">
+                        <div className="flex justify-between items-center mb-4">
+                          <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400">Advanced TradingView Chart</h3>
+                          <span className="text-xs text-[#d4af37] font-mono">{dataReady.ticker} | Real-Time</span>
                         </div>
-                      )}
+                        <TradingViewChart symbol={dataReady.ticker} />
+                      </section>
+
+                      <section className="glass-card p-6 border-[#d4af37]/30 bg-[#d4af37]/5 flex flex-col">
+                        <div className="flex items-center gap-2 mb-4 text-[#d4af37]">
+                          <ShieldCheck size={18} />
+                          <h2 className="text-sm uppercase tracking-[0.2em] font-black">Veredicto Dalio</h2>
+                        </div>
+                        {dalio ? (
+                          <div className="flex-1 overflow-y-auto custom-scrollbar">
+                            <p className="text-lg leading-relaxed font-black gold-gradient italic mb-4" style={{ animation: "fadeSlideIn 0.5s ease both" }}>
+                              "{dalio.final_verdict}"
+                            </p>
+                            {dalio.dalio_response?.summary_table && (
+                              <div className="prose prose-invert prose-xs max-w-none bg-black/20 p-4 rounded-lg">
+                                <div dangerouslySetInnerHTML={{ __html: dalio.dalio_response.summary_table.replace(/\n/g, "<br/>") }} />
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex-1 flex flex-col items-center justify-center gap-3 opacity-40">
+                            <Loader2 size={24} className="text-[#d4af37] animate-spin" />
+                            <span className="text-xs text-gray-500 uppercase tracking-widest text-center">Waiting for all 8 minds...</span>
+                          </div>
+                        )}
+                        <div className="mt-4 pt-4 border-t border-[#d4af37]/20 flex justify-between items-center">
+                          <span className="text-xs text-gray-500 uppercase">Decision Orchestrator</span>
+                          <span className="text-[#d4af37] font-mono text-sm">Gemini 2.5 Pro</span>
+                        </div>
+                      </section>
                     </div>
-                  ) : (
-                    <div className="flex-1 flex flex-col items-center justify-center gap-3 opacity-40">
-                      <Loader2 size={24} className="text-[#d4af37] animate-spin" />
-                      <span className="text-xs text-gray-500 uppercase tracking-widest text-center">Waiting for all 8 minds...</span>
-                    </div>
-                  )}
-                  <div className="mt-4 pt-4 border-t border-[#d4af37]/20 flex justify-between items-center">
-                    <span className="text-xs text-gray-500 uppercase">Decision Orchestrator</span>
-                    <span className="text-[#d4af37] font-mono text-sm">Gemini 2.5 Pro</span>
                   </div>
-                </section>
+                )}
               </div>
 
               {/* Fundamental Engine & TV Technical */}
@@ -827,17 +1013,35 @@ export default function Home() {
                 <CashFlowChart data={[]} />
               </section>
 
-              {/* 8-Agent Grid */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Activity size={16} className="text-[#d4af37]" />
-                  <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400">Comité de 8 Mentes Maestras</h3>
-                  <span className="ml-auto text-xs font-mono text-[#d4af37]">{agentCount} / {TOTAL_AGENTS}</span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {agents.map((agent, i) => <AgentCard key={agent.agent_name} agent={agent} index={i} />)}
-                  {showSkeletons && pendingSlots.map((name) => <AgentSkeletonCard key={name} label={name} />)}
-                </div>
+              {/* 8-Agent Legacy Grid — collapsible, hidden by default */}
+              <div className="border border-[#30363d]/60 rounded-xl overflow-hidden">
+                <button
+                  onClick={() => setLegacyGridOpen((v) => !v)}
+                  className="w-full flex items-center gap-2 px-4 py-3 text-left hover:bg-white/5 transition-colors"
+                >
+                  <ChevronRight
+                    size={14}
+                    className={`text-gray-600 transition-transform duration-200 ${legacyGridOpen ? "rotate-90" : ""}`}
+                  />
+                  <Activity size={13} className="text-gray-600" />
+                  <span className="text-xs font-black uppercase tracking-widest text-gray-600">Raw Agent Output</span>
+                  <span className="ml-1 text-[9px] font-mono bg-[#30363d]/80 text-gray-500 rounded px-1.5 py-0.5">LEGACY · {agentCount}/{TOTAL_AGENTS}</span>
+                  <ChevronRight
+                    size={12}
+                    className={`ml-auto text-gray-700 transition-transform duration-200 ${legacyGridOpen ? "rotate-90" : ""}`}
+                  />
+                </button>
+                {legacyGridOpen && (
+                  <div className="px-4 pb-4 pt-1 border-t border-[#30363d]/40">
+                    <p className="text-[10px] text-gray-600 mb-4 italic">
+                      Individual agent outputs from the v1 pipeline. The Committee Verdict above synthesizes these into an actionable signal.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {agents.map((agent, i) => <AgentCard key={agent.agent_name} agent={agent} index={i} />)}
+                      {showSkeletons && pendingSlots.map((name) => <AgentSkeletonCard key={name} label={name} />)}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -853,9 +1057,9 @@ export default function Home() {
                     <Activity className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[#d4af37]" size={20} />
                   </div>
                   <p className="text-[#d4af37] font-bold tracking-widest text-sm uppercase animate-pulse">
-                    Computing Indicators...
+                    Running Technical Engine...
                   </p>
-                  <p className="text-gray-600 text-xs mt-2">RSI · MACD · Bollinger · ATR · OBV</p>
+                  <p className="text-gray-600 text-xs mt-2">RSI · MACD · Bollinger Bands · ATR · OBV · Support/Resistance</p>
                 </div>
               )}
 
@@ -875,7 +1079,76 @@ export default function Home() {
 
               {/* Result */}
               {technical.state.status === "done" && technical.state.data && (
-                <IndicatorGrid data={technical.state.data} />
+                <div className="space-y-5">
+                  {/* ── Technical Digest (Natural Language Narrative) ── */}
+                  {(() => {
+                    const s = technical.state.data.summary;
+                    const ind = technical.state.data.indicators;
+                    const score = s.technical_score;
+                    const scoreLabel = score >= 7 ? "bullish" : score >= 5 ? "neutral" : "bearish";
+                    const rsi = ind.momentum.rsi.toFixed(0);
+                    const rsiNote = ind.momentum.rsi_zone === "OVERBOUGHT"
+                      ? `RSI at ${rsi} signals overbought conditions — upside momentum may be exhausting`
+                      : ind.momentum.rsi_zone === "OVERSOLD"
+                        ? `RSI at ${rsi} is in oversold territory — a mean-reversion bounce is possible`
+                        : `RSI at ${rsi} is in neutral territory`;
+                    const macdNote = ind.trend.macd_crossover === "BULLISH"
+                      ? "MACD is showing a bullish crossover" : ind.trend.macd_crossover === "BEARISH"
+                        ? "MACD has turned bearish" : "MACD is flat";
+                    const trendNote = ind.trend.price_vs_sma50 === "ABOVE"
+                      ? "price is trading above the 50-day SMA"
+                      : ind.trend.price_vs_sma50 === "BELOW"
+                        ? "price has slipped below the 50-day SMA"
+                        : "price is testing the 50-day SMA";
+                    const volumeNote = ind.volume.obv_trend === "RISING"
+                      ? "Volume is confirming the move (OBV rising)"
+                      : ind.volume.obv_trend === "FALLING"
+                        ? "Volume is diverging bearishly (OBV declining)"
+                        : "Volume is neutral";
+                    const signalColor = s.signal === "STRONG_BUY" || s.signal === "BUY" ? "text-green-400"
+                      : s.signal === "STRONG_SELL" || s.signal === "SELL" ? "text-red-400"
+                        : "text-yellow-400";
+                    const signalLabel = s.signal.replace("_", " ");
+
+                    return (
+                      <div className="glass-card p-5 border-[#30363d]" style={{ animation: "fadeSlideIn 0.4s ease both" }}>
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <LineChart size={14} className="text-[#d4af37]" />
+                            <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-500">Technical Digest</h3>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-[9px] font-black uppercase tracking-widest ${signalColor}`}>{signalLabel}</span>
+                            <span className="text-[8px] font-mono bg-[#161b22] border border-[#30363d] rounded px-1.5 py-0.5 text-gray-500">{score.toFixed(1)}/10</span>
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-gray-300 leading-relaxed">
+                          The technical picture for this asset is <span className={`font-bold ${signalColor}`}>{scoreLabel}</span>. {rsiNote}; {macdNote}, and {trendNote}. {volumeNote}.
+                          {ind.structure.breakout_probability > 0.5 && (
+                            <> A <span className={ind.structure.breakout_direction === "BULLISH" ? "text-green-400" : "text-red-400"}>potential {ind.structure.breakout_direction.toLowerCase()} breakout</span> is developing with {(ind.structure.breakout_probability * 100).toFixed(0)}% probability.</>)
+                          }
+                        </p>
+                        <div className="mt-3 pt-3 border-t border-[#30363d]/40 flex gap-4 flex-wrap">
+                          {([
+                            ["Trend", s.subscores.trend],
+                            ["Momentum", s.subscores.momentum],
+                            ["Volatility", s.subscores.volatility],
+                            ["Volume", s.subscores.volume],
+                            ["Structure", s.subscores.structure],
+                          ] as [string, number][]).map(([label, val]) => (
+                            <div key={label} className="flex flex-col items-center gap-0.5">
+                              <span className="text-[7px] text-gray-600 uppercase tracking-widest">{label}</span>
+                              <span className={`text-[10px] font-black ${val >= 7 ? "text-green-400" : val >= 5 ? "text-[#d4af37]" : "text-red-400"
+                                }`}>{val.toFixed(1)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  <IndicatorGrid data={technical.state.data} />
+                </div>
               )}
 
               {/* Prompt to analyze first */}
@@ -884,7 +1157,8 @@ export default function Home() {
                   <div className="w-16 h-16 bg-[#161b22] rounded-3xl flex items-center justify-center mb-4 border border-[#30363d]">
                     <LineChart size={28} className="text-[#d4af37]/30" />
                   </div>
-                  <p className="text-gray-600 text-sm">Enter a ticker to activate the Technical Engine.</p>
+                  <p className="text-gray-500 text-sm font-bold">Select an asset to run the Technical Engine</p>
+                  <p className="text-gray-700 text-[10px] mt-1">RSI · MACD · Bollinger Bands · ATR · OBV · Support/Resistance</p>
                 </div>
               )}
             </div>
@@ -933,6 +1207,48 @@ export default function Home() {
         </main>
 
       </div>
+
+      {/* ── Help Panel ── */}
+      <HelpPanel open={helpOpen} onClose={() => setHelpOpen(false)} />
+
+      {/* ── Pro Gate Modal (M16) ── */}
+      {showProGate && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+          style={{ backgroundColor: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)" }}
+          onClick={() => setShowProGate(false)}
+        >
+          <div
+            className="relative bg-[#0d1117] border border-[#d4af37]/30 rounded-2xl p-8 max-w-sm w-full shadow-2xl text-center"
+            style={{ animation: "verdictReveal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button onClick={() => setShowProGate(false)} className="absolute top-4 right-4 text-gray-600 hover:text-gray-400 transition-colors">
+              <X size={14} />
+            </button>
+            <div className="w-12 h-12 bg-[#d4af37]/10 border border-[#d4af37]/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Download size={20} className="text-[#d4af37]" />
+            </div>
+            <span className="inline-block text-[7px] font-black uppercase tracking-widest bg-[#d4af37]/10 border border-[#d4af37]/25 text-[#d4af37]/80 rounded-full px-2.5 py-1 mb-3">
+              ✦ Pro Feature
+            </span>
+            <h2 className="text-base font-black text-white mb-2">Export Institutional Report</h2>
+            <p className="text-[11px] text-gray-500 leading-relaxed mb-5">
+              Download a full-format PDF with the Committee Verdict, analyst memos, technical analysis, and key catalysts — branded for institutional distribution.
+            </p>
+            <button
+              onClick={() => { setShowProGate(false); window.print(); }}
+              className="w-full bg-[#d4af37] text-black font-black text-sm py-2.5 rounded-xl hover:bg-[#f9e29c] transition-all mb-2"
+            >
+              Continue with Print Preview
+            </button>
+            <p className="text-[8px] text-gray-700">Full PDF export available in Pro · Coming soon</p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Onboarding Overlay (M17) — first visit only ── */}
+      {showOnboarding && <OnboardingOverlay onDone={dismissOnboarding} />}
     </>
   );
 }

@@ -11,6 +11,8 @@ export interface WatchlistItem {
     addedAt: string;
     lastSignal?: string;        // "BUY" | "SELL" | "HOLD" | "NEUTRAL"
     lastAnalyzedAt?: string;    // ISO timestamp
+    lastScore?: number;         // 0-10 committee score
+    prevScore?: number;         // previous score for delta display
 }
 
 function loadFromStorage(): WatchlistItem[] {
@@ -98,14 +100,20 @@ export function useWatchlist() {
         [items]
     );
 
-    /** Update the last signal and analysis timestamp for a ticker. */
+    /** Update the last signal, score, and analysis timestamp for a ticker. */
     const updateSignal = useCallback(
-        (ticker: string, signal: string) => {
+        (ticker: string, signal: string, score?: number) => {
             const symbol = ticker.trim().toUpperCase();
             setItems((prev) => {
                 const next = prev.map((i) =>
                     i.ticker === symbol
-                        ? { ...i, lastSignal: signal, lastAnalyzedAt: new Date().toISOString() }
+                        ? {
+                            ...i,
+                            lastSignal: signal,
+                            lastAnalyzedAt: new Date().toISOString(),
+                            prevScore: i.lastScore,
+                            lastScore: score ?? i.lastScore,
+                        }
                         : i
                 );
                 saveToStorage(next);

@@ -1,7 +1,7 @@
 "use client";
 
-import { ShieldCheck, TrendingUp, TrendingDown, Minus, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
-import { useState } from "react";
+import { ShieldCheck, TrendingUp, TrendingDown, Minus, ChevronDown, ChevronUp, ExternalLink, Clock } from "lucide-react";
+import { useState, useEffect } from "react";
 import type { AgentMemo, CommitteeVerdict, FundamentalDataReady } from "@/hooks/useFundamentalStream";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -25,9 +25,32 @@ function allocationColor(rec: string) {
 }
 
 function ScoreRing({ score, size = 72 }: { score: number; size?: number }) {
+    const [displayed, setDisplayed] = useState(0);
+
+    useEffect(() => {
+        let rafId: number;
+        const duration = 800;
+        const startTime = performance.now();
+        const startVal = 0;
+
+        const tick = (now: number) => {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            // easeOutCubic for a snappy deceleration
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setDisplayed(startVal + eased * (score - startVal));
+            if (progress < 1) {
+                rafId = requestAnimationFrame(tick);
+            }
+        };
+
+        rafId = requestAnimationFrame(tick);
+        return () => cancelAnimationFrame(rafId);
+    }, [score]);
+
     const radius = size / 2 - 6;
     const circumference = 2 * Math.PI * radius;
-    const filled = (score / 10) * circumference;
+    const filled = (displayed / 10) * circumference;
     const color = score >= 7 ? "#4ade80" : score >= 5 ? "#d4af37" : "#f87171";
 
     return (
@@ -38,7 +61,6 @@ function ScoreRing({ score, size = 72 }: { score: number; size?: number }) {
                 fill="none" stroke={color} strokeWidth={5}
                 strokeDasharray={`${filled} ${circumference}`}
                 strokeLinecap="round"
-                style={{ transition: "stroke-dasharray 0.6s ease" }}
             />
             <text
                 x={size / 2} y={size / 2 + 1}
@@ -46,7 +68,7 @@ function ScoreRing({ score, size = 72 }: { score: number; size?: number }) {
                 fill="white" fontSize={size * 0.22} fontWeight="900"
                 style={{ transform: `rotate(90deg) translateX(0)`, transformOrigin: `${size / 2}px ${size / 2}px` }}
             >
-                {score.toFixed(1)}
+                {displayed.toFixed(1)}
             </text>
         </svg>
     );
@@ -154,6 +176,7 @@ export default function ResearchMemoCard({
     status,
 }: ResearchMemoCardProps) {
     const [memoExpanded, setMemoExpanded] = useState(false);
+    const [agentMemosOpen, setAgentMemosOpen] = useState(false);
 
     if (!dataReady) return null;
 
@@ -162,7 +185,7 @@ export default function ResearchMemoCard({
 
             {/* ── Committee Verdict Header ─── */}
             {committee && (
-                <div className="glass-card p-6 border-[#d4af37]/30 bg-[#d4af37]/5" style={{ animation: "fadeSlideIn 0.4s ease both" }}>
+                <div className="glass-card p-6 border-[#d4af37]/30 bg-[#d4af37]/5" style={{ animation: "verdictReveal 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both" }}>
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
 
                         {/* Score ring */}
@@ -177,11 +200,17 @@ export default function ResearchMemoCard({
                                 <h2 className="text-xs font-black uppercase tracking-[0.2em] text-gray-400">
                                     Investment Committee Verdict
                                 </h2>
-                                <span className={`text-xs font-black px-2.5 py-1 rounded-lg border uppercase ${signalBg(committee.signal)} ${signalColor(committee.signal)}`}>
+                                <span
+                                    className={`text-xs font-black px-2.5 py-1 rounded-lg border uppercase ${signalBg(committee.signal)} ${signalColor(committee.signal)}`}
+                                    style={{ animation: "badgePop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both" }}
+                                >
                                     {committee.signal}
                                 </span>
                                 <span className={`text-xs font-semibold ${allocationColor(committee.allocation_recommendation)}`}>
                                     {committee.allocation_recommendation}
+                                </span>
+                                <span className="text-[8px] font-mono bg-[#d4af37]/10 border border-[#d4af37]/20 text-[#d4af37]/70 rounded-full px-2 py-0.5 uppercase tracking-widest flex-shrink-0">
+                                    4 Institutional Frameworks
                                 </span>
                             </div>
 
@@ -219,6 +248,25 @@ export default function ResearchMemoCard({
                             )}
                         </div>
                     )}
+
+                    {/* ── Trust Footer ── */}
+                    <div className="mt-4 pt-3 border-t border-[#d4af37]/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                        <div className="flex items-center gap-3 flex-wrap text-[8px] text-gray-600">
+                            <span className="flex items-center gap-1">
+                                <Clock size={9} />
+                                {new Date().toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                            </span>
+                            <span className="w-px h-3 bg-[#30363d]" />
+                            <span>Data · <b className="text-gray-500">Yahoo Finance</b></span>
+                            <span className="w-px h-3 bg-[#30363d]" />
+                            <span>Engine · <b className="text-gray-500">Gemini 2.5 Pro</b></span>
+                            <span className="w-px h-3 bg-[#30363d]" />
+                            <span>4 Institutional Frameworks</span>
+                        </div>
+                        <p className="text-[7px] text-gray-700 italic max-w-xs text-right">
+                            For informational purposes only. Not financial advice. Always consult a licensed adviser.
+                        </p>
+                    </div>
                 </div>
             )}
 
@@ -238,15 +286,39 @@ export default function ResearchMemoCard({
                 </div>
             )}
 
-            {/* ── 4 Agent Memo Cards ─── */}
+            {/* ── 4 Agent Memo Cards — collapsible ── */}
             {agentMemos.length > 0 && (
-                <div>
-                    <p className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-3">Analyst Memos</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {agentMemos.map((memo, i) => (
-                            <AgentMemoCard key={memo.agent} memo={memo} index={i} />
-                        ))}
-                    </div>
+                <div className="border border-[#30363d]/60 rounded-xl overflow-hidden">
+                    <button
+                        onClick={() => setAgentMemosOpen((v) => !v)}
+                        className="w-full flex items-center gap-2 px-4 py-3 text-left hover:bg-white/5 transition-colors"
+                    >
+                        <ChevronDown
+                            size={13}
+                            className={`text-gray-500 transition-transform duration-200 flex-shrink-0 ${agentMemosOpen ? "" : "-rotate-90"}`}
+                        />
+                        <p className="text-[9px] font-black uppercase tracking-widest text-gray-500">Analyst Memos</p>
+                        <span className="ml-1 text-[8px] font-mono bg-[#30363d]/80 text-gray-500 rounded px-1.5 py-0.5">
+                            {agentMemos.filter(m => m.signal === "BUY").length} BUY
+                            &nbsp;·&nbsp;
+                            {agentMemos.filter(m => m.signal !== "BUY" && m.signal !== "SELL" && m.signal !== "AVOID").length} HOLD
+                            &nbsp;·&nbsp;
+                            {agentMemos.filter(m => m.signal === "SELL" || m.signal === "AVOID").length} SELL
+                        </span>
+                        <ChevronDown
+                            size={10}
+                            className={`ml-auto text-gray-700 transition-transform duration-200 ${agentMemosOpen ? "" : "-rotate-90"}`}
+                        />
+                    </button>
+                    {agentMemosOpen && (
+                        <div className="px-4 pb-4 pt-2 border-t border-[#30363d]/40">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                {agentMemos.map((memo, i) => (
+                                    <AgentMemoCard key={memo.agent} memo={memo} index={i} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 

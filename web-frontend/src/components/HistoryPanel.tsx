@@ -1,7 +1,9 @@
 "use client";
 
-import { X, Clock, Trash2, History } from "lucide-react";
+import { X, Clock, Trash2, History, Lock } from "lucide-react";
 import { HistoryEntry } from "@/hooks/useAnalysisHistory";
+
+const FREE_TIER_LIMIT = 3;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -78,7 +80,7 @@ export default function HistoryPanel({
 
             {/* Entry list */}
             <div className="flex-1 overflow-y-auto">
-                {entries.map((entry) => (
+                {entries.slice(0, FREE_TIER_LIMIT).map((entry) => (
                     <div
                         key={entry.id}
                         className="group relative px-3 py-2.5 border-b border-[#1c2129] hover:bg-[#161b22] cursor-pointer transition-colors"
@@ -130,6 +132,20 @@ export default function HistoryPanel({
                         </div>
                     </div>
                 ))}
+
+                {/* Pro upgrade CTA — shown when history exceeds free tier limit */}
+                {entries.length > FREE_TIER_LIMIT && (
+                    <div className="mx-2 my-2 rounded-lg border border-[#30363d]/60 bg-[#0d1117]/60 px-3 py-3 text-center">
+                        <Lock size={12} className="text-gray-700 mx-auto mb-1.5" />
+                        <p className="text-[8px] font-black uppercase tracking-widest text-gray-600">
+                            {entries.length - FREE_TIER_LIMIT} more {entries.length - FREE_TIER_LIMIT === 1 ? "analysis" : "analyses"} locked
+                        </p>
+                        <p className="text-[7px] text-gray-700 mt-0.5 mb-2">Free tier: 3 most recent</p>
+                        <span className="inline-flex items-center gap-1 text-[7px] font-black uppercase tracking-widest bg-[#d4af37]/10 border border-[#d4af37]/25 text-[#d4af37]/70 rounded-full px-2.5 py-1">
+                            ✦ Upgrade to Pro
+                        </span>
+                    </div>
+                )}
             </div>
         </div>
     );
