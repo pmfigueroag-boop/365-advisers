@@ -1,6 +1,7 @@
 import json
 import time
 import asyncio
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,8 +9,32 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from graph import app_graph, sanitize_data, run_analysis_stream
 
-app = FastAPI(title="365 Advisers API")
+# ── Phase 2: Technical Engine
+from src.data.market_data import fetch_technical_data
+from src.engines.technical.indicators import IndicatorEngine
+from src.engines.technical.scoring import ScoringEngine
+from src.engines.technical.formatter import build_technical_summary
 
+# ── Phase 3: Fundamental Engine
+from src.engines.fundamental.graph import run_fundamental_stream
+
+# ── Phase 4: Database persistence
+from src.data.database import (
+    init_db,
+    FundamentalDBCache,
+    TechnicalDBCache,
+    get_score_history,
+)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Initialise the SQLite database on startup."""
+    init_db()
+    yield
+
+
+app = FastAPI(title="365 Advisers API", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],
@@ -98,6 +123,18 @@ class AnalysisCache:
 cache = AnalysisCache()
 
 
+# ── Technical Cache (Phase 2) ───────────────────────────────────────────
+
+tech_cache = TechnicalDBCache()
+
+
+# ── Fundamental Cache (Phase 4 — DB-backed, was in-memory Phase 3) ──────────
+fund_cache = FundamentalDBCache()
+
+
+
+
+
 # ─── SSE helpers ─────────────────────────────────────────────────────────────
 
 def sse(event: str, data: dict) -> str:
@@ -172,6 +209,163 @@ def read_root():
     return {"message": "365 Advisers API is running"}
 
 
+# ─── Technical Analysis Endpoint (Phase 2) ────────────────────────────────────
+
+@app.get("/analysis/technical")
+async def get_technical_analysis(ticker: str, force: bool = False):
+    """
+    Run the full Technical Engine for a given ticker.
+
+    Returns a TechnicalSummary with:
+      - 5 indicator module results (Trend, Momentum, Volatility, Volume, Structure)
+      - Deterministic 0–10 score per module + aggregate
+      - Signal (STRONG_BUY → STRONG_SELL) + Strength (Strong/Moderate/Weak)
+
+    Cache TTL: 15 minutes (indicators change intraday).
+    Use ?force=true to bypass cache.
+    """
+    if not ticker:
+        raise HTTPException(status_code=400, detail="ticker parameter is required")
+
+    symbol = ticker.upper().strip()
+
+    # Cache check
+    if not force:
+        cached = tech_cache.get(symbol)
+        if cached:
+            print(f"[TECH-CACHE] HIT for {symbol}")
+            return {**cached, "from_cache": True}
+
+    # Run the Technical Engine
+    import time as _time
+    start = _time.monotonic_ns() / 1e6
+
+    try:
+        tech_data   = fetch_technical_data(symbol)
+        indicators  = IndicatorEngine.compute(tech_data)
+        score       = ScoringEngine.compute(indicators)
+        summary     = build_technical_summary(
+            ticker=symbol,
+            tech_data=tech_data,
+            result=indicators,
+            score=score,
+            processing_start_ms=start,
+        )
+        summary["from_cache"] = False
+        tech_cache.set(symbol, summary)
+        return summary
+
+    except Exception as exc:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Technical analysis failed for {symbol}: {str(exc)}"
+        )
+
+
+@app.delete("/cache/technical/{ticker}")
+def invalidate_technical_cache(ticker: str):
+    """Invalidate the technical cache for a specific ticker."""
+    removed = tech_cache.invalidate(ticker)
+    return {"ticker": ticker.upper(), "invalidated": removed}
+
+
+# ─── Score History + Cache Status (Phase 4) ───────────────────────────────────
+
+@app.get("/score-history")
+def score_history(ticker: str, type: str = "fundamental", limit: int = 90):
+    """
+    Return the last N score records for a ticker.
+
+    type: 'fundamental' | 'technical'
+    limit: max rows (default 90)
+    """
+    if type not in ("fundamental", "technical"):
+        raise HTTPException(status_code=400, detail="type must be 'fundamental' or 'technical'")
+    data = get_score_history(ticker, type, min(limit, 365))
+    return {"ticker": ticker.upper(), "analysis_type": type, "history": data}
+
+
+@app.get("/cache/status")
+def cache_status():
+    """Return what's currently in both caches."""
+    return {
+        "fundamental": fund_cache.status(),
+        "technical":   tech_cache.status(),
+    }
+
+
+
+
+# ─── Fundamental Analysis Endpoint (Phase 3) ──────────────────────────────────
+
+@app.get("/analysis/fundamental/stream")
+async def fundamental_analysis_stream(ticker: str, force: bool = False):
+    """
+    SSE stream for the Fundamental Analysis Engine.
+
+    Events (in order):
+      data_ready       → ratios + company info (no LLM, fast)
+      agent_memo       × 4 → Value, Quality, Capital, Risk analysts
+      committee_verdict → 0-10 score + signal + narrative
+      research_memo    → full 1-pager markdown
+      done
+
+    Cache TTL: 24 hours (fundamental data is stable intraday).
+    Use ?force=true to bypass cache.
+    """
+    if not ticker:
+        raise HTTPException(status_code=400, detail="ticker parameter is required")
+
+    symbol = ticker.upper().strip()
+
+    # Serve from cache if available
+    if not force:
+        cached = fund_cache.get(symbol)
+        if cached:
+            print(f"[FUND-CACHE] HIT for {symbol}")
+            async def replay_cache():
+                for event_dict in cached["events"]:
+                    yield sse(event_dict["event"], event_dict["data"])
+                yield sse("done", {"from_cache": True})
+            return StreamingResponse(replay_cache(), media_type="text/event-stream",
+                                     headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+    # Stream live analysis
+    async def event_generator():
+        collected_events = []
+        try:
+            async for event_dict in run_fundamental_stream(symbol):
+                event_name = event_dict.get("event", "")
+                data = event_dict.get("data", {})
+                line = sse(event_name, data)
+                yield line
+                if event_name not in ("done", "error"):
+                    collected_events.append({"event": event_name, "data": data})
+            # Cache the full stream on success
+            if collected_events:
+                fund_cache.set(symbol, {"events": collected_events})
+        except Exception as exc:
+            import traceback
+            traceback.print_exc()
+            yield sse("error", {"message": str(exc)})
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+@app.delete("/cache/fundamental/{ticker}")
+def invalidate_fundamental_cache(ticker: str):
+    """Invalidate the fundamental cache for a specific ticker."""
+    removed = fund_cache.invalidate(ticker)
+    return {"ticker": ticker.upper(), "invalidated": removed}
+
+
+
 # ---- Quick Ticker Info ----
 @app.get("/ticker-info")
 async def ticker_info(ticker: str):
@@ -198,7 +392,99 @@ async def ticker_info(ticker: str):
         raise HTTPException(status_code=400, detail=f"Could not fetch ticker info: {e}")
 
 
+# ─── Combined Analysis Endpoint (Phase 5) ─────────────────────────────────────
+
+@app.get("/analysis/combined/stream")
+async def combined_analysis_stream(ticker: str, force: bool = False):
+    """
+    SSE stream that orchestrates both the Fundamental and Technical engines.
+
+    Event flow:
+      1. data_ready          → fundamental ratios (no LLM)
+      2. agent_memo × 4      → specialist analysts
+      3. committee_verdict   → 0-10 score + narrative
+      4. research_memo       → 1-pager markdown
+      5. technical_ready     → full TechnicalSummary JSON
+      6. done
+
+    Cache strategy:
+      - Fundamental: 24h DB cache
+      - Technical:   15min DB cache
+      Both engines use their own caches independently.
+    """
+    if not ticker:
+        raise HTTPException(status_code=400, detail="ticker parameter is required")
+
+    symbol = ticker.upper().strip()
+
+    async def event_generator():
+        fund_events: list[dict] = []
+        tech_data: dict | None = None
+        is_from_cache = False
+
+        # ── Part 1: Fundamental Engine ──────────────────────────────────────
+        cached_fund = fund_cache.get(symbol) if not force else None
+        if cached_fund:
+            print(f"[COMBINED] Fundamental HIT for {symbol}")
+            is_from_cache = True
+            for ev in cached_fund["events"]:
+                yield sse(ev["event"], ev["data"])
+                await asyncio.sleep(0.02)
+        else:
+            # Run live and capture events for caching
+            async for ev_dict in run_fundamental_stream(symbol):
+                event_name = ev_dict.get("event", "")
+                data = ev_dict.get("data", {})
+                if event_name not in ("done", "error"):
+                    yield sse(event_name, data)
+                    fund_events.append({"event": event_name, "data": data})
+                elif event_name == "error":
+                    yield sse("error", data)
+                    return
+            # Cache the fundamental result
+            if fund_events:
+                fund_cache.set(symbol, {"events": fund_events})
+
+        # ── Part 2: Technical Engine ────────────────────────────────────────
+        cached_tech = tech_cache.get(symbol) if not force else None
+        if cached_tech:
+            print(f"[COMBINED] Technical HIT for {symbol}")
+            tech_data = cached_tech
+        else:
+            import time as _time
+            start = _time.monotonic_ns() / 1e6
+            try:
+                from src.data.market_data import fetch_technical_data
+                from src.engines.technical.indicators import IndicatorEngine
+                from src.engines.technical.scoring import ScoringEngine
+                from src.engines.technical.formatter import build_technical_summary
+
+                raw = await asyncio.to_thread(fetch_technical_data, symbol)
+                indicators = await asyncio.to_thread(IndicatorEngine(raw).run)
+                scores = ScoringEngine(indicators).score()
+                elapsed = (_time.monotonic_ns() / 1e6) - start
+                tech_data = build_technical_summary(symbol, scores, indicators, elapsed_ms=elapsed)
+                tech_cache.set(symbol, tech_data)
+            except Exception as exc:
+                import traceback; traceback.print_exc()
+                # Non-fatal — emit error info but continue
+                yield sse("technical_ready", {"error": str(exc)})
+                yield sse("done", {"from_cache": is_from_cache})
+                return
+
+        yield sse("technical_ready", tech_data)
+        await asyncio.sleep(0)
+        yield sse("done", {"from_cache": is_from_cache})
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
 # ---- SSE Streaming Endpoint (cache-aware) ----
+
 @app.get("/analyze/stream")
 async def analyze_stream(ticker: str, force: bool = False):
     """

@@ -1,66 +1,21 @@
 import operator
-from typing import Annotated, List, TypedDict, Union, Dict, Any
+from typing import Annotated, List, TypedDict, Dict, Any
 import os
-import json
-import pandas as pd
 from dotenv import load_dotenv
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_community.tools.tavily_search import TavilySearchResults
 from langgraph.graph import StateGraph, END
-import yfinance as yf
-from tradingview_ta import TA_Handler, Interval, Exchange
+
+# ── New data layer (Phase 1 refactor) ────────────────────────────────────────
+from src.utils.helpers import sanitize_data, extract_json
+from src.data.market_data import fetch_financial_data  # legacy shim
 
 # Load environment variables
 load_dotenv()
 
-def sanitize_data(data):
-    """Recursively replace NaN and Infinity with None for JSON compliance."""
-    if isinstance(data, dict):
-        return {k: sanitize_data(v) for k, v in data.items()}
-    elif isinstance(data, (list, tuple, set)):
-        return [sanitize_data(x) for x in data]
-    elif isinstance(data, (float, int)):
-        import math
-        try:
-            if math.isnan(data) or math.isinf(data):
-                return None
-        except Exception:
-            return None
-    return data
-
-def extract_json(task_content: str):
-    """Extracts JSON block from a string that might contain markdown or extra text."""
-    if not task_content:
-        return None
-    try:
-        # 1. Try direct parsing
-        return json.loads(task_content)
-    except Exception:
-        pass
-        
-    try:
-        # 2. Try cleaning markdown blocks
-        if "```json" in task_content:
-            task_content = task_content.split("```json")[1].split("```")[0].strip()
-        elif "```" in task_content:
-            task_content = task_content.split("```")[1].split("```")[0].strip()
-            
-        # 3. Last resort: match first '{' and last '}'
-        start = task_content.find('{')
-        end = task_content.rfind('}')
-        if start != -1 and end != -1:
-            json_str = task_content[start:end+1]
-            # Remove any trailing commas that break strict JSON
-            import re
-            json_str = re.sub(r",\s*}", "}", json_str)
-            json_str = re.sub(r",\s*]", "]", json_str)
-            return json.loads(json_str)
-            
-        return None
-    except Exception as e:
-        print(f"Error extracting JSON: {e}")
-        return None
+# sanitize_data, extract_json, and fetch_financial_data are now imported
+# from src/utils/helpers.py and src/data/market_data.py (Phase 1 refactor).
 
 # Define the shared state
 class SharedState(TypedDict):

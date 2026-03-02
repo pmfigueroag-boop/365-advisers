@@ -17,3 +17,7 @@ node_modules/
 # OS
 .DS_Store
 Thumbs.db
+
+# SQLite DB
+*.db
+advisers.db

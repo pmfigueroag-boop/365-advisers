@@ -1,0 +1,362 @@
+"""
+src/data/database.py
+─────────────────────────────────────────────────────────────────────────────
+SQLite persistence layer using SQLAlchemy (sync engine for simplicity).
+
+Tables:
+  fundamental_analyses  — full snapshots, 24h cache backing
+  technical_analyses    — full snapshots, 15min cache backing
+  score_history         — time-series of scores for charts
+
+The DB-backed cache classes (FundamentalDBCache, TechnicalDBCache) expose
+the same .get()/.set()/.invalidate() interface as the in-memory caches,
+making them drop-in replacements in main.py.
+"""
+
+from __future__ import annotations
+
+import json
+import time
+from datetime import datetime, timezone
+from pathlib import Path
+
+from sqlalchemy import (
+    Column, Integer, Float, String, Text, DateTime, create_engine, text
+)
+from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
+
+
+# ─── Database setup ───────────────────────────────────────────────────────────
+
+DB_PATH = Path(__file__).parent.parent.parent / "advisers.db"
+ENGINE = create_engine(f"sqlite:///{DB_PATH}", echo=False, connect_args={"check_same_thread": False})
+SessionLocal = sessionmaker(bind=ENGINE, autoflush=False, autocommit=False)
+
+
+class Base(DeclarativeBase):
+    pass
+
+
+# ─── Models ───────────────────────────────────────────────────────────────────
+
+class FundamentalAnalysis(Base):
+    __tablename__ = "fundamental_analyses"
+
+    id              = Column(Integer, primary_key=True, autoincrement=True)
+    ticker          = Column(String(16), nullable=False, index=True)
+    analyzed_at     = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    signal          = Column(String(10))            # BUY | SELL | HOLD
+    score           = Column(Float)                 # 0–10
+    confidence      = Column(Float)
+    risk_adj_score  = Column(Float)
+    allocation      = Column(String(30))
+    committee_json  = Column(Text)                  # CommitteeOutput dict
+    agent_memos_json= Column(Text)                  # list of AgentMemo
+    ratios_json     = Column(Text)                  # fundamental ratios snapshot
+    research_memo   = Column(Text)                  # 1-pager markdown
+    expires_at      = Column(Float)                 # Unix timestamp
+
+
+class TechnicalAnalysis(Base):
+    __tablename__ = "technical_analyses"
+
+    id              = Column(Integer, primary_key=True, autoincrement=True)
+    ticker          = Column(String(16), nullable=False, index=True)
+    interval        = Column(String(8), default="1D")
+    analyzed_at     = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    signal          = Column(String(20))            # STRONG_BUY … STRONG_SELL
+    technical_score = Column(Float)
+    trend_status    = Column(String(20))
+    momentum_status = Column(String(20))
+    signal_strength = Column(String(10))
+    summary_json    = Column(Text)                  # full TechnicalSummary
+    indicators_json = Column(Text)                  # raw indicator snapshot
+    expires_at      = Column(Float)
+
+
+class ScoreHistory(Base):
+    __tablename__ = "score_history"
+
+    id              = Column(Integer, primary_key=True, autoincrement=True)
+    ticker          = Column(String(16), nullable=False, index=True)
+    analysis_type   = Column(String(15), nullable=False)  # fundamental | technical
+    recorded_at     = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    score           = Column(Float)
+    signal          = Column(String(20))
+
+
+# ─── Create tables ────────────────────────────────────────────────────────────
+
+def init_db():
+    """Call once at startup to create all tables if they don't exist."""
+    Base.metadata.create_all(ENGINE)
+    # Add index for fast ticker+date queries
+    with ENGINE.connect() as conn:
+        conn.execute(text(
+            "CREATE INDEX IF NOT EXISTS idx_fund_ticker_date "
+            "ON fundamental_analyses(ticker, analyzed_at DESC)"
+        ))
+        conn.execute(text(
+            "CREATE INDEX IF NOT EXISTS idx_tech_ticker_date "
+            "ON technical_analyses(ticker, interval, analyzed_at DESC)"
+        ))
+        conn.execute(text(
+            "CREATE INDEX IF NOT EXISTS idx_score_history "
+            "ON score_history(ticker, analysis_type, recorded_at DESC)"
+        ))
+        conn.commit()
+    print(f"[DB] Database initialised at {DB_PATH}")
+
+
+# ─── DB-backed Fundamental Cache ──────────────────────────────────────────────
+
+class FundamentalDBCache:
+    """
+    Drop-in replacement for the in-memory FundamentalCache.
+    Persists results to SQLite so they survive server restarts.
+    TTL: 24 hours
+    """
+    TTL = 86_400  # seconds
+
+    def get(self, ticker: str) -> dict | None:
+        symbol = ticker.upper()
+        now = time.time()
+        with SessionLocal() as db:
+            row = (
+                db.query(FundamentalAnalysis)
+                .filter(
+                    FundamentalAnalysis.ticker == symbol,
+                    FundamentalAnalysis.expires_at > now,
+                )
+                .order_by(FundamentalAnalysis.analyzed_at.desc())
+                .first()
+            )
+            if not row:
+                return None
+            print(f"[FUND-DB-CACHE] HIT for {symbol}")
+            return self._row_to_events(row)
+
+    def set(self, ticker: str, data: dict):
+        """data = {events: [...]} — the same format as in-memory cache."""
+        symbol = ticker.upper()
+        events = data.get("events", [])
+        expires = time.time() + self.TTL
+
+        # Extract key fields from events for indexed columns
+        committee = next(
+            (e["data"] for e in events if e["event"] == "committee_verdict"), {}
+        )
+        data_ready = next(
+            (e["data"] for e in events if e["event"] == "data_ready"), {}
+        )
+        agent_memos = [e["data"] for e in events if e["event"] == "agent_memo"]
+        research = next(
+            (e["data"].get("memo", "") for e in events if e["event"] == "research_memo"), ""
+        )
+
+        row = FundamentalAnalysis(
+            ticker=symbol,
+            signal=committee.get("signal"),
+            score=committee.get("score"),
+            confidence=committee.get("confidence"),
+            risk_adj_score=committee.get("risk_adjusted_score"),
+            allocation=committee.get("allocation_recommendation"),
+            committee_json=json.dumps(committee),
+            agent_memos_json=json.dumps(agent_memos),
+            ratios_json=json.dumps(data_ready.get("ratios", {})),
+            research_memo=research,
+            expires_at=expires,
+        )
+
+        with SessionLocal() as db:
+            db.add(row)
+            db.commit()
+            # Append to score history
+            if committee.get("score") is not None:
+                db.add(ScoreHistory(
+                    ticker=symbol,
+                    analysis_type="fundamental",
+                    score=committee["score"],
+                    signal=committee.get("signal"),
+                ))
+                db.commit()
+
+        print(f"[FUND-DB-CACHE] Stored {symbol} (TTL {self.TTL}s, expires {datetime.fromtimestamp(expires).isoformat()})")
+
+    def invalidate(self, ticker: str) -> bool:
+        symbol = ticker.upper()
+        with SessionLocal() as db:
+            deleted = (
+                db.query(FundamentalAnalysis)
+                .filter(FundamentalAnalysis.ticker == symbol)
+                .delete()
+            )
+            db.commit()
+        return deleted > 0
+
+    def status(self) -> list[dict]:
+        now = time.time()
+        with SessionLocal() as db:
+            rows = (
+                db.query(FundamentalAnalysis)
+                .filter(FundamentalAnalysis.expires_at > now)
+                .all()
+            )
+            return [
+                {
+                    "ticker": r.ticker,
+                    "signal": r.signal,
+                    "score": r.score,
+                    "age_s": round(now - r.analyzed_at.timestamp()) if r.analyzed_at else None,
+                    "expires_in_s": round(r.expires_at - now),
+                }
+                for r in rows
+            ]
+
+    @staticmethod
+    def _row_to_events(row: FundamentalAnalysis) -> dict:
+        """Reconstruct the events list from a DB row."""
+        events = []
+        try:
+            ratios = json.loads(row.ratios_json or "{}")
+            events.append({"event": "data_ready", "data": {"ticker": row.ticker, "ratios": ratios}})
+        except Exception:
+            pass
+
+        try:
+            memos = json.loads(row.agent_memos_json or "[]")
+            for m in memos:
+                events.append({"event": "agent_memo", "data": m})
+        except Exception:
+            pass
+
+        try:
+            committee = json.loads(row.committee_json or "{}")
+            events.append({"event": "committee_verdict", "data": committee})
+        except Exception:
+            pass
+
+        if row.research_memo:
+            events.append({"event": "research_memo", "data": {"memo": row.research_memo}})
+
+        return {"events": events}
+
+
+# ─── DB-backed Technical Cache ────────────────────────────────────────────────
+
+class TechnicalDBCache:
+    """
+    Drop-in replacement for in-memory TechnicalCache.
+    TTL: 15 minutes
+    """
+    TTL = 900  # seconds
+
+    def get(self, ticker: str) -> dict | None:
+        symbol = ticker.upper()
+        now = time.time()
+        with SessionLocal() as db:
+            row = (
+                db.query(TechnicalAnalysis)
+                .filter(
+                    TechnicalAnalysis.ticker == symbol,
+                    TechnicalAnalysis.expires_at > now,
+                )
+                .order_by(TechnicalAnalysis.analyzed_at.desc())
+                .first()
+            )
+            if not row:
+                return None
+            print(f"[TECH-DB-CACHE] HIT for {symbol}")
+            try:
+                return json.loads(row.summary_json or "{}")
+            except Exception:
+                return None
+
+    def set(self, ticker: str, data: dict):
+        symbol = ticker.upper()
+        expires = time.time() + self.TTL
+        summary = data.get("summary", {})
+
+        row = TechnicalAnalysis(
+            ticker=symbol,
+            signal=summary.get("signal"),
+            technical_score=summary.get("technical_score"),
+            trend_status=summary.get("trend_status"),
+            momentum_status=summary.get("momentum_status"),
+            signal_strength=summary.get("signal_strength"),
+            summary_json=json.dumps(data),
+            indicators_json=json.dumps(data.get("indicators", {})),
+            expires_at=expires,
+        )
+
+        with SessionLocal() as db:
+            db.add(row)
+            db.commit()
+            # Append to score history
+            score = summary.get("technical_score")
+            if score is not None:
+                db.add(ScoreHistory(
+                    ticker=symbol,
+                    analysis_type="technical",
+                    score=score,
+                    signal=summary.get("signal"),
+                ))
+                db.commit()
+
+        print(f"[TECH-DB-CACHE] Stored {symbol} (TTL {self.TTL}s)")
+
+    def invalidate(self, ticker: str) -> bool:
+        symbol = ticker.upper()
+        with SessionLocal() as db:
+            deleted = (
+                db.query(TechnicalAnalysis)
+                .filter(TechnicalAnalysis.ticker == symbol)
+                .delete()
+            )
+            db.commit()
+        return deleted > 0
+
+    def status(self) -> list[dict]:
+        now = time.time()
+        with SessionLocal() as db:
+            rows = (
+                db.query(TechnicalAnalysis)
+                .filter(TechnicalAnalysis.expires_at > now)
+                .all()
+            )
+            return [
+                {
+                    "ticker": r.ticker,
+                    "signal": r.signal,
+                    "score": r.technical_score,
+                    "age_s": round(now - r.analyzed_at.timestamp()) if r.analyzed_at else None,
+                    "expires_in_s": round(r.expires_at - now),
+                }
+                for r in rows
+            ]
+
+
+# ─── Score History Queries ────────────────────────────────────────────────────
+
+def get_score_history(ticker: str, analysis_type: str, limit: int = 90) -> list[dict]:
+    """Return the last N score records for a ticker + analysis type."""
+    symbol = ticker.upper()
+    with SessionLocal() as db:
+        rows = (
+            db.query(ScoreHistory)
+            .filter(
+                ScoreHistory.ticker == symbol,
+                ScoreHistory.analysis_type == analysis_type,
+            )
+            .order_by(ScoreHistory.recorded_at.desc())
+            .limit(limit)
+            .all()
+        )
+        return [
+            {
+                "recorded_at": row.recorded_at.isoformat() if row.recorded_at else None,
+                "score": row.score,
+                "signal": row.signal,
+            }
+            for row in reversed(rows)
+        ]

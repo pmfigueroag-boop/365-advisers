@@ -24,9 +24,8 @@ import {
   GitCompare,
   Download,
   History,
+  LineChart,
 } from "lucide-react";
-
-
 
 import { useAnalysisStream, AgentSignal } from "@/hooks/useAnalysisStream";
 import { useWatchlist, WatchlistItem } from "@/hooks/useWatchlist";
@@ -34,6 +33,12 @@ import CompareView, { CompareState } from "@/components/CompareView";
 import ReportHeader from "@/components/ReportHeader";
 import HistoryPanel from "@/components/HistoryPanel";
 import { useAnalysisHistory } from "@/hooks/useAnalysisHistory";
+import { useTechnicalAnalysis } from "@/hooks/useTechnicalAnalysis";
+import IndicatorGrid from "@/components/IndicatorGrid";
+import { useFundamentalStream } from "@/hooks/useFundamentalStream";
+import ResearchMemoCard from "@/components/ResearchMemoCard";
+import { useCombinedStream } from "@/hooks/useCombinedStream";
+import CombinedDashboard from "@/components/CombinedDashboard";
 
 
 
@@ -311,6 +316,9 @@ export default function Home() {
   const [ticker, setTicker] = useState("");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
+  // Main analysis tab: "fundamental" | "technical" | "combined"
+  const [mainTab, setMainTab] = useState<"fundamental" | "technical" | "combined">("fundamental");
+
   // Compare mode state
   const [compareMode, setCompareMode] = useState(false);
   const [compareInput, setCompareInput] = useState("");
@@ -319,6 +327,9 @@ export default function Home() {
   const [sidebarTab, setSidebarTab] = useState<"watchlist" | "history">("watchlist");
 
   const { state, analyze, forceRefresh, TOTAL_AGENTS } = useAnalysisStream();
+  const technical = useTechnicalAnalysis();
+  const fundamental = useFundamentalStream();
+  const combined = useCombinedStream();
   const watchlist = useWatchlist();
   const history = useAnalysisHistory();
 
@@ -360,8 +371,12 @@ export default function Home() {
     const t = symbol ?? ticker;
     if (!t.trim()) return;
     if (!symbol) setTicker(t);
-    if (compareMode) setCompareMode(false); // switch to single mode
+    if (compareMode) setCompareMode(false);
     analyze(t);
+    // Kick off technical, fundamental, and combined engines in parallel
+    technical.analyze(t);
+    fundamental.analyze(t);
+    combined.analyze(t);
   };
 
   const handleRunComparison = async () => {
@@ -429,8 +444,8 @@ export default function Home() {
                   <button
                     onClick={() => setSidebarTab("watchlist")}
                     className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[9px] font-black uppercase tracking-widest transition-colors border-b-2 ${sidebarTab === "watchlist"
-                        ? "border-[#d4af37] text-[#d4af37]"
-                        : "border-transparent text-gray-600 hover:text-gray-400"
+                      ? "border-[#d4af37] text-[#d4af37]"
+                      : "border-transparent text-gray-600 hover:text-gray-400"
                       }`}
                   >
                     <BookMarked size={10} />
@@ -444,8 +459,8 @@ export default function Home() {
                   <button
                     onClick={() => setSidebarTab("history")}
                     className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[9px] font-black uppercase tracking-widest transition-colors border-b-2 ${sidebarTab === "history"
-                        ? "border-[#d4af37] text-[#d4af37]"
-                        : "border-transparent text-gray-600 hover:text-gray-400"
+                      ? "border-[#d4af37] text-[#d4af37]"
+                      : "border-transparent text-gray-600 hover:text-gray-400"
                       }`}
                   >
                     <History size={10} />
@@ -475,7 +490,6 @@ export default function Home() {
                       onSelect={handleWatchlistSelect}
                       onRemove={watchlist.remove}
                       activeTicker={dataReady?.ticker}
-                      hideSidebarShell
                     />
                   ) : (
                     <HistoryPanel
@@ -623,6 +637,59 @@ export default function Home() {
             <CompareView state={compareState} />
           )}
 
+          {/* ── Analysis Mode Tab Bar ── */}
+          {!compareMode && (status !== "idle" || technical.state.status !== "idle") && (
+            <div className="flex gap-1 p-1 glass-card border-[#30363d] rounded-xl w-fit">
+              <button
+                onClick={() => setMainTab("fundamental")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${mainTab === "fundamental"
+                  ? "bg-[#d4af37] text-black"
+                  : "text-gray-500 hover:text-[#d4af37]"
+                  }`}
+              >
+                <ShieldCheck size={12} />
+                Fundamental
+              </button>
+              <button
+                onClick={() => setMainTab("technical")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${mainTab === "technical"
+                  ? "bg-[#d4af37] text-black"
+                  : "text-gray-500 hover:text-[#d4af37]"
+                  }`}
+              >
+                <LineChart size={12} />
+                Technical
+                {technical.state.status === "loading" && (
+                  <Loader2 size={10} className="animate-spin" />
+                )}
+                {technical.state.status === "done" && (
+                  <span className="bg-[#d4af37]/20 text-[#d4af37] rounded px-1 text-[8px] font-mono">
+                    {technical.state.data?.summary.technical_score.toFixed(1)}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => setMainTab("combined")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${mainTab === "combined"
+                  ? "bg-[#d4af37] text-black"
+                  : "text-gray-500 hover:text-[#d4af37]"
+                  }`}
+              >
+                <Zap size={12} />
+                Combined
+                {(combined.state.status === "fetching_data" || combined.state.status === "fundamental" || combined.state.status === "technical") && (
+                  <Loader2 size={10} className="animate-spin" />
+                )}
+                {combined.state.status === "complete" && combined.state.committee && (
+                  <span className="bg-[#d4af37]/20 text-[#d4af37] rounded px-1 text-[8px] font-mono">
+                    {(((combined.state.committee.score ?? 0) + (combined.state.technical?.summary?.technical_score ?? 0)) / 2).toFixed(1)}
+                  </span>
+                )}
+              </button>
+            </div>
+          )}
+
+
           {/* ── Print-only Report Header (hidden on screen) ── */}
           {dataReady && (
             <ReportHeader
@@ -672,10 +739,25 @@ export default function Home() {
             </div>
           )}
 
-          {/* ── Live Dashboard ── */}
-          {(status === "analyzing" || status === "complete") && dataReady && (
+          {/* ── Live Dashboard (Fundamental tab) ── */}
+          {mainTab === "fundamental" && (status === "analyzing" || status === "complete") && dataReady && (
             <div className="space-y-6">
               <ProgressBar completed={agentCount} total={TOTAL_AGENTS} status={status} />
+
+              {/* New: Research Memo (Phase 3 Fundamental Engine) */}
+              {(fundamental.state.status === "analyzing" ||
+                fundamental.state.status === "complete" ||
+                fundamental.state.dataReady) && (
+                  <ResearchMemoCard
+                    dataReady={fundamental.state.dataReady}
+                    agentMemos={fundamental.state.agentMemos}
+                    committee={fundamental.state.committee}
+                    researchMemo={fundamental.state.researchMemo}
+                    agentCount={fundamental.state.agentMemos.length}
+                    totalAgents={4}
+                    status={fundamental.state.status}
+                  />
+                )}
 
               {/* Charts & Verdict */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -759,7 +841,97 @@ export default function Home() {
               </div>
             </div>
           )}
+
+          {/* ── Technical Dashboard ── */}
+          {mainTab === "technical" && (
+            <div style={{ animation: "fadeSlideIn 0.3s ease both" }}>
+              {/* Loading */}
+              {technical.state.status === "loading" && (
+                <div className="flex flex-col items-center justify-center py-24">
+                  <div className="relative mb-6">
+                    <div className="w-16 h-16 border-4 border-[#d4af37]/20 border-t-[#d4af37] rounded-full animate-spin" />
+                    <Activity className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[#d4af37]" size={20} />
+                  </div>
+                  <p className="text-[#d4af37] font-bold tracking-widest text-sm uppercase animate-pulse">
+                    Computing Indicators...
+                  </p>
+                  <p className="text-gray-600 text-xs mt-2">RSI · MACD · Bollinger · ATR · OBV</p>
+                </div>
+              )}
+
+              {/* Error */}
+              {technical.state.status === "error" && (
+                <div className="flex flex-col items-center justify-center py-20">
+                  <AlertCircle size={36} className="text-red-500 mb-3" />
+                  <p className="text-red-400 font-mono text-sm">{technical.state.error}</p>
+                  <button
+                    onClick={() => technical.forceRefresh(state.ticker ?? "")}
+                    className="mt-4 text-xs text-gray-500 hover:text-[#d4af37] flex items-center gap-1 transition-colors"
+                  >
+                    <RefreshCw size={11} /> Retry
+                  </button>
+                </div>
+              )}
+
+              {/* Result */}
+              {technical.state.status === "done" && technical.state.data && (
+                <IndicatorGrid data={technical.state.data} />
+              )}
+
+              {/* Prompt to analyze first */}
+              {technical.state.status === "idle" && (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                  <div className="w-16 h-16 bg-[#161b22] rounded-3xl flex items-center justify-center mb-4 border border-[#30363d]">
+                    <LineChart size={28} className="text-[#d4af37]/30" />
+                  </div>
+                  <p className="text-gray-600 text-sm">Enter a ticker to activate the Technical Engine.</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── Combined Dashboard (Phase 5) ── */}
+          {mainTab === "combined" && (
+            <div style={{ animation: "fadeSlideIn 0.3s ease both" }}>
+              {combined.state.status === "idle" && (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                  <div className="w-16 h-16 bg-[#161b22] rounded-3xl flex items-center justify-center mb-4 border border-[#30363d]">
+                    <Zap size={28} className="text-[#d4af37]/30" />
+                  </div>
+                  <p className="text-gray-600 text-sm">Enter a ticker to activate the Combined Engine.</p>
+                  <p className="text-gray-700 text-xs mt-1">Runs Fundamental + Technical simultaneously.</p>
+                </div>
+              )}
+
+              {combined.state.status === "error" && (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                  <AlertCircle size={36} className="text-red-500 mb-3" />
+                  <p className="text-red-400 font-mono text-sm">{combined.state.error}</p>
+                  <button
+                    onClick={() => combined.forceRefresh(state.ticker ?? ticker)}
+                    className="mt-4 text-xs text-gray-500 hover:text-[#d4af37] flex items-center gap-1 transition-colors"
+                  >
+                    <RefreshCw size={11} /> Retry
+                  </button>
+                </div>
+              )}
+
+              {combined.state.status !== "idle" && combined.state.status !== "error" && (
+                <CombinedDashboard
+                  state={combined.state}
+                  onForceRefresh={() => {
+                    const sym = state.ticker ?? ticker;
+                    if (!sym) return;
+                    combined.forceRefresh(sym);
+                    fundamental.forceRefresh(sym);
+                    technical.forceRefresh(sym);
+                  }}
+                />
+              )}
+            </div>
+          )}
         </main>
+
       </div>
     </>
   );
