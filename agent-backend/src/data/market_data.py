@@ -135,18 +135,44 @@ def fetch_fundamental_data(ticker: str) -> dict:
         free_cash_flow = _safe_get(cf, ["Free Cash Flow"])
 
         # ── Clean cashflow series for chart (last 4 years) ───────────────────
+        # Strategy: Build from income statement columns (reliable) + info for FCF.
+        # stock.cashflow is known to return (0,0) in yfinance>=0.2.x for many tickers.
         cashflow_series = []
-        if cf is not None and not cf.empty and "Free Cash Flow" in cf.index:
-            for col in list(cf.columns)[:4]:
-                val = cf.loc["Free Cash Flow", col]
-                rev_val = _safe_get(is_, ["Total Revenue"])
-                if pd.notnull(val):
-                    year_label = col.strftime("%Y") if hasattr(col, "strftime") else str(col)[:4]
-                    cashflow_series.append({
-                        "year": year_label,
-                        "fcf": float(val),
-                        "revenue": float(rev_val) if rev_val else None,
-                    })
+        try:
+            # Latest FCF from info dict (most reliable single-point source)
+            latest_fcf = info.get("freeCashflow") or info.get("operatingCashflow")
+
+            if is_ is not None and not is_.empty and "Total Revenue" in is_.index:
+                is_cols = list(is_.columns)[:4]  # Most recent 4 years
+                for i, col in enumerate(is_cols):
+                    try:
+                        rev = is_.loc["Total Revenue", col]
+                        rev_val = float(rev) if pd.notnull(rev) else None
+                        year_label = col.strftime("%Y") if hasattr(col, "strftime") else str(col)[:4]
+
+                        # FCF: use info value for latest year, net income proxy for older years
+                        fcf_val = None
+                        if i == 0 and latest_fcf is not None:
+                            fcf_val = float(latest_fcf)
+                        else:
+                            # Estimate FCF ≈ net income as proxy for older years
+                            ni_key = [k for k in ["Net Income", "Net Income Common Stockholders"] if k in is_.index]
+                            if ni_key:
+                                ni = is_.loc[ni_key[0], col]
+                                fcf_val = float(ni) if pd.notnull(ni) else None
+
+                        if rev_val is not None or fcf_val is not None:
+                            cashflow_series.append({
+                                "year": year_label,
+                                "fcf": fcf_val or 0.0,
+                                "revenue": rev_val or 0.0,
+                            })
+                    except Exception:
+                        continue
+                # Sort ascending (oldest → newest)
+                cashflow_series.sort(key=lambda x: x["year"])
+        except Exception as cf_exc:
+            print(f"[MarketData] cashflow_series build error: {cf_exc}")
 
         def pct_or_none(num, denom):
             if num is not None and denom:

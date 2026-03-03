@@ -943,75 +943,88 @@ export default function Home() {
                 </button>
                 {chartsOpen && (
                   <div className="px-4 pb-4 pt-1 border-t border-[#30363d]/40 space-y-4">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                      <section className="lg:col-span-2 glass-card p-6 border-[#30363d]">
-                        <div className="flex justify-between items-center mb-4">
-                          <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400">Advanced TradingView Chart</h3>
-                          <span className="text-xs text-[#d4af37] font-mono">{dataReady.ticker} | Real-Time</span>
-                        </div>
-                        <TradingViewChart symbol={dataReady.ticker} />
-                      </section>
 
-                      <section className="glass-card p-6 border-[#d4af37]/30 bg-[#d4af37]/5 flex flex-col">
-                        <div className="flex items-center gap-2 mb-4 text-[#d4af37]">
-                          <ShieldCheck size={18} />
-                          <h2 className="text-sm uppercase tracking-[0.2em] font-black">Veredicto Dalio</h2>
+                    {/* 1 — TradingView Chart — full width */}
+                    <section className="glass-card p-6 border-[#30363d]">
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400">Advanced TradingView Chart</h3>
+                        <span className="text-xs text-[#d4af37] font-mono">{dataReady.ticker} | Real-Time</span>
+                      </div>
+                      <TradingViewChart symbol={dataReady.ticker} />
+                    </section>
+
+                    {/* 2 — Dalio Synthesis — full width */}
+                    <section className="glass-card p-6 border-[#d4af37]/30 bg-[#d4af37]/5">
+                      <div className="flex items-center gap-2 mb-4 text-[#d4af37]">
+                        <ShieldCheck size={18} />
+                        <h2 className="text-sm uppercase tracking-[0.2em] font-black">Veredicto Dalio</h2>
+                      </div>
+                      {dalio ? (
+                        <div>
+                          <p className="text-lg leading-relaxed font-black gold-gradient italic mb-4" style={{ animation: "fadeSlideIn 0.5s ease both" }}>
+                            "{dalio.final_verdict}"
+                          </p>
+                          {dalio.dalio_response?.summary_table && (
+                            <div className="prose prose-invert prose-xs max-w-none bg-black/20 p-4 rounded-lg">
+                              <div dangerouslySetInnerHTML={{ __html: dalio.dalio_response.summary_table.replace(/\n/g, "<br/>") }} />
+                            </div>
+                          )}
                         </div>
-                        {dalio ? (
-                          <div className="flex-1 overflow-y-auto custom-scrollbar">
-                            <p className="text-lg leading-relaxed font-black gold-gradient italic mb-4" style={{ animation: "fadeSlideIn 0.5s ease both" }}>
-                              "{dalio.final_verdict}"
-                            </p>
-                            {dalio.dalio_response?.summary_table && (
-                              <div className="prose prose-invert prose-xs max-w-none bg-black/20 p-4 rounded-lg">
-                                <div dangerouslySetInnerHTML={{ __html: dalio.dalio_response.summary_table.replace(/\n/g, "<br/>") }} />
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="flex-1 flex flex-col items-center justify-center gap-3 opacity-40">
-                            <Loader2 size={24} className="text-[#d4af37] animate-spin" />
-                            <span className="text-xs text-gray-500 uppercase tracking-widest text-center">Waiting for all 8 minds...</span>
-                          </div>
-                        )}
-                        <div className="mt-4 pt-4 border-t border-[#d4af37]/20 flex justify-between items-center">
-                          <span className="text-xs text-gray-500 uppercase">Decision Orchestrator</span>
-                          <span className="text-[#d4af37] font-mono text-sm">Gemini 2.5 Pro</span>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-8 gap-3 opacity-40">
+                          <Loader2 size={24} className="text-[#d4af37] animate-spin" />
+                          <span className="text-xs text-gray-500 uppercase tracking-widest text-center">Awaiting committee consensus...</span>
                         </div>
-                      </section>
-                    </div>
+                      )}
+                      <div className="mt-4 pt-4 border-t border-[#d4af37]/20 flex justify-between items-center">
+                        <span className="text-xs text-gray-500 uppercase">Decision Orchestrator</span>
+                        <span className="text-[#d4af37] font-mono text-sm">Gemini 2.5 Pro</span>
+                      </div>
+                    </section>
+
+                    {/* 3 — Flujo de Caja vs Ingresos — full width */}
+                    {(() => {
+                      const cashflowData = fundamental.state.dataReady?.cashflow_series ?? [];
+                      return cashflowData.length > 0 ? (
+                        <section className="glass-card p-5 border-[#30363d]">
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-2">
+                              <BarChart3 size={14} className="text-[#d4af37]" />
+                              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Flujo de Caja vs Ingresos</h3>
+                            </div>
+                            <span className="text-[9px] font-mono text-gray-700 uppercase tracking-widest">
+                              {cashflowData.length} años · Yahoo Finance
+                            </span>
+                          </div>
+                          <CashFlowChart data={cashflowData as { year: string; fcf: number; revenue: number }[]} />
+                        </section>
+                      ) : null;
+                    })()}
+
+                    {/* 4 — TV Validation — full width */}
+                    <section className="glass-card border-[#30363d] overflow-hidden">
+                      <div className="flex items-center gap-2 px-5 py-3.5 border-b border-[#30363d]/60">
+                        <TrendingUp size={14} className="text-[#d4af37]" />
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">TV Validation</h3>
+                        <span className="ml-auto text-[9px] font-mono text-[#d4af37]/60">{dataReady.ticker} · Technical</span>
+                      </div>
+                      <div className="p-5">
+                        <TradingViewTechnicalWidget symbol={dataReady.ticker} />
+                      </div>
+                    </section>
+
                   </div>
                 )}
               </div>
 
-              {/* Fundamental Engine & TV Technical */}
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                <div className="lg:col-span-3 space-y-4">
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck size={16} className="text-[#d4af37]" />
-                    <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400">Motor Fundamental Determinístico</h3>
-                  </div>
-                  <FundamentalTable engine={dataReady.fundamental_metrics} />
+              {/* Fundamental Engine — full width */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck size={16} className="text-[#d4af37]" />
+                  <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400">Motor Fundamental Determinístico</h3>
                 </div>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp size={16} className="text-[#d4af37]" />
-                    <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400">TV Validation</h3>
-                  </div>
-                  <div className="glass-card p-6 border-[#30363d] bg-[#0d1117]/40">
-                    <TradingViewTechnicalWidget symbol={dataReady.ticker} />
-                  </div>
-                </div>
+                <FundamentalTable engine={dataReady.fundamental_metrics} />
               </div>
-
-              {/* Cash Flow */}
-              <section className="glass-card p-6 border-[#30363d]">
-                <div className="flex items-center gap-2 mb-4">
-                  <BarChart3 size={16} className="text-[#d4af37]" />
-                  <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400">Flujo de Caja vs Ingresos</h3>
-                </div>
-                <CashFlowChart data={[]} />
-              </section>
 
               {/* 8-Agent Legacy Grid — collapsible, hidden by default */}
               <div className="border border-[#30363d]/60 rounded-xl overflow-hidden">
@@ -1204,48 +1217,51 @@ export default function Home() {
               )}
             </div>
           )}
-        </main>
+        </main >
 
-      </div>
+      </div >
 
       {/* ── Help Panel ── */}
-      <HelpPanel open={helpOpen} onClose={() => setHelpOpen(false)} />
+      < HelpPanel open={helpOpen} onClose={() => setHelpOpen(false)
+      } />
 
       {/* ── Pro Gate Modal (M16) ── */}
-      {showProGate && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-          style={{ backgroundColor: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)" }}
-          onClick={() => setShowProGate(false)}
-        >
+      {
+        showProGate && (
           <div
-            className="relative bg-[#0d1117] border border-[#d4af37]/30 rounded-2xl p-8 max-w-sm w-full shadow-2xl text-center"
-            style={{ animation: "verdictReveal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both" }}
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+            style={{ backgroundColor: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)" }}
+            onClick={() => setShowProGate(false)}
           >
-            <button onClick={() => setShowProGate(false)} className="absolute top-4 right-4 text-gray-600 hover:text-gray-400 transition-colors">
-              <X size={14} />
-            </button>
-            <div className="w-12 h-12 bg-[#d4af37]/10 border border-[#d4af37]/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Download size={20} className="text-[#d4af37]" />
-            </div>
-            <span className="inline-block text-[7px] font-black uppercase tracking-widest bg-[#d4af37]/10 border border-[#d4af37]/25 text-[#d4af37]/80 rounded-full px-2.5 py-1 mb-3">
-              ✦ Pro Feature
-            </span>
-            <h2 className="text-base font-black text-white mb-2">Export Institutional Report</h2>
-            <p className="text-[11px] text-gray-500 leading-relaxed mb-5">
-              Download a full-format PDF with the Committee Verdict, analyst memos, technical analysis, and key catalysts — branded for institutional distribution.
-            </p>
-            <button
-              onClick={() => { setShowProGate(false); window.print(); }}
-              className="w-full bg-[#d4af37] text-black font-black text-sm py-2.5 rounded-xl hover:bg-[#f9e29c] transition-all mb-2"
+            <div
+              className="relative bg-[#0d1117] border border-[#d4af37]/30 rounded-2xl p-8 max-w-sm w-full shadow-2xl text-center"
+              style={{ animation: "verdictReveal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both" }}
+              onClick={(e) => e.stopPropagation()}
             >
-              Continue with Print Preview
-            </button>
-            <p className="text-[8px] text-gray-700">Full PDF export available in Pro · Coming soon</p>
+              <button onClick={() => setShowProGate(false)} className="absolute top-4 right-4 text-gray-600 hover:text-gray-400 transition-colors">
+                <X size={14} />
+              </button>
+              <div className="w-12 h-12 bg-[#d4af37]/10 border border-[#d4af37]/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Download size={20} className="text-[#d4af37]" />
+              </div>
+              <span className="inline-block text-[7px] font-black uppercase tracking-widest bg-[#d4af37]/10 border border-[#d4af37]/25 text-[#d4af37]/80 rounded-full px-2.5 py-1 mb-3">
+                ✦ Pro Feature
+              </span>
+              <h2 className="text-base font-black text-white mb-2">Export Institutional Report</h2>
+              <p className="text-[11px] text-gray-500 leading-relaxed mb-5">
+                Download a full-format PDF with the Committee Verdict, analyst memos, technical analysis, and key catalysts — branded for institutional distribution.
+              </p>
+              <button
+                onClick={() => { setShowProGate(false); window.print(); }}
+                className="w-full bg-[#d4af37] text-black font-black text-sm py-2.5 rounded-xl hover:bg-[#f9e29c] transition-all mb-2"
+              >
+                Continue with Print Preview
+              </button>
+              <p className="text-[8px] text-gray-700">Full PDF export available in Pro · Coming soon</p>
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* ── Onboarding Overlay (M17) — first visit only ── */}
       {showOnboarding && <OnboardingOverlay onDone={dismissOnboarding} />}

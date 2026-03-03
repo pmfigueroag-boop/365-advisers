@@ -331,14 +331,42 @@ export default function ResearchMemoCard({
                             onClick={() => setMemoExpanded((e) => !e)}
                             className="text-[8px] font-bold text-gray-600 hover:text-[#d4af37] flex items-center gap-1 transition-colors uppercase tracking-wider"
                         >
-                            {memoExpanded ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
-                            {memoExpanded ? "Collapse" : "Expand 1-Pager"}
+                            <span>{memoExpanded ? <ChevronUp size={10} /> : <ChevronDown size={10} />}</span>
+                            {memoExpanded ? "Colapsar" : "Ver Memo Completo"}
                         </button>
                     </div>
                     {memoExpanded && (
-                        <pre className="text-[10px] text-gray-400 whitespace-pre-wrap font-mono leading-relaxed border-t border-[#30363d] pt-3" style={{ animation: "fadeSlideIn 0.3s ease" }}>
-                            {researchMemo}
-                        </pre>
+                        <div
+                            className="border-t border-[#30363d] pt-4 prose prose-invert prose-xs max-w-none"
+                            style={{ animation: "fadeSlideIn 0.3s ease" }}
+                            dangerouslySetInnerHTML={{
+                                __html: researchMemo
+                                    // h1
+                                    .replace(/^# (.+)$/gm, '<h1 class="text-sm font-black text-white mb-1 mt-3">$1</h1>')
+                                    // h2
+                                    .replace(/^## (.+)$/gm, '<h2 class="text-[11px] font-black uppercase tracking-widest text-[#d4af37]/80 mt-4 mb-2">$1</h2>')
+                                    // bold
+                                    .replace(/\*\*(.+?)\*\*/g, '<strong class="text-gray-200">$1</strong>')
+                                    // markdown table rows → simple divs
+                                    .replace(/^\|(.+)\|$/gm, (row) => {
+                                        const cells = row.split('|').filter(c => c.trim() && !c.trim().match(/^-+$/));
+                                        if (!cells.length) return '';
+                                        return '<div class="flex gap-4 text-[10px] border-b border-[#30363d]/40 py-1">' +
+                                            cells.map((c, i) => `<span class="${i === 0 ? 'text-gray-500 w-40 flex-shrink-0' : 'text-gray-300 font-mono'}">` + c.trim().replace(/^\*\*(.+)\*\*$/, '$1') + '</span>').join('') +
+                                            '</div>';
+                                    })
+                                    // separator rows
+                                    .replace(/^\|[-| ]+\|$/gm, '')
+                                    // bullet lists
+                                    .replace(/^- (.+)$/gm, '<li class="text-[10px] text-gray-400 ml-4 list-disc">$1</li>')
+                                    // horizontal rules
+                                    .replace(/^---$/gm, '<hr class="border-[#30363d]/60 my-3"/>')
+                                    // paragraph text (remaining lines)
+                                    .replace(/^([^<\n][^\n]+)$/gm, '<p class="text-[10px] text-gray-400 leading-relaxed my-1">$1</p>')
+                                    // italic footer
+                                    .replace(/\*([^*]+)\*/g, '<em class="text-gray-600 text-[9px]">$1</em>')
+                            }}
+                        />
                     )}
                 </div>
             )}
