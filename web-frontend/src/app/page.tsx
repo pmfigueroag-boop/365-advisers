@@ -18,6 +18,7 @@ import {
   Star,
   X,
   BookMarked,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   RefreshCw,
@@ -684,16 +685,18 @@ export default function Home() {
                 </>
               )}
 
-              {/* Export PDF — Pro gated */}
+              {/* Export PDF */}
               {status === "complete" && dataReady && (
                 <button
                   id="export-pdf-btn"
-                  onClick={() => setShowProGate(true)}
-                  title="Download analysis as PDF (Pro)"
+                  onClick={() => {
+                    document.body.setAttribute("data-print-date", new Date().toLocaleString());
+                    window.print();
+                  }}
+                  title="Export Executive Memo as PDF"
                   className="p-2.5 rounded-xl border bg-[#161b22] border-[#30363d] text-gray-500 hover:border-[#d4af37]/40 hover:text-[#d4af37] transition-all relative"
                 >
                   <Download size={14} />
-                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-[#d4af37] rounded-full flex items-center justify-center text-[6px] font-black text-black">✦</span>
                 </button>
               )}
 
@@ -1065,14 +1068,19 @@ export default function Home() {
                 )}
               </div>
 
-              {/* Fundamental Engine — full width */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck size={16} className="text-[#d4af37]" />
-                  <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400">Motor Fundamental (Agentes IA)</h3>
+              {/* Fundamental Engine Raw Metrics — collapsible */}
+              <details className="border border-[#30363d]/60 rounded-xl overflow-hidden group mb-4">
+                <summary className="w-full flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-white/5 transition-colors list-none">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck size={14} className="text-[#d4af37]" />
+                    <span className="text-xs font-black uppercase tracking-widest text-gray-600">Raw Fundamental Metrics</span>
+                  </div>
+                  <ChevronDown size={14} className="text-gray-600 transition-transform duration-200 group-open:rotate-180" />
+                </summary>
+                <div className="p-4 border-t border-[#30363d]/40">
+                  <FundamentalTable engine={dataReady.fundamental_metrics} />
                 </div>
-                <FundamentalTable engine={dataReady.fundamental_metrics} />
-              </div>
+              </details>
 
               {/* 8-Agent Legacy Grid — collapsible, hidden by default */}
               <div className="border border-[#30363d]/60 rounded-xl overflow-hidden">

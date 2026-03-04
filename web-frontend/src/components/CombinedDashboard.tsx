@@ -196,7 +196,7 @@ export default function CombinedDashboard({ state, onForceRefresh }: CombinedDas
 
             {/* ── Combined Verdict Hero (shown when both engines complete) ── */}
             {hasBoth && overallSignal && (
-                <div className={`glass-card p-6 border flex flex-col sm:flex-row items-center gap-6 ${signalBg(overallSignal)}`} style={{ animation: "verdictReveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both" }}>
+                <div className={`glass-card p-8 border flex flex-col sm:flex-row items-center gap-8 ${signalBg(overallSignal)} bg-opacity-20`} style={{ animation: "verdictReveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both" }}>
                     {/* Gauge */}
                     <ConvictionGauge fund={fundScore} tech={techScore} />
 
@@ -214,9 +214,27 @@ export default function CombinedDashboard({ state, onForceRefresh }: CombinedDas
                         </div>
 
                         {committee.consensus_narrative && (
-                            <p className="text-sm text-gray-300 italic leading-relaxed mb-3">
+                            <p className="font-serif text-[1.15rem] leading-[1.6] text-gray-200 italic mb-5">
                                 &ldquo;{committee.consensus_narrative}&rdquo;
                             </p>
+                        )}
+
+                        {/* Summary Catalysts / Risks inline */}
+                        {(committee.key_catalysts.length > 0 || committee.key_risks.length > 0) && (
+                            <div className="flex flex-col sm:flex-row gap-6 mb-5">
+                                {committee.key_catalysts.length > 0 && (
+                                    <div className="flex-1">
+                                        <p className="text-[8px] font-black uppercase tracking-widest text-green-500/80 mb-2 flex items-center gap-1"><TrendingUp size={10} /> Key Catalyst</p>
+                                        <p className="text-[11px] text-gray-400 leading-snug"><span className="text-green-500 mr-1">•</span>{committee.key_catalysts[0]}</p>
+                                    </div>
+                                )}
+                                {committee.key_risks.length > 0 && (
+                                    <div className="flex-1">
+                                        <p className="text-[8px] font-black uppercase tracking-widest text-red-500/80 mb-2 flex items-center gap-1"><TrendingDown size={10} /> Main Risk</p>
+                                        <p className="text-[11px] text-gray-400 leading-snug"><span className="text-red-500 mr-1">•</span>{committee.key_risks[0]}</p>
+                                    </div>
+                                )}
+                            </div>
                         )}
 
                         {/* Score breakdown */}

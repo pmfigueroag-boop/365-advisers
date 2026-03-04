@@ -214,7 +214,7 @@ export default function ResearchMemoCard({
                                 </span>
                             </div>
 
-                            <p className="text-sm text-gray-300 leading-relaxed italic mb-3">
+                            <p className="font-serif text-[1.05rem] text-gray-200 leading-[1.6] italic mb-4">
                                 &ldquo;{committee.consensus_narrative}&rdquo;
                             </p>
 
