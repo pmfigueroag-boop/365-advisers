@@ -26,6 +26,14 @@ from src.data.database import (
     get_score_history,
 )
 
+# ── Phase 5: Decision Engine
+from src.engines.decision.classifier import DecisionMatrix
+from src.engines.decision.cio_agent import synthesize_investment_memo
+
+# ── Phase 6: Institutional Scoring Engine
+from src.engines.scoring.opportunity_model import OpportunityModel
+from src.data.database import OpportunityScoreHistory, SessionLocal
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -131,6 +139,19 @@ tech_cache = TechnicalDBCache()
 # ── Fundamental Cache (Phase 4 — DB-backed, was in-memory Phase 3) ──────────
 fund_cache = FundamentalDBCache()
 
+# ── Decision Cache (Phase 5) ──────────
+class DecisionCache:
+    def __init__(self):
+        self._store = {}
+    def get(self, ticker: str):
+        entry = self._store.get(ticker.upper())
+        if entry and time.time() - entry["ts"] < 900:
+            return entry["data"]
+        return None
+    def set(self, ticker: str, data: dict):
+        self._store[ticker.upper()] = {"data": data, "ts": time.time()}
+
+decision_cache = DecisionCache()
 
 
 
@@ -397,7 +418,8 @@ async def ticker_info(ticker: str):
 @app.get("/analysis/combined/stream")
 async def combined_analysis_stream(ticker: str, force: bool = False):
     """
-    SSE stream that orchestrates both the Fundamental and Technical engines.
+    SSE stream that orchestrates both the Fundamental and Technical engines,
+    and concludes with the Institutional Decision Engine synthesis.
 
     Event flow:
       1. data_ready          → fundamental ratios (no LLM)
@@ -405,12 +427,8 @@ async def combined_analysis_stream(ticker: str, force: bool = False):
       3. committee_verdict   → 0-10 score + narrative
       4. research_memo       → 1-pager markdown
       5. technical_ready     → full TechnicalSummary JSON
-      6. done
-
-    Cache strategy:
-      - Fundamental: 24h DB cache
-      - Technical:   15min DB cache
-      Both engines use their own caches independently.
+      6. decision_ready      → Final CIO Investment Memo + Position Score
+      7. done
     """
     if not ticker:
         raise HTTPException(status_code=400, detail="ticker parameter is required")
@@ -427,11 +445,11 @@ async def combined_analysis_stream(ticker: str, force: bool = False):
         if cached_fund:
             print(f"[COMBINED] Fundamental HIT for {symbol}")
             is_from_cache = True
-            for ev in cached_fund["events"]:
+            fund_events = cached_fund["events"]
+            for ev in fund_events:
                 yield sse(ev["event"], ev["data"])
                 await asyncio.sleep(0.02)
         else:
-            # Run live and capture events for caching
             async for ev_dict in run_fundamental_stream(symbol):
                 event_name = ev_dict.get("event", "")
                 data = ev_dict.get("data", {})
@@ -441,9 +459,11 @@ async def combined_analysis_stream(ticker: str, force: bool = False):
                 elif event_name == "error":
                     yield sse("error", data)
                     return
-            # Cache the fundamental result
             if fund_events:
                 fund_cache.set(symbol, {"events": fund_events})
+
+        # Capture fundamental committee verdict for Decision layer
+        fund_committee = next((e["data"] for e in fund_events if e["event"] == "committee_verdict"), {})
 
         # ── Part 2: Technical Engine ────────────────────────────────────────
         cached_tech = tech_cache.get(symbol) if not force else None
@@ -460,20 +480,116 @@ async def combined_analysis_stream(ticker: str, force: bool = False):
                 from src.engines.technical.formatter import build_technical_summary
 
                 raw = await asyncio.to_thread(fetch_technical_data, symbol)
-                indicators = await asyncio.to_thread(IndicatorEngine(raw).run)
-                scores = ScoringEngine(indicators).score()
+                indicators = await asyncio.to_thread(IndicatorEngine.compute, raw)
+                scores = await asyncio.to_thread(ScoringEngine.compute, indicators)
                 elapsed = (_time.monotonic_ns() / 1e6) - start
-                tech_data = build_technical_summary(symbol, scores, indicators, elapsed_ms=elapsed)
+                tech_data = build_technical_summary(
+                    ticker=symbol,
+                    tech_data=raw,
+                    result=indicators,
+                    score=scores,
+                    processing_start_ms=start
+                )
                 tech_cache.set(symbol, tech_data)
             except Exception as exc:
                 import traceback; traceback.print_exc()
-                # Non-fatal — emit error info but continue
                 yield sse("technical_ready", {"error": str(exc)})
                 yield sse("done", {"from_cache": is_from_cache})
                 return
 
         yield sse("technical_ready", tech_data)
         await asyncio.sleep(0)
+
+        # ── Part 3: Institutional Opportunity Score ─────────────────────────
+        opportunity_data = None
+        if not is_from_cache or force: # Always calculate live if forced or not fully cached? Actually it's better to always calc or fetch from DB. For now, calc live.
+            print(f"[COMBINED] Calculating Opportunity Score for {symbol}")
+            try:
+                # Extract required fundamental parts
+                fund_ratios = next((e["data"].get("ratios", {}) for e in fund_events if e["event"] == "data_ready"), {})
+                fund_agents = [e["data"] for e in fund_events if e["event"] == "agent_memo"]
+                
+                # Default empty if not found
+                if not fund_ratios and fund_events:
+                     # Check if it was packed differently
+                     data_ready = next((e["data"] for e in fund_events if e["event"] == "data_ready"), {})
+                     fund_ratios = data_ready.get("fundamental_metrics", {}) if "fundamental_metrics" in data_ready else data_ready.get("ratios", {})
+                
+                # Execute Scoring Model
+                opportunity_data = await asyncio.to_thread(
+                    OpportunityModel.calculate,
+                    fundamental_metrics=fund_ratios,
+                    fundamental_agents=fund_agents,
+                    technical_summary=tech_data or {}
+                )
+                
+                # Persist to DB
+                try:
+                    import json
+                    with SessionLocal() as db:
+                        db.add(OpportunityScoreHistory(
+                            ticker=symbol,
+                            opportunity_score=opportunity_data["opportunity_score"],
+                            business_quality=opportunity_data["dimensions"]["business_quality"],
+                            valuation=opportunity_data["dimensions"]["valuation"],
+                            financial_strength=opportunity_data["dimensions"]["financial_strength"],
+                            market_behavior=opportunity_data["dimensions"]["market_behavior"],
+                            score_breakdown_json=json.dumps(opportunity_data)
+                        ))
+                        db.commit()
+                except Exception as db_exc:
+                     print(f"[COMBINED] Error saving Opportunity Score to DB: {db_exc}")
+                     
+            except Exception as exc:
+                print(f"[COMBINED] Opportunity Score Error for {ticker}: {exc}")
+                import traceback; traceback.print_exc()
+                opportunity_data = {"error": str(exc)}
+                
+        if opportunity_data:
+            yield sse("opportunity_score", opportunity_data)
+        await asyncio.sleep(0)
+
+        # ── Part 4: Decision Engine ─────────────────────────────────────────
+        decision_data = decision_cache.get(symbol) if not force else None
+        if decision_data and is_from_cache:
+            print(f"[COMBINED] Decision HIT for {symbol}")
+        else:
+            print(f"[COMBINED] Running CIO Synthesizer for {symbol}")
+            import time as dec_time
+            d_start = dec_time.monotonic_ns() / 1e6
+            try:
+                fund_score = fund_committee.get("score", 5.0)
+                tech_score = tech_data.get("technical_score", 5.0) if tech_data else 5.0
+                fund_confidence = fund_committee.get("confidence", 0.5)
+
+                metrics = DecisionMatrix.analyze(fund_score, tech_score, fund_confidence)
+                
+                # Call LLM wrapper (blocking inside async to thread)
+                # Pass the new opportunity_data to the CIO
+                memo = await asyncio.to_thread(
+                    synthesize_investment_memo,
+                    ticker=symbol,
+                    investment_position=metrics["investment_position"],
+                    fundamental_verdict=fund_committee,
+                    technical_summary=tech_data or {},
+                    opportunity_data=opportunity_data or {}
+                )
+                
+                d_elapsed = (dec_time.monotonic_ns() / 1e6) - d_start
+                decision_data = {
+                    "investment_position": metrics["investment_position"],
+                    "confidence_score": metrics["confidence_score"],
+                    "cio_memo": memo,
+                    "elapsed_ms": round(d_elapsed)
+                }
+                decision_cache.set(symbol, decision_data)
+            except Exception as exc:
+                print(f"[COMBINED] CIO Synthesizer Error: {exc}")
+                decision_data = {"error": str(exc)}
+
+        if decision_data:
+            yield sse("decision_ready", decision_data)
+            
         yield sse("done", {"from_cache": is_from_cache})
 
     return StreamingResponse(

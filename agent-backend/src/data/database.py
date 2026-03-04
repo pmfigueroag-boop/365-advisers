@@ -85,6 +85,20 @@ class ScoreHistory(Base):
     signal          = Column(String(20))
 
 
+class OpportunityScoreHistory(Base):
+    __tablename__ = "opportunity_score_history"
+
+    id              = Column(Integer, primary_key=True, autoincrement=True)
+    ticker          = Column(String(16), nullable=False, index=True)
+    recorded_at     = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    opportunity_score = Column(Float)               # 0-10
+    business_quality  = Column(Float)               # 0-10
+    valuation         = Column(Float)               # 0-10
+    financial_strength= Column(Float)               # 0-10
+    market_behavior   = Column(Float)               # 0-10
+    score_breakdown_json = Column(Text)             # Full 12-factor JSON payload
+
+
 # ─── Create tables ────────────────────────────────────────────────────────────
 
 def init_db():
@@ -103,6 +117,10 @@ def init_db():
         conn.execute(text(
             "CREATE INDEX IF NOT EXISTS idx_score_history "
             "ON score_history(ticker, analysis_type, recorded_at DESC)"
+        ))
+        conn.execute(text(
+            "CREATE INDEX IF NOT EXISTS idx_opp_score_history "
+            "ON opportunity_score_history(ticker, recorded_at DESC)"
         ))
         conn.commit()
     print(f"[DB] Database initialised at {DB_PATH}")

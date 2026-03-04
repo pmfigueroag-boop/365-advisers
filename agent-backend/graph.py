@@ -164,28 +164,82 @@ def fetch_financial_data(ticker_symbol: str):
 def agente_lynch(state: SharedState):
     print("--- Agente Lynch: Iniciando análisis ---")
     fundamentals = state.get("financial_data", {}).get("fundamental_engine", {})
-    prompt = f"Actúa como Peter Lynch. Analiza {state['ticker']}.\nDATOS: {fundamentals}\nResponde JSON: {{\"signal\": \"BUY/SELL/HOLD\", \"confidence\": 0.8, \"analysis\": \"...\", \"selected_metrics\": [], \"discarded_metrics\": []}}"
+    prompt = f"""Actúa como Peter Lynch. Analiza {state['ticker']}.
+DATOS: {fundamentals}
+Responde JSON ESTRICTO con la siguiente estructura:
+{{
+    "signal": "BUY/SELL/HOLD",
+    "confidence": 0.8,
+    "analysis": "...",
+    "selected_metrics": [],
+    "discarded_metrics": [],
+    "opportunity_subscores": {{
+        "competitive_moat": 8.0,
+        "growth_quality": 7.5
+    }}
+}}
+Nota: competitive_moat y growth_quality deben ser valores numéricos del 0.0 al 10.0."""
     res_json = extract_json(llm_extraction.invoke(prompt).content) or {"signal": "NEUTRAL", "confidence": 0.5, "analysis": "Error"}
     return {"agent_responses": [{"agent_name": "Lynch", **res_json}]}
 
 def agente_buffett(state: SharedState):
     print("--- Agente Buffett: Iniciando análisis ---")
     fundamentals = state.get("financial_data", {}).get("fundamental_engine", {})
-    prompt = f"Actúa como Warren Buffett. Analiza {state['ticker']}.\nDATOS: {fundamentals}\nResponde JSON: {{\"signal\": \"BUY/SELL/HOLD\", \"confidence\": 0.9, \"analysis\": \"...\", \"selected_metrics\": [], \"discarded_metrics\": []}}"
+    prompt = f"""Actúa como Warren Buffett. Analiza {state['ticker']}.
+DATOS: {fundamentals}
+Responde JSON ESTRICTO con la siguiente estructura:
+{{
+    "signal": "BUY/SELL/HOLD",
+    "confidence": 0.9,
+    "analysis": "...",
+    "selected_metrics": [],
+    "discarded_metrics": [],
+    "opportunity_subscores": {{
+        "relative_valuation": 7.0,
+        "intrinsic_value_gap": 8.5
+    }}
+}}
+Nota: relative_valuation y intrinsic_value_gap deben ser valores numéricos del 0.0 al 10.0."""
     res_json = extract_json(llm_standard.invoke(prompt).content) or {"signal": "NEUTRAL", "confidence": 0.5, "analysis": "Error"}
     return {"agent_responses": [{"agent_name": "Buffett", **res_json}]}
 
 def agente_marks(state: SharedState):
     print("--- Agente Marks: Iniciando análisis macro ---")
     search = tavily_tool.invoke(f"sentiment for {state['ticker']}")
-    prompt = f"Actúa como Howard Marks. Analiza {state['ticker']}.\nCONTEXTO: {search}\nResponde JSON: {{\"signal\": \"BUY/SELL/HOLD\", \"confidence\": 0.85, \"analysis\": \"...\", \"selected_metrics\": [], \"discarded_metrics\": []}}"
+    prompt = f"""Actúa como Howard Marks. Analiza {state['ticker']}.
+CONTEXTO: {search}
+Responde JSON ESTRICTO con la siguiente estructura:
+{{
+    "signal": "BUY/SELL/HOLD",
+    "confidence": 0.85,
+    "analysis": "...",
+    "selected_metrics": [],
+    "discarded_metrics": [],
+    "opportunity_subscores": {{
+        "industry_structure": 6.5
+    }}
+}}
+Nota: industry_structure debe ser un valor numérico del 0.0 al 10.0 considerando el riesgo macro y sectorial."""
     res_json = extract_json(llm_standard.invoke(prompt).content) or {"signal": "NEUTRAL", "confidence": 0.5, "analysis": "Error"}
     return {"agent_responses": [{"agent_name": "Marks", **res_json}]}
 
 def agente_icahn(state: SharedState):
     print("--- Agente Icahn: Iniciando análisis activista ---")
     fundamentals = state.get("financial_data", {}).get("fundamental_engine", {})
-    prompt = f"Actúa como Carl Icahn. Analiza {state['ticker']}.\nDATOS: {fundamentals}\nResponde JSON: {{\"signal\": \"BUY/SELL/HOLD\", \"confidence\": 0.8, \"analysis\": \"...\", \"selected_metrics\": [], \"discarded_metrics\": []}}"
+    prompt = f"""Actúa como Carl Icahn. Analiza {state['ticker']}.
+DATOS: {fundamentals}
+Responde JSON ESTRICTO con la siguiente estructura:
+{{
+    "signal": "BUY/SELL/HOLD",
+    "confidence": 0.8,
+    "analysis": "...",
+    "selected_metrics": [],
+    "discarded_metrics": [],
+    "opportunity_subscores": {{
+        "management_capital_allocation": 7.5
+    }}
+}}
+Nota: management_capital_allocation debe ser un valor numérico del 0.0 al 10.0 enfocado en eficiencia del capital y buybacks."""
     res_json = extract_json(llm_extraction.invoke(prompt).content) or {"signal": "NEUTRAL", "confidence": 0.5, "analysis": "Error"}
     return {"agent_responses": [{"agent_name": "Icahn", **res_json}]}
 

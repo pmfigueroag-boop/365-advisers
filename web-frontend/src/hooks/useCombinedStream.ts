@@ -6,7 +6,22 @@ import type { TechnicalAnalysisResult } from "./useTechnicalAnalysis";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type CombinedStatus = "idle" | "fetching_data" | "fundamental" | "technical" | "complete" | "error";
+export interface CIOMemo {
+    thesis_summary: string;
+    valuation_view: string;
+    technical_context: string;
+    key_catalysts: string[];
+    key_risks: string[];
+}
+
+export interface DecisionReady {
+    investment_position: string;
+    confidence_score: number;
+    cio_memo: CIOMemo;
+    elapsed_ms?: number;
+}
+
+export type CombinedStatus = "idle" | "fetching_data" | "fundamental" | "technical" | "decision" | "complete" | "error";
 
 export interface CombinedState {
     status: CombinedStatus;
@@ -18,6 +33,8 @@ export interface CombinedState {
     researchMemo: string | null;
     // Technical track
     technical: TechnicalAnalysisResult | null;
+    // Decision track
+    decision: DecisionReady | null;
     // Meta
     error: string | null;
     fromCache: boolean;
@@ -36,6 +53,7 @@ const INITIAL: CombinedState = {
     committee: null,
     researchMemo: null,
     technical: null,
+    decision: null,
     error: null,
     fromCache: false,
     processingMs: null,
@@ -92,7 +110,13 @@ export function useCombinedStream() {
         // technical_ready — full TechnicalSummary JSON
         es.addEventListener("technical_ready", (e) => {
             const tech: TechnicalAnalysisResult = JSON.parse((e as MessageEvent).data);
-            setState((prev) => ({ ...prev, technical: tech }));
+            setState((prev) => ({ ...prev, technical: tech, status: "decision" }));
+        });
+
+        // decision_ready — Final CIO Memo and Investment Position
+        es.addEventListener("decision_ready", (e) => {
+            const dec: DecisionReady = JSON.parse((e as MessageEvent).data);
+            setState((prev) => ({ ...prev, decision: dec }));
         });
 
         // done
