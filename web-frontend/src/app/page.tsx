@@ -27,6 +27,8 @@ import {
   LineChart,
   HelpCircle,
   Menu,
+  LayoutGrid,
+  List,
 } from "lucide-react";
 import HelpPanel from "@/components/HelpPanel";
 
@@ -96,6 +98,8 @@ function WatchlistSidebar({
   onRemove: (ticker: string) => void;
   activeTicker?: string;
 }) {
+  const [viewMode, setViewMode] = useState<"list" | "heatmap">("list");
+
   return (
     <aside
       className="relative flex-shrink-0 transition-all duration-300"
@@ -112,22 +116,39 @@ function WatchlistSidebar({
 
       <div className="glass-card border-[#30363d] bg-[#0d1117]/60 h-full flex flex-col overflow-hidden">
         {/* Header */}
-        <div className={`flex items-center gap-2 p-4 border-b border-[#30363d] ${collapsed ? "justify-center" : ""}`}>
-          <BookMarked size={14} className="text-[#d4af37] flex-shrink-0" />
-          {!collapsed && (
-            <div className="flex items-center justify-between w-full min-w-0">
+        <div className={`flex items-center gap-2 p-4 border-b border-[#30363d] ${collapsed ? "justify-center" : "justify-between"}`}>
+          <div className="flex items-center gap-2">
+            <BookMarked size={14} className="text-[#d4af37] flex-shrink-0" />
+            {!collapsed && (
               <span className="text-[10px] font-black uppercase tracking-widest text-[#d4af37]">
                 Watchlist
               </span>
-              <span className="text-[9px] font-mono text-gray-600 ml-2">{items.length}</span>
+            )}
+          </div>
+          {!collapsed && (
+            <div className="flex bg-[#161b22] border border-[#30363d] rounded p-0.5">
+              <button
+                onClick={() => setViewMode("list")}
+                className={`p-1 rounded ${viewMode === "list" ? "bg-[#30363d] text-white" : "text-gray-500 hover:text-gray-300"}`}
+                title="List View"
+              >
+                <List size={10} />
+              </button>
+              <button
+                onClick={() => setViewMode("heatmap")}
+                className={`p-1 rounded ${viewMode === "heatmap" ? "bg-[#30363d] text-white" : "text-gray-500 hover:text-gray-300"}`}
+                title="Heatmap View"
+              >
+                <LayoutGrid size={10} />
+              </button>
             </div>
           )}
         </div>
 
-        {/* List */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar py-2">
+        {/* List / Heatmap */}
+        <div className={`flex-1 overflow-y-auto custom-scrollbar p-2 ${viewMode === "heatmap" && !collapsed ? "grid grid-cols-2 gap-2 content-start" : "flex flex-col gap-0.5"}`}>
           {items.length === 0 && !collapsed ? (
-            <div className="flex flex-col items-center justify-center h-full px-4 py-8 text-center gap-2">
+            <div className="col-span-full flex flex-col items-center justify-center h-full px-4 py-8 text-center gap-2">
               <BookMarked size={24} className="text-[#30363d]" />
               <p className="text-[10px] text-gray-600 leading-relaxed">
                 Add a ticker with ★ to track it here
@@ -136,10 +157,37 @@ function WatchlistSidebar({
           ) : (
             items.map((item) => {
               const isActive = item.ticker === activeTicker;
+              const scoreDelta = (item.lastScore !== undefined && item.prevScore !== undefined) ? item.lastScore - item.prevScore : 0;
+              const hasDelta = item.lastScore !== undefined && item.prevScore !== undefined && item.lastScore !== item.prevScore;
+
+              const heatmapBg = !hasDelta ? "bg-[#161b22] border-[#30363d]"
+                : scoreDelta > 0 ? "bg-green-500/10 border-green-500/30"
+                  : "bg-red-500/10 border-red-500/30";
+
+              if (viewMode === "heatmap" && !collapsed) {
+                return (
+                  <div
+                    key={item.ticker}
+                    className={`group relative flex flex-col items-center justify-center p-3 rounded-lg cursor-pointer transition-all border ${heatmapBg} hover:opacity-80`}
+                    onClick={() => onSelect(item.ticker)}
+                    title={`${item.name} (${item.lastSignal || "No Signal"})`}
+                  >
+                    <span className={`text-[12px] font-black ${isActive ? "text-[#d4af37]" : "text-gray-200"}`}>
+                      {item.ticker}
+                    </span>
+                    {hasDelta && (
+                      <span className={`text-[9px] font-mono font-black mt-1 ${scoreDelta > 0 ? "text-green-400" : "text-red-400"}`}>
+                        {scoreDelta > 0 ? "+" : ""}{scoreDelta.toFixed(1)}
+                      </span>
+                    )}
+                  </div>
+                );
+              }
+
               return (
                 <div
                   key={item.ticker}
-                  className={`group relative flex items-center gap-2 px-3 py-2.5 mx-1 my-0.5 rounded-lg cursor-pointer transition-all ${isActive
+                  className={`group relative flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-all ${isActive
                     ? "bg-[#d4af37]/10 border border-[#d4af37]/30"
                     : "hover:bg-[#161b22] border border-transparent"
                     }`}
@@ -161,10 +209,10 @@ function WatchlistSidebar({
                         </div>
                         <div className="flex items-center gap-2">
                           <p className="text-[9px] text-gray-500 truncate">{item.name}</p>
-                          {item.lastScore !== undefined && item.prevScore !== undefined && item.lastScore !== item.prevScore && (
-                            <span className={`text-[8px] font-mono font-black flex-shrink-0 ${item.lastScore > item.prevScore ? "text-green-400" : "text-red-400"
+                          {hasDelta && (
+                            <span className={`text-[8px] font-mono font-black flex-shrink-0 ${scoreDelta > 0 ? "text-green-400" : "text-red-400"
                               }`}>
-                              {item.lastScore > item.prevScore ? "+" : ""}{(item.lastScore - item.prevScore).toFixed(1)}
+                              {scoreDelta > 0 ? "+" : ""}{scoreDelta.toFixed(1)}
                             </span>
                           )}
                         </div>
@@ -177,7 +225,6 @@ function WatchlistSidebar({
                           </p>
                         )}
                       </div>
-                      {/* Remove button */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -412,6 +459,7 @@ export default function Home() {
     if (!t.trim()) return;
     if (!symbol) setTicker(t);
     if (compareMode) setCompareMode(false);
+    setMainTab("combined");
     analyze(t);
     // Kick off technical, fundamental, and combined engines in parallel
     technical.analyze(t);
@@ -1021,7 +1069,7 @@ export default function Home() {
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <ShieldCheck size={16} className="text-[#d4af37]" />
-                  <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400">Motor Fundamental Determinístico</h3>
+                  <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400">Motor Fundamental (Agentes IA)</h3>
                 </div>
                 <FundamentalTable engine={dataReady.fundamental_metrics} />
               </div>

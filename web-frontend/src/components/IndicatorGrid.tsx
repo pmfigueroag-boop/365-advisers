@@ -2,6 +2,7 @@
 
 import { TrendingUp, Activity, Zap, BarChart3, Layers, AlertCircle } from "lucide-react";
 import { TechnicalAnalysisResult, TechnicalSummary } from "@/hooks/useTechnicalAnalysis";
+import GlossaryTooltip from "./GlossaryTooltip";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -79,15 +80,15 @@ function TrendCard({ data }: { data: TechnicalAnalysisResult }) {
 
             <div className="space-y-1.5 text-[9px]">
                 <div className="flex justify-between">
-                    <span className="text-gray-600">SMA 50</span>
+                    <span className="text-gray-600"><GlossaryTooltip term="SMA" label="SMA 50" /></span>
                     <span className={`font-mono font-bold ${statusColor(t.price_vs_sma50)}`}>{t.price_vs_sma50}</span>
                 </div>
                 <div className="flex justify-between">
-                    <span className="text-gray-600">SMA 200</span>
+                    <span className="text-gray-600"><GlossaryTooltip term="SMA" label="SMA 200" /></span>
                     <span className={`font-mono font-bold ${statusColor(t.price_vs_sma200)}`}>{t.price_vs_sma200}</span>
                 </div>
                 <div className="flex justify-between">
-                    <span className="text-gray-600">MACD Cross</span>
+                    <span className="text-gray-600"><GlossaryTooltip term="MACD" label="MACD Cross" /></span>
                     <span className={`font-bold ${statusColor(t.macd_crossover)}`}>{t.macd_crossover}</span>
                 </div>
                 {t.golden_cross && (
@@ -150,7 +151,7 @@ function MomentumCard({ data }: { data: TechnicalAnalysisResult }) {
                     <span className={`font-bold ${statusColor(m.rsi_zone)}`}>{m.rsi_zone}</span>
                 </div>
                 <div className="flex justify-between">
-                    <span className="text-gray-600">Stoch %K</span>
+                    <span className="text-gray-600"><GlossaryTooltip term="Stochastic" label="Stoch %K" /></span>
                     <span className={`font-mono font-bold ${statusColor(m.stochastic_zone)}`}>{m.stochastic_k.toFixed(1)}</span>
                 </div>
             </div>
@@ -178,7 +179,7 @@ function VolatilityCard({ data }: { data: TechnicalAnalysisResult }) {
 
             <div className="space-y-1.5 text-[9px]">
                 <div className="flex justify-between">
-                    <span className="text-gray-600">BB Position</span>
+                    <span className="text-gray-600"><GlossaryTooltip term="Bollinger Bands" label="BB Position" /></span>
                     <span className="font-bold text-gray-300">{v.bb_position.replace("_", " ")}</span>
                 </div>
                 <div className="flex justify-between">
@@ -186,7 +187,7 @@ function VolatilityCard({ data }: { data: TechnicalAnalysisResult }) {
                     <span className="font-mono text-gray-300">{v.bb_width.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                    <span className="text-gray-600">ATR</span>
+                    <span className="text-gray-600"><GlossaryTooltip term="ATR" label="ATR" /></span>
                     <span className="font-mono text-gray-300">{v.atr.toFixed(2)} ({(v.atr_pct * 100).toFixed(1)}%)</span>
                 </div>
             </div>
@@ -253,13 +254,13 @@ function StructureCard({ data }: { data: TechnicalAnalysisResult }) {
                 </div>
                 {s.nearest_resistance && (
                     <div className="flex justify-between">
-                        <span className="text-gray-600">Resistance</span>
+                        <span className="text-gray-600"><GlossaryTooltip term="Resistance" label="Resistance" /></span>
                         <span className="font-mono text-red-400">${s.nearest_resistance.toFixed(2)}{s.distance_to_resistance_pct != null ? ` (+${s.distance_to_resistance_pct.toFixed(1)}%)` : ""}</span>
                     </div>
                 )}
                 {s.nearest_support && (
                     <div className="flex justify-between">
-                        <span className="text-gray-600">Support</span>
+                        <span className="text-gray-600"><GlossaryTooltip term="Support" label="Support" /></span>
                         <span className="font-mono text-green-400">${s.nearest_support.toFixed(2)}{s.distance_to_support_pct != null ? ` (-${s.distance_to_support_pct.toFixed(1)}%)` : ""}</span>
                     </div>
                 )}

@@ -3,7 +3,8 @@
 :root {
   --background: #0a0e14;
   --foreground: #f0f2f5;
-  --accent: #d4af37; /* Metallic Gold */
+  --accent: #d4af37;
+  /* Metallic Gold */
   --card-bg: #161b22;
   --border: #30363d;
 }
@@ -24,6 +25,7 @@ body {
 .gold-gradient {
   background: linear-gradient(90deg, #d4af37 0%, #f9e29c 50%, #d4af37 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -34,4 +36,24 @@ body {
 .agent-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 10px 20px rgba(212, 175, 55, 0.1);
+}
+
+@media print {
+
+  /* Marca de agua institucional para Free Tier */
+  body::after {
+    content: "365 ADVISERS — FREE TIER PREVIEW";
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-35deg);
+    font-size: 5rem;
+    color: rgba(212, 175, 55, 0.15);
+    z-index: 9999;
+    pointer-events: none;
+    white-space: nowrap;
+    text-transform: uppercase;
+    font-weight: 900;
+    text-align: center;
+  }
 }

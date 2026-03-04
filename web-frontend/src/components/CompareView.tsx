@@ -139,8 +139,8 @@ export default function CompareView({ state }: { state: CompareState }) {
                         <div
                             key={res.ticker}
                             className={`glass-card p-5 border-2 transition-all ${isWinner
-                                    ? "border-[#d4af37] bg-[#d4af37]/5"
-                                    : "border-[#30363d]"
+                                ? "border-[#d4af37] bg-[#d4af37]/5"
+                                : "border-[#30363d]"
                                 }`}
                         >
                             {isWinner && (
@@ -184,107 +184,85 @@ export default function CompareView({ state }: { state: CompareState }) {
                 })}
             </div>
 
-            {/* ── Agent verdicts grid ── */}
+            {/* ── Agent verdicts grid (Splitscreen Column Layout) ── */}
             <section className="glass-card border-[#30363d] overflow-hidden">
-                <div className="px-5 py-3 border-b border-[#30363d] bg-[#0d1117]/50">
-                    <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400">Agent Verdicts</h3>
+                <div className="px-5 py-3 border-b border-[#30363d] bg-[#0d1117]/50 flex justify-between items-center">
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400">Analyst Confidence & Signals</h3>
+                    <Zap size={10} className="text-[#d4af37]" />
                 </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-xs">
-                        <thead>
-                            <tr className="border-b border-[#30363d]">
-                                <th className="text-left px-4 py-2 text-[9px] font-black uppercase tracking-widest text-gray-600 w-24">Mind</th>
-                                {results.map((r, i) => (
-                                    <th
-                                        key={r.ticker}
-                                        className={`text-center px-4 py-2 text-[10px] font-black uppercase tracking-widest ${i === winnerIdx ? "text-[#d4af37]" : "text-gray-400"
-                                            }`}
-                                    >
-                                        {r.ticker}
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {allAgentNames.map((agentName) => (
-                                <tr key={agentName} className="border-b border-[#30363d]/50 hover:bg-[#161b22]/40 transition-colors">
-                                    <td className="px-4 py-2.5 font-bold text-[10px] text-gray-500">{agentName}</td>
-                                    {results.map((res) => {
-                                        const agent = res.agents.find((a) => a.agent_name === agentName);
-                                        if (!agent) {
-                                            return (
-                                                <td key={res.ticker} className="text-center px-4 py-2.5 text-gray-700 text-[9px]">–</td>
-                                            );
-                                        }
-                                        return (
-                                            <td key={res.ticker} className="text-center px-4 py-2.5">
-                                                <div className="flex flex-col items-center gap-1">
-                                                    <span className={`text-[9px] font-black uppercase ${signalColor(agent.signal)}`}>
-                                                        {agent.signal}
+                <div className="p-4 overflow-x-auto custom-scrollbar">
+                    <div className="flex gap-4 min-w-max" style={{ display: 'grid', gridTemplateColumns: `repeat(${results.length}, minmax(300px, 1fr))` }}>
+                        {results.map((res, i) => (
+                            <div key={res.ticker} className={`flex flex-col gap-3 p-4 rounded-xl border ${i === winnerIdx ? 'border-[#d4af37]/30 bg-[#d4af37]/5' : 'border-[#30363d] bg-[#161b22]/50'}`}>
+                                <div className="flex justify-between items-center pb-2 border-b border-[#30363d]/50">
+                                    <h4 className={`text-sm font-black uppercase tracking-widest ${i === winnerIdx ? 'text-[#d4af37]' : 'text-gray-300'}`}>{res.ticker}</h4>
+                                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded border uppercase ${buysCounts[i] >= res.agents.length / 2 ? 'bg-green-500/10 border-green-500/30 text-green-400' : buysCounts[i] === 0 ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-gray-500/10 border-gray-500/30 text-gray-400'}`}>
+                                        {buysCounts[i]} / {res.agents.length} BUYS
+                                    </span>
+                                </div>
+
+                                {allAgentNames.map((agentName) => {
+                                    const agent = res.agents.find((a) => a.agent_name === agentName);
+                                    if (!agent) return null;
+
+                                    const confPct = ((agent.confidence ?? 0) * 100);
+                                    const color = signalColor(agent.signal);
+                                    const isBuy = agent.signal.toUpperCase().includes("BUY");
+                                    const fillBg = isBuy ? "bg-green-500" : agent.signal.toUpperCase().includes("SELL") ? "bg-red-500" : "bg-gray-500";
+
+                                    return (
+                                        <div key={agentName} className="flex justify-between items-center bg-[#0d1117]/80 p-2.5 rounded-lg border border-[#30363d]/30 hover:border-[#30363d] transition-colors">
+                                            <div className="flex items-center gap-2">
+                                                <div className={`w-1.5 h-1.5 rounded-full ${fillBg}`} />
+                                                <span className="text-[10px] font-bold text-gray-400 w-16 truncate">{agentName}</span>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex flex-col items-end w-16">
+                                                    <span className={`text-[9px] font-black uppercase tracking-wider ${color}`}>
+                                                        {agent.signal.replace('_', ' ')}
                                                     </span>
-                                                    <div className="w-12 h-0.5 bg-[#30363d] rounded overflow-hidden">
-                                                        <div
-                                                            className={`h-full rounded ${signalColor(agent.signal) === "text-green-400" ? "bg-green-500" :
-                                                                    signalColor(agent.signal) === "text-red-400" ? "bg-red-500" :
-                                                                        "bg-gray-500"
-                                                                }`}
-                                                            style={{ width: `${(agent.confidence ?? 0) * 100}%` }}
-                                                        />
-                                                    </div>
-                                                    <span className="text-[8px] font-mono text-gray-700">
-                                                        {((agent.confidence ?? 0) * 100).toFixed(0)}%
+                                                    <span className="text-[8px] font-mono text-gray-600">
+                                                        {confPct.toFixed(0)}%
                                                     </span>
                                                 </div>
-                                            </td>
-                                        );
-                                    })}
-                                </tr>
-                            ))}
-                            {/* BUY count row */}
-                            <tr className="bg-[#0d1117]/40 border-t border-[#30363d]">
-                                <td className="px-4 py-2 text-[9px] font-black uppercase text-gray-600 tracking-widest">BUY signals</td>
-                                {results.map((res, i) => (
-                                    <td key={res.ticker} className={`text-center px-4 py-2 font-black text-sm ${i === winnerIdx ? "text-[#d4af37]" : "text-gray-500"
-                                        }`}>
-                                        {buysCounts[i]} / {res.agents.length}
-                                    </td>
-                                ))}
-                            </tr>
-                        </tbody>
-                    </table>
+                                                <div className="w-[60px] h-1.5 bg-[#21262d] rounded-full overflow-hidden shrink-0 mt-0.5">
+                                                    <div className={`h-full rounded-full ${fillBg}`} style={{ width: `${confPct}%` }} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </section>
 
-            {/* ── Key fundamentals grid ── */}
+            {/* ── Key fundamentals grid (Splitscreen Column Layout) ── */}
             <section className="glass-card border-[#30363d] overflow-hidden">
-                <div className="px-5 py-3 border-b border-[#30363d] bg-[#0d1117]/50">
-                    <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400">Key Fundamentals</h3>
+                <div className="px-5 py-3 border-b border-[#30363d] bg-[#0d1117]/50 flex justify-between items-center">
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400">Key Fundamentals Match-Up</h3>
+                    <Trophy size={10} className="text-gray-600" />
                 </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-xs">
-                        <thead>
-                            <tr className="border-b border-[#30363d]">
-                                <th className="text-left px-4 py-2 text-[9px] font-black uppercase tracking-widest text-gray-600 w-32">Metric</th>
-                                {results.map((r, i) => (
-                                    <th key={r.ticker} className={`text-center px-4 py-2 text-[10px] font-black uppercase ${i === winnerIdx ? "text-[#d4af37]" : "text-gray-400"}`}>
-                                        {r.ticker}
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {KEY_FUNDAMENTALS.map(({ key, label, category }) => (
-                                <tr key={key} className="border-b border-[#30363d]/50 hover:bg-[#161b22]/40 transition-colors">
-                                    <td className="px-4 py-2.5 text-[10px] text-gray-500 font-medium">{label}</td>
-                                    {results.map((res) => (
-                                        <td key={res.ticker} className="text-center px-4 py-2.5 font-mono text-[10px] text-gray-300">
-                                            {getFundamental(res.fundamental_metrics, category, key)}
-                                        </td>
-                                    ))}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                <div className="p-4 overflow-x-auto custom-scrollbar">
+                    <div className="flex gap-4 min-w-max" style={{ display: 'grid', gridTemplateColumns: `repeat(${results.length}, minmax(300px, 1fr))` }}>
+                        {results.map((res, i) => (
+                            <div key={`fund-${res.ticker}`} className="flex flex-col gap-2 p-3 rounded-xl border border-[#30363d]/50 bg-[#161b22]/30">
+                                {KEY_FUNDAMENTALS.map(({ key, label, category }) => {
+                                    const val = getFundamental(res.fundamental_metrics, category, key);
+
+                                    return (
+                                        <div key={key} className="flex justify-between items-center bg-[#0d1117]/40 p-2.5 rounded-lg border border-[#30363d]/30">
+                                            <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{label}</span>
+                                            <span className={`font-mono text-[11px] ${val !== "–" ? "text-gray-200" : "text-gray-700"}`}>
+                                                {val}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </section>
         </div>

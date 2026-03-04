@@ -3,7 +3,7 @@
 import { X, Clock, Trash2, History, Lock } from "lucide-react";
 import { HistoryEntry } from "@/hooks/useAnalysisHistory";
 
-const FREE_TIER_LIMIT = 3;
+const FREE_TIER_LIMIT = 5;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -140,7 +140,7 @@ export default function HistoryPanel({
                         <p className="text-[8px] font-black uppercase tracking-widest text-gray-600">
                             {entries.length - FREE_TIER_LIMIT} more {entries.length - FREE_TIER_LIMIT === 1 ? "analysis" : "analyses"} locked
                         </p>
-                        <p className="text-[7px] text-gray-700 mt-0.5 mb-2">Free tier: 3 most recent</p>
+                        <p className="text-[7px] text-gray-700 mt-0.5 mb-2">Free tier: 5 most recent</p>
                         <span className="inline-flex items-center gap-1 text-[7px] font-black uppercase tracking-widest bg-[#d4af37]/10 border border-[#d4af37]/25 text-[#d4af37]/70 rounded-full px-2.5 py-1">
                             ✦ Upgrade to Pro
                         </span>

@@ -16,6 +16,7 @@ import type { CombinedState } from "@/hooks/useCombinedStream";
 import ResearchMemoCard from "./ResearchMemoCard";
 import IndicatorGrid from "./IndicatorGrid";
 import ScoreHistoryChart from "./ScoreHistoryChart";
+import { useCSVExport } from "@/hooks/useCSVExport";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -123,6 +124,7 @@ interface CombinedDashboardProps {
 
 export default function CombinedDashboard({ state, onForceRefresh }: CombinedDashboardProps) {
     const [activeView, setActiveView] = useState<"overview" | "fundamental" | "technical" | "history">("overview");
+    const { downloadCSV } = useCSVExport();
 
     const { status, ticker, committee, technical, agentMemos, researchMemo, fundamentalDataReady, processingMs, fromCache } = state;
 
@@ -167,21 +169,34 @@ export default function CombinedDashboard({ state, onForceRefresh }: CombinedDas
                         </span>
                     )}
                     {(status === "complete" || isLoading) && (
-                        <button
-                            onClick={onForceRefresh}
-                            disabled={isLoading}
-                            className="flex items-center gap-1.5 text-[8px] font-bold text-gray-600 hover:text-[#d4af37] transition-colors disabled:opacity-40 uppercase tracking-wider"
-                        >
-                            <RefreshCw size={9} className={isLoading ? "animate-spin" : ""} />
-                            Refresh
-                        </button>
+                        <div className="flex items-center gap-2">
+                            {status === "complete" && (
+                                <button
+                                    onClick={() => {
+                                        if (ticker) downloadCSV(fundamentalDataReady, technical?.summary, ticker);
+                                    }}
+                                    className="flex items-center gap-1.5 text-[8px] font-bold text-[#d4af37] border border-[#d4af37]/30 hover:bg-[#d4af37]/10 px-2 py-1 rounded transition-colors tracking-wider uppercase"
+                                >
+                                    <Clock size={9} className="opacity-0 w-0 h-0 hidden" /> {/* spacer hack */}
+                                    CSV
+                                </button>
+                            )}
+                            <button
+                                onClick={onForceRefresh}
+                                disabled={isLoading}
+                                className="flex items-center gap-1.5 text-[8px] font-bold text-gray-600 hover:text-[#d4af37] transition-colors disabled:opacity-40 uppercase tracking-wider"
+                            >
+                                <RefreshCw size={9} className={isLoading ? "animate-spin" : ""} />
+                                Refresh
+                            </button>
+                        </div>
                     )}
                 </div>
             </div>
 
             {/* ── Combined Verdict Hero (shown when both engines complete) ── */}
             {hasBoth && overallSignal && (
-                <div className={`glass-card p-6 border flex flex-col sm:flex-row items-center gap-6 ${signalBg(overallSignal)}`} style={{ animation: "fadeSlideIn 0.4s ease both" }}>
+                <div className={`glass-card p-6 border flex flex-col sm:flex-row items-center gap-6 ${signalBg(overallSignal)}`} style={{ animation: "verdictReveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both" }}>
                     {/* Gauge */}
                     <ConvictionGauge fund={fundScore} tech={techScore} />
 
