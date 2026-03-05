@@ -17,6 +17,7 @@ from src.contracts.scoring import OpportunityScoreResult
 from src.contracts.sizing import PositionAllocation
 from src.contracts.decision import InvestmentDecision, CIOMemo
 from src.engines.decision.classifier import DecisionMatrix
+from src.engines.composite_alpha.models import CompositeAlphaResult
 
 logger = logging.getLogger("365advisers.engines.decision")
 
@@ -39,6 +40,7 @@ class DecisionEngine:
         opportunity: OpportunityScoreResult,
         sizing: PositionAllocation,
         use_llm_memo: bool = True,
+        composite_alpha: CompositeAlphaResult | None = None,
     ) -> InvestmentDecision:
         """
         Produce the final investment decision.
@@ -75,6 +77,7 @@ class DecisionEngine:
             try:
                 cio_memo = await _generate_cio_memo(
                     fundamental, technical, opportunity, sizing,
+                    composite_alpha=composite_alpha,
                 )
             except Exception as exc:
                 logger.warning(f"CIO memo generation failed: {exc}")
@@ -104,6 +107,7 @@ async def _generate_cio_memo(
     technical: TechnicalResult,
     opportunity: OpportunityScoreResult,
     sizing: PositionAllocation,
+    composite_alpha: CompositeAlphaResult | None = None,
 ) -> CIOMemo:
     """Use the CIO Agent LLM to produce a rich investment memo."""
     from src.engines.decision.cio_agent import generate_cio_memo as _cio_llm
@@ -121,6 +125,23 @@ async def _generate_cio_memo(
         "key_catalysts": fundamental.committee_verdict.key_catalysts,
         "key_risks": fundamental.committee_verdict.key_risks,
     }
+
+    # Inject Composite Alpha Score context if available
+    if composite_alpha is not None:
+        top_categories = sorted(
+            composite_alpha.subscores.items(),
+            key=lambda x: x[1].score,
+            reverse=True,
+        )[:3]
+        analysis_data["signal_environment"] = {
+            "composite_alpha_score": composite_alpha.composite_alpha_score,
+            "environment": composite_alpha.signal_environment.value,
+            "top_categories": [
+                {"name": k, "score": v.score} for k, v in top_categories
+            ],
+            "active_categories": composite_alpha.active_categories,
+            "conflicts": composite_alpha.cross_category_conflicts,
+        }
 
     try:
         raw_memo = await _cio_llm(

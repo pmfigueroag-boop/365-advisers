@@ -16,6 +16,7 @@ import {
     Radio,
 } from "lucide-react";
 import type { IdeaItem, IdeaSignal } from "@/hooks/useIdeasEngine";
+import SignalEnvironmentBadge from "./SignalEnvironmentBadge";
 
 // ── Type colors + icons ──────────────────────────────────────────────────────
 
@@ -216,6 +217,16 @@ export default function IdeasPanel({
                                                     {idea.metadata.signals_fired}/{idea.metadata.total_possible}
                                                 </span>
                                             )}
+                                        </div>
+                                    )}
+                                    {/* CASE badge */}
+                                    {idea.metadata?.composite_alpha_score != null && idea.metadata?.signal_environment && (
+                                        <div className="mt-0.5">
+                                            <SignalEnvironmentBadge
+                                                environment={idea.metadata.signal_environment}
+                                                score={idea.metadata.composite_alpha_score}
+                                                compact
+                                            />
                                         </div>
                                     )}
                                 </div>

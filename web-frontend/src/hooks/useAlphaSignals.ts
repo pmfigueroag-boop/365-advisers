@@ -47,6 +47,26 @@ export interface CompositeScore {
     active_categories: number;
 }
 
+export interface CategorySubscoreResponse {
+    category: string;
+    score: number;
+    fired: number;
+    total: number;
+    coverage: number;
+    top_signals: string[];
+    conflict_detected: boolean;
+    conflict_penalty: number;
+}
+
+export interface CompositeAlphaResponse {
+    score: number;
+    environment: string;
+    subscores: Record<string, CategorySubscoreResponse>;
+    active_categories: number;
+    convergence_bonus: number;
+    cross_category_conflicts: string[];
+}
+
 export interface SignalProfileResponse {
     ticker: string;
     evaluated_at: string;
@@ -55,6 +75,7 @@ export interface SignalProfileResponse {
     signals: EvaluatedSignal[];
     category_summary: Record<string, CategoryScore>;
     composite: CompositeScore;
+    composite_alpha?: CompositeAlphaResponse;
 }
 
 export interface RegistrySignal {

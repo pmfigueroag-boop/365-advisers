@@ -23,7 +23,9 @@ from src.engines.alpha_signals.evaluator import SignalEvaluator
 from src.engines.alpha_signals.combiner import SignalCombiner
 from src.engines.alpha_signals.registry import registry
 from src.engines.alpha_signals.models import SignalCategory
-from src.data.database import SessionLocal, SignalSnapshot
+from src.engines.composite_alpha.engine import CompositeAlphaEngine
+from src.engines.composite_alpha.models import CompositeAlphaResult
+from src.data.database import SessionLocal, SignalSnapshot, CompositeAlphaHistory
 
 # Reuse existing data fetching and feature extraction
 from src.engines.idea_generation.engine import IdeaGenerationEngine
@@ -35,6 +37,7 @@ router = APIRouter(prefix="/signals", tags=["Alpha Signals"])
 # Singletons
 _evaluator = SignalEvaluator()
 _combiner = SignalCombiner()
+_composite_alpha_engine = CompositeAlphaEngine()
 _ige = IdeaGenerationEngine()
 
 
@@ -104,8 +107,12 @@ async def evaluate_signals(ticker: str):
     profile = _evaluator.evaluate(symbol, fundamental_features, technical_features)
     composite = _combiner.combine(profile)
 
-    # Persist snapshots per category
+    # Compute Composite Alpha Score
+    case_result = _composite_alpha_engine.compute(profile)
+
+    # Persist snapshots and CASE history
     _persist_snapshots(symbol, profile)
+    _persist_case_history(symbol, case_result)
 
     return {
         "ticker": symbol,
@@ -117,6 +124,16 @@ async def evaluate_signals(ticker: str):
             k: v.model_dump() for k, v in profile.category_summary.items()
         },
         "composite": composite.model_dump(),
+        "composite_alpha": {
+            "score": case_result.composite_alpha_score,
+            "environment": case_result.signal_environment.value,
+            "subscores": {
+                k: v.model_dump() for k, v in case_result.subscores.items()
+            },
+            "active_categories": case_result.active_categories,
+            "convergence_bonus": case_result.convergence_bonus,
+            "cross_category_conflicts": case_result.cross_category_conflicts,
+        },
     }
 
 
@@ -232,3 +249,24 @@ def _persist_snapshots(ticker: str, profile):
             db.commit()
     except Exception as exc:
         logger.warning(f"SIGNAL-API: Failed to persist snapshots for {ticker}: {exc}")
+
+
+def _persist_case_history(ticker: str, case_result: CompositeAlphaResult):
+    """Save a Composite Alpha Score entry to the database."""
+    try:
+        subscores_data = {
+            k: v.model_dump() for k, v in case_result.subscores.items()
+        }
+        with SessionLocal() as db:
+            record = CompositeAlphaHistory(
+                ticker=ticker,
+                score=case_result.composite_alpha_score,
+                environment=case_result.signal_environment.value,
+                subscores_json=json.dumps(subscores_data),
+                active_categories=case_result.active_categories,
+                conflicts_json=json.dumps(case_result.cross_category_conflicts),
+            )
+            db.add(record)
+            db.commit()
+    except Exception as exc:
+        logger.warning(f"SIGNAL-API: Failed to persist CASE for {ticker}: {exc}")

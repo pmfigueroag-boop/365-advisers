@@ -2,6 +2,7 @@ from typing import TypedDict, Optional
 from datetime import datetime, timezone
 
 from src.engines.alpha_signals.models import SignalProfile
+from src.engines.composite_alpha.models import CompositeAlphaResult
 
 class OpportunitySubscores(TypedDict, total=False):
     competitive_moat: float
@@ -43,6 +44,7 @@ class OpportunityModel:
         fundamental_agents: list[dict],
         technical_summary: dict,
         signal_profile: SignalProfile | None = None,
+        composite_alpha: CompositeAlphaResult | None = None,
     ) -> OpportunityScoreResult:
         
         # 1. Extract Agent Subscores
@@ -125,8 +127,23 @@ class OpportunityModel:
             "institutional_flow": inst_flow_score
         }
 
-        # 4b. Alpha Signals adjustment (if available)
-        if signal_profile is not None:
+        # 4b. Alpha Signals adjustment — prefer CASE result if available
+        if composite_alpha is not None:
+            try:
+                from src.engines.scoring.signal_bridge import (
+                    compute_case_factor_adjustments,
+                    compute_case_alpha_weight,
+                    blend_signal_adjustments,
+                )
+                signal_adjustments = compute_case_factor_adjustments(composite_alpha)
+                alpha_weight = compute_case_alpha_weight(composite_alpha)
+                if signal_adjustments:
+                    factors = blend_signal_adjustments(
+                        factors, signal_adjustments, alpha_weight=alpha_weight
+                    )
+            except Exception:
+                pass  # Graceful degradation
+        elif signal_profile is not None:
             try:
                 from src.engines.scoring.signal_bridge import (
                     compute_signal_factor_adjustments,

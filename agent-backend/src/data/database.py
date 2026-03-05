@@ -165,6 +165,20 @@ class SignalSnapshot(Base):
     scan_id           = Column(String(20))                       # Optional reference to IGE scan
 
 
+class CompositeAlphaHistory(Base):
+    """Persisted Composite Alpha Score for historical tracking."""
+    __tablename__ = "composite_alpha_history"
+
+    id              = Column(Integer, primary_key=True, autoincrement=True)
+    ticker          = Column(String(16), nullable=False, index=True)
+    score           = Column(Float, nullable=False)
+    environment     = Column(String(30), nullable=False)
+    subscores_json  = Column(Text, nullable=False)           # JSON blob of category subscores
+    active_categories = Column(Integer, default=0)
+    conflicts_json  = Column(Text, default="[]")             # JSON array of conflict descriptions
+    evaluated_at    = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+
 # ─── Create tables ────────────────────────────────────────────────────────────
 
 def init_db():
@@ -203,6 +217,10 @@ def init_db():
         conn.execute(text(
             "CREATE INDEX IF NOT EXISTS idx_signal_snapshots_category "
             "ON signal_snapshots(ticker, category, evaluated_at DESC)"
+        ))
+        conn.execute(text(
+            "CREATE INDEX IF NOT EXISTS idx_composite_alpha_ticker "
+            "ON composite_alpha_history(ticker, evaluated_at DESC)"
         ))
         conn.commit()
     print(f"[DB] Database initialised at {DB_PATH}")

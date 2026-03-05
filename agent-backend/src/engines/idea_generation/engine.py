@@ -43,6 +43,10 @@ from src.engines.idea_generation.ranker import rank_ideas
 from src.engines.alpha_signals.evaluator import SignalEvaluator
 from src.engines.alpha_signals.models import SignalProfile
 
+# ── Composite Alpha Score Engine ──────────────────────────────────────────
+from src.engines.composite_alpha.engine import CompositeAlphaEngine
+from src.engines.composite_alpha.models import CompositeAlphaResult
+
 
 logger = logging.getLogger("365advisers.idea_generation.engine")
 
@@ -72,6 +76,7 @@ class IdeaGenerationEngine:
         ]
         self.event_detector = EventDetector()
         self._signal_evaluator = SignalEvaluator()
+        self._composite_alpha_engine = CompositeAlphaEngine()
 
     async def scan(
         self,
@@ -166,6 +171,7 @@ class IdeaGenerationEngine:
 
         # ── Evaluate Alpha Signals ────────────────────────────────────────
         signal_profile: SignalProfile | None = None
+        composite_alpha: CompositeAlphaResult | None = None
         try:
             signal_profile = self._signal_evaluator.evaluate(
                 ticker=symbol,
@@ -179,6 +185,18 @@ class IdeaGenerationEngine:
         except Exception as exc:
             logger.warning(f"IDEA-ENGINE: Signal evaluation failed for {symbol}: {exc}")
 
+        # ── Compute Composite Alpha Score ─────────────────────────────────
+        if signal_profile is not None:
+            try:
+                composite_alpha = self._composite_alpha_engine.compute(signal_profile)
+                logger.debug(
+                    f"IDEA-ENGINE: CASE for {symbol}: "
+                    f"score={composite_alpha.composite_alpha_score}, "
+                    f"env={composite_alpha.signal_environment.value}"
+                )
+            except Exception as exc:
+                logger.warning(f"IDEA-ENGINE: CASE computation failed for {symbol}: {exc}")
+
         # ── Run detectors ────────────────────────────────────────────────
         for detector in self.detectors:
             try:
@@ -190,7 +208,8 @@ class IdeaGenerationEngine:
                     result = detector.scan(fundamental_features, technical_features)
                 if result is not None:
                     ideas.append(self._result_to_candidate(
-                        symbol, result, fundamental_features
+                        symbol, result, fundamental_features,
+                        composite_alpha=composite_alpha,
                     ))
             except Exception as exc:
                 logger.warning(
@@ -207,7 +226,8 @@ class IdeaGenerationEngine:
             )
             if event_result is not None:
                 ideas.append(self._result_to_candidate(
-                    symbol, event_result, fundamental_features
+                    symbol, event_result, fundamental_features,
+                    composite_alpha=composite_alpha,
                 ))
         except Exception as exc:
             logger.warning(f"IDEA-ENGINE: event detector error on {symbol}: {exc}")
@@ -278,8 +298,17 @@ class IdeaGenerationEngine:
         ticker: str,
         result: DetectorResult,
         fundamental: FundamentalFeatureSet | None,
+        composite_alpha: CompositeAlphaResult | None = None,
     ) -> IdeaCandidate:
         """Convert a DetectorResult into a full IdeaCandidate."""
+        metadata = dict(result.metadata)
+
+        # Enrich with CASE data if available
+        if composite_alpha is not None:
+            metadata["composite_alpha_score"] = composite_alpha.composite_alpha_score
+            metadata["signal_environment"] = composite_alpha.signal_environment.value
+            metadata["active_categories"] = composite_alpha.active_categories
+
         return IdeaCandidate(
             ticker=ticker,
             name=fundamental.name if fundamental else "",
@@ -288,5 +317,5 @@ class IdeaGenerationEngine:
             confidence=result.confidence,
             signal_strength=result.signal_strength,
             signals=result.signals,
-            metadata=result.metadata,
+            metadata=metadata,
         )

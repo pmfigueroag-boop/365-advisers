@@ -19,6 +19,8 @@ import type {
     CategoryScore,
     EvaluatedSignal,
 } from "@/hooks/useAlphaSignals";
+import CompositeAlphaGauge from "./CompositeAlphaGauge";
+import AlphaRadarChart from "./AlphaRadarChart";
 
 // ── Category config ─────────────────────────────────────────────────────────
 
@@ -170,6 +172,14 @@ export default function AlphaSignalsView({
                     {profile.fired_signals}/{profile.total_signals}
                 </span>
             </div>
+
+            {/* Composite Alpha Score — Gauge + Radar */}
+            {profile.composite_alpha && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <CompositeAlphaGauge data={profile.composite_alpha} />
+                    <AlphaRadarChart data={profile.composite_alpha} />
+                </div>
+            )}
 
             {/* Category rows */}
             {allCategories.map((catKey) => {

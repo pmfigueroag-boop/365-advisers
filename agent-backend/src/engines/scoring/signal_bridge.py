@@ -157,3 +157,88 @@ def blend_signal_adjustments(
             )
 
     return blended
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# CASE-aware bridge (uses CompositeAlphaResult instead of raw SignalProfile)
+# ═════════════════════════════════════════════════════════════════════════════
+
+def compute_case_factor_adjustments(
+    case_result: "CompositeAlphaResult",
+) -> dict[str, float]:
+    """
+    Compute per-factor score adjustments from a CompositeAlphaResult.
+
+    Uses the richer 0–100 category subscores instead of the raw 0–1
+    composite_strength.  Conflict-aware: reduces contributions from
+    conflicted categories.
+
+    Parameters
+    ----------
+    case_result : CompositeAlphaResult
+        Output from the Composite Alpha Score Engine.
+
+    Returns
+    -------
+    dict[str, float]
+        Per-factor adjustments on the 0–10 scale.
+    """
+    from src.engines.composite_alpha.models import CompositeAlphaResult  # noqa: F811
+
+    adjustments: dict[str, list[float]] = {}
+
+    for cat_key, subscore in case_result.subscores.items():
+        mappings = _CATEGORY_FACTOR_MAP.get(cat_key, [])
+        if not mappings or subscore.fired == 0:
+            continue
+
+        # Convert 0–100 subscore to 0–10 scale
+        raw_score = subscore.score / 10.0
+
+        # Reduce contribution if category has internal conflicts
+        if subscore.conflict_detected:
+            raw_score *= subscore.conflict_penalty
+
+        for factor_name, _dimension, weight in mappings:
+            weighted_score = raw_score * weight
+            adjustments.setdefault(factor_name, []).append(weighted_score)
+
+    result: dict[str, float] = {}
+    for factor_name, weighted_scores in adjustments.items():
+        result[factor_name] = round(sum(weighted_scores), 2)
+
+    return result
+
+
+def compute_case_alpha_weight(
+    case_result: "CompositeAlphaResult",
+    base_weight: float = 0.3,
+) -> float:
+    """
+    Dynamically adjust the alpha_weight based on signal environment.
+
+    Stronger environments → higher alpha influence on the 12-factor model.
+
+    Parameters
+    ----------
+    case_result : CompositeAlphaResult
+        Output from the Composite Alpha Score Engine.
+    base_weight : float
+        Default alpha weight (0.3).
+
+    Returns
+    -------
+    float
+        Adjusted alpha weight (0.2 – 0.5).
+    """
+    from src.engines.composite_alpha.models import SignalEnvironment
+
+    weight_map = {
+        SignalEnvironment.VERY_STRONG: 0.50,
+        SignalEnvironment.STRONG: 0.40,
+        SignalEnvironment.NEUTRAL: base_weight,
+        SignalEnvironment.WEAK: 0.25,
+        SignalEnvironment.NEGATIVE: 0.20,
+    }
+
+    return weight_map.get(case_result.signal_environment, base_weight)
