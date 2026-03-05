@@ -69,6 +69,7 @@ from src.routes.cache import router as cache_router
 from src.routes.portfolio import router as portfolio_router
 from src.routes.ideas import router as ideas_router
 from src.routes.signals import router as signals_router
+from src.routes.backtest import router as backtest_router
 
 app.include_router(health_router)
 app.include_router(analysis_router)
@@ -76,8 +77,9 @@ app.include_router(cache_router)
 app.include_router(portfolio_router)
 app.include_router(ideas_router)
 app.include_router(signals_router)
+app.include_router(backtest_router)
 
-logger.info(f"Mounted {len(app.routes)} routes across 6 routers")
+logger.info(f"Mounted {len(app.routes)} routes across 7 routers")
 
 
 # ── Dev Server ───────────────────────────────────────────────────────────────

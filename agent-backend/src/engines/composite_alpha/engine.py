@@ -236,8 +236,14 @@ class CompositeAlphaEngine:
 
         Returns a dict keyed by category with lists of
         (EvaluatedSignal, normalized_score) tuples.
+
+        If backtest data is available, applies quality-tier multipliers
+        from the Signal Performance Database.
         """
         result: dict[str, list[tuple[EvaluatedSignal, float]]] = {}
+
+        # Lazy-load tier multipliers (cached per engine instance)
+        tier_multipliers = self._get_tier_multipliers()
 
         for sig in profile.signals:
             cat_key = sig.category.value
@@ -256,9 +262,38 @@ class CompositeAlphaEngine:
             nss = self._compute_normalized_score(sig, sig_def)
             # Modulate by confidence and weight
             effective = nss * sig.confidence * sig_def.weight
+
+            # Apply backtest-validated tier multiplier (A=1.3, B=1.0, C=0.7, D=0.4)
+            bt_multiplier = tier_multipliers.get(sig.signal_id, 1.0)
+            effective *= bt_multiplier
+
             result[cat_key].append((sig, effective))
 
         return result
+
+    def _get_tier_multipliers(self) -> dict[str, float]:
+        """
+        Load tier multipliers from the performance service.
+
+        Returns an empty dict (no-op) if the service is unavailable
+        or no backtest data exists yet.
+        """
+        if not hasattr(self, "_tier_cache"):
+            self._tier_cache: dict[str, float] = {}
+        if self._tier_cache:
+            return self._tier_cache
+
+        try:
+            from src.engines.backtesting.performance_service import (
+                SignalPerformanceService,
+            )
+            service = SignalPerformanceService()
+            self._tier_cache = service.get_tier_multipliers()
+        except Exception:
+            # Graceful degradation: no backtest data → no modulation
+            self._tier_cache = {}
+
+        return self._tier_cache
 
     @staticmethod
     def _compute_normalized_score(

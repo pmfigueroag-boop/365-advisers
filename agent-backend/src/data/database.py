@@ -195,6 +195,96 @@ class SignalActivationRecord(Base):
     is_expired         = Column(Integer, default=0)  # SQLite boolean
 
 
+# ─── Backtesting Tables ──────────────────────────────────────────────────────
+
+class BacktestRun(Base):
+    """Persisted metadata for a single backtesting run."""
+    __tablename__ = "backtest_runs"
+
+    id               = Column(Integer, primary_key=True, autoincrement=True)
+    run_id           = Column(String(36), nullable=False, unique=True, index=True)
+    universe_json    = Column(Text, nullable=False)           # JSON list of tickers
+    start_date       = Column(String(10), nullable=False)     # ISO date
+    end_date         = Column(String(10), nullable=False)
+    signal_count     = Column(Integer, default=0)
+    status           = Column(String(20), default="pending")  # pending|running|completed|failed
+    execution_time_s = Column(Float, default=0.0)
+    config_json      = Column(Text, default="{}")             # Full BacktestConfig
+    calibration_json = Column(Text, default="[]")             # CalibrationSuggestion list
+    error_message    = Column(Text)
+    created_at       = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    # Relationship to results
+    results          = relationship("BacktestResult", back_populates="run", cascade="all, delete-orphan")
+
+
+class BacktestResult(Base):
+    """Persisted per-signal performance results from a backtest run."""
+    __tablename__ = "backtest_results"
+
+    id                       = Column(Integer, primary_key=True, autoincrement=True)
+    run_id                   = Column(String(36), ForeignKey("backtest_runs.run_id"), nullable=False, index=True)
+    signal_id                = Column(String(50), nullable=False)
+    signal_name              = Column(String(100))
+    category                 = Column(String(20))
+    total_firings            = Column(Integer, default=0)
+    hit_rate_json            = Column(Text, default="{}")     # {window: rate}
+    avg_return_json          = Column(Text, default="{}")
+    avg_excess_return_json   = Column(Text, default="{}")
+    median_return_json       = Column(Text, default="{}")
+    sharpe_json              = Column(Text, default="{}")
+    sortino_json             = Column(Text, default="{}")
+    max_drawdown             = Column(Float, default=0.0)
+    empirical_half_life      = Column(Float)
+    optimal_hold_period      = Column(Integer)
+    alpha_decay_curve_json   = Column(Text, default="[]")     # 60-element array
+    t_statistic_json         = Column(Text, default="{}")
+    p_value_json             = Column(Text, default="{}")
+    confidence_level         = Column(String(10), default="LOW")
+    sample_size              = Column(Integer, default=0)
+    universe_size            = Column(Integer, default=0)
+    date_range               = Column(String(50))
+    created_at               = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    # Relationship back to run
+    run                      = relationship("BacktestRun", back_populates="results")
+
+
+class SignalPerformanceEventRecord(Base):
+    """Persisted individual signal firing with forward returns."""
+    __tablename__ = "signal_performance_events"
+
+    id                    = Column(Integer, primary_key=True, autoincrement=True)
+    signal_id             = Column(String(50), nullable=False, index=True)
+    signal_name           = Column(String(100))
+    ticker                = Column(String(16), nullable=False, index=True)
+    fired_date            = Column(String(10), nullable=False)         # ISO date
+    strength              = Column(String(10), nullable=False)         # strong|moderate|weak
+    confidence            = Column(Float, default=0.0)                 # 0.0–1.0
+    value                 = Column(Float)                              # Feature value at fire
+    price_at_fire         = Column(Float)
+    forward_returns_json  = Column(Text, default="{}")                 # {window: return}
+    benchmark_returns_json= Column(Text, default="{}")
+    excess_returns_json   = Column(Text, default="{}")
+    run_id                = Column(String(36), ForeignKey("backtest_runs.run_id"), index=True)
+    created_at            = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class SignalCalibrationHistoryRecord(Base):
+    """Audit trail for signal parameter recalibrations."""
+    __tablename__ = "signal_calibration_history"
+
+    id            = Column(Integer, primary_key=True, autoincrement=True)
+    signal_id     = Column(String(50), nullable=False, index=True)
+    parameter     = Column(String(20), nullable=False)    # threshold|weight|half_life
+    old_value     = Column(Float, nullable=False)
+    new_value     = Column(Float, nullable=False)
+    evidence      = Column(Text)
+    run_id        = Column(String(36))                    # Backtest run that produced this
+    applied_at    = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    applied_by    = Column(String(20), default="auto")    # auto|manual
+
+
 # ─── Create tables ────────────────────────────────────────────────────────────
 
 def init_db():
@@ -245,6 +335,26 @@ def init_db():
         conn.execute(text(
             "CREATE INDEX IF NOT EXISTS idx_signal_activations_signal "
             "ON signal_activations(signal_id, ticker, is_expired)"
+        ))
+        conn.execute(text(
+            "CREATE INDEX IF NOT EXISTS idx_backtest_results_run "
+            "ON backtest_results(run_id, signal_id)"
+        ))
+        conn.execute(text(
+            "CREATE INDEX IF NOT EXISTS idx_backtest_results_signal "
+            "ON backtest_results(signal_id, created_at DESC)"
+        ))
+        conn.execute(text(
+            "CREATE INDEX IF NOT EXISTS idx_perf_events_signal_ticker "
+            "ON signal_performance_events(signal_id, ticker, fired_date)"
+        ))
+        conn.execute(text(
+            "CREATE INDEX IF NOT EXISTS idx_perf_events_ticker "
+            "ON signal_performance_events(ticker, fired_date)"
+        ))
+        conn.execute(text(
+            "CREATE INDEX IF NOT EXISTS idx_calibration_signal "
+            "ON signal_calibration_history(signal_id, applied_at DESC)"
         ))
         conn.commit()
     print(f"[DB] Database initialised at {DB_PATH}")
