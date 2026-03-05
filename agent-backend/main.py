@@ -70,6 +70,9 @@ from src.routes.portfolio import router as portfolio_router
 from src.routes.ideas import router as ideas_router
 from src.routes.signals import router as signals_router
 from src.routes.backtest import router as backtest_router
+from src.routes.ranking import router as ranking_router
+from src.routes.monitoring import router as monitoring_router
+from src.routes.crowding import router as crowding_router
 
 app.include_router(health_router)
 app.include_router(analysis_router)
@@ -78,8 +81,11 @@ app.include_router(portfolio_router)
 app.include_router(ideas_router)
 app.include_router(signals_router)
 app.include_router(backtest_router)
+app.include_router(ranking_router)
+app.include_router(monitoring_router)
+app.include_router(crowding_router)
 
-logger.info(f"Mounted {len(app.routes)} routes across 7 routers")
+logger.info(f"Mounted {len(app.routes)} routes across 10 routers")
 
 
 # ── Dev Server ───────────────────────────────────────────────────────────────

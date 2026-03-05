@@ -236,3 +236,118 @@ async def mark_analyzed(idea_id: int):
             "id": idea_id,
             "ticker": record.ticker,
         }
+
+
+# ── Distributed Scanning ─────────────────────────────────────────────────────
+
+class DistributedScanRequest(BaseModel):
+    """Request body for distributed universe scan."""
+    tickers: list[str] = Field(
+        ..., min_length=1,
+        description="Full universe of tickers to scan (supports thousands)",
+    )
+    chunk_size: int = Field(50, ge=10, le=200)
+    fallback_to_local: bool = Field(True)
+
+
+@router.post("/scan/distributed", summary="Start distributed scan")
+async def start_distributed_scan(body: DistributedScanRequest):
+    """
+    Submit a large universe scan for distributed processing.
+    Returns a scan job ID for status polling.
+    """
+    from src.engines.idea_generation.distributed.dispatcher import ScanDispatcher
+    from src.engines.idea_generation.distributed.models import (
+        DistributedScanConfig,
+        ScanStatus,
+    )
+
+    config = DistributedScanConfig(
+        chunk_size=body.chunk_size,
+        fallback_to_local=body.fallback_to_local,
+    )
+    dispatcher = ScanDispatcher(config=config)
+    job = dispatcher.dispatch(tickers=body.tickers)
+
+    # If fell back to local, run immediately
+    if job.status == ScanStatus.PROCESSING and not job.task_ids:
+        result = await _engine.scan(tickers=body.tickers)
+        job.status = ScanStatus.COMPLETE
+        job.total_ideas = len(result.ideas)
+        return {
+            "scan_id": job.scan_id,
+            "status": job.status.value,
+            "mode": "local_fallback",
+            "ideas_found": len(result.ideas),
+            "scan_duration_ms": result.scan_duration_ms,
+            "ideas": [
+                {
+                    "ticker": i.ticker,
+                    "idea_type": i.idea_type.value,
+                    "signal_strength": i.signal_strength,
+                    "confidence": i.confidence.value,
+                }
+                for i in result.ideas[:20]
+            ],
+        }
+
+    return {
+        "scan_id": job.scan_id,
+        "status": job.status.value,
+        "mode": "distributed",
+        "total_tickers": job.total_tickers,
+        "total_chunks": job.total_chunks,
+        "chunk_size": body.chunk_size,
+    }
+
+
+@router.get("/scan/{scan_id}/status", summary="Poll scan status")
+async def get_scan_status(scan_id: str):
+    """Poll the progress of a distributed scan."""
+    from src.engines.idea_generation.distributed.aggregator import ResultAggregator
+
+    aggregator = ResultAggregator()
+    status = aggregator.get_status(scan_id)
+    if not status:
+        raise HTTPException(status_code=404, detail="Scan not found")
+    return status
+
+
+@router.get("/scan/{scan_id}/results", summary="Get scan results")
+async def get_scan_results(scan_id: str):
+    """Get aggregated results from a distributed scan."""
+    from src.engines.idea_generation.distributed.aggregator import ResultAggregator
+
+    aggregator = ResultAggregator()
+    result = aggregator.collect(scan_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Scan not found")
+    return {
+        "universe_size": result.universe_size,
+        "ideas_found": len(result.ideas),
+        "scan_duration_ms": result.scan_duration_ms,
+        "detector_stats": result.detector_stats,
+        "ideas": [
+            {
+                "ticker": i.ticker,
+                "idea_type": i.idea_type.value,
+                "signal_strength": i.signal_strength,
+                "confidence": i.confidence.value,
+                "priority": i.priority,
+            }
+            for i in result.ideas
+        ],
+    }
+
+
+@router.delete("/scan/{scan_id}", summary="Cancel a scan")
+async def cancel_scan(scan_id: str):
+    """Cancel a running distributed scan."""
+    from src.engines.idea_generation.distributed.dispatcher import ScanDispatcher
+
+    dispatcher = ScanDispatcher()
+    success = dispatcher.cancel_job(scan_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Scan not found or already complete")
+    return {"status": "cancelled", "scan_id": scan_id}
+

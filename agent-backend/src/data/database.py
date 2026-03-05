@@ -21,7 +21,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from sqlalchemy import (
-    Column, Integer, Float, String, Text, DateTime, create_engine, text, ForeignKey
+    Boolean, Column, Integer, Float, String, Text, DateTime, create_engine, text, ForeignKey
 )
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker, relationship
 
@@ -285,6 +285,24 @@ class SignalCalibrationHistoryRecord(Base):
     applied_by    = Column(String(20), default="auto")    # auto|manual
 
 
+
+class OpportunityAlertRecord(Base):
+    """Persistent store for opportunity monitoring alerts."""
+    __tablename__ = "opportunity_alerts"
+    id          = Column(String, primary_key=True)
+    ticker      = Column(String, nullable=False, index=True)
+    alert_type  = Column(String(30), nullable=False)
+    severity    = Column(String(20), nullable=False)
+    title       = Column(String(200))
+    description = Column(Text)
+    prev_value  = Column(Float)
+    curr_value  = Column(Float)
+    delta       = Column(Float)
+    new_signals = Column(Text)          # JSON list
+    created_at  = Column(DateTime, default=datetime.utcnow)
+    read        = Column(Boolean, default=False)
+
+
 # ─── Create tables ────────────────────────────────────────────────────────────
 
 def init_db():
@@ -355,6 +373,14 @@ def init_db():
         conn.execute(text(
             "CREATE INDEX IF NOT EXISTS idx_calibration_signal "
             "ON signal_calibration_history(signal_id, applied_at DESC)"
+        ))
+        conn.execute(text(
+            "CREATE INDEX IF NOT EXISTS idx_opp_alerts_ticker "
+            "ON opportunity_alerts(ticker, created_at DESC)"
+        ))
+        conn.execute(text(
+            "CREATE INDEX IF NOT EXISTS idx_opp_alerts_severity "
+            "ON opportunity_alerts(severity, read, created_at DESC)"
         ))
         conn.commit()
     print(f"[DB] Database initialised at {DB_PATH}")

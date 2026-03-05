@@ -245,6 +245,9 @@ class CompositeAlphaEngine:
         # Lazy-load dynamic weights from backtest evidence (cached)
         dynamic_weights = self._get_dynamic_weights()
 
+        # Lazy-load crowding penalties (cached)
+        crowding_penalties = self._get_crowding_penalties()
+
         for sig in profile.signals:
             cat_key = sig.category.value
             result.setdefault(cat_key, [])
@@ -266,6 +269,10 @@ class CompositeAlphaEngine:
             # Apply continuous dynamic weight from backtest evidence
             bt_multiplier = dynamic_weights.get(sig.signal_id, 1.0)
             effective *= bt_multiplier
+
+            # Apply crowding penalty (reduces score for overcrowded signals)
+            crowding_penalty = crowding_penalties.get(profile.ticker, 1.0)
+            effective *= crowding_penalty
 
             result[cat_key].append((sig, effective))
 
@@ -298,6 +305,29 @@ class CompositeAlphaEngine:
             self._weight_cache = {}
 
         return self._weight_cache
+
+    def _get_crowding_penalties(self) -> dict[str, float]:
+        """
+        Load crowding penalty factors from the CrowdingEngine.
+
+        Penalty = 1.0 − (max_penalty × CRS), ranging [0.6, 1.0].
+
+        Returns an empty dict (no-op) if no crowding data exists.
+        """
+        if not hasattr(self, "_crowding_cache"):
+            self._crowding_cache: dict[str, float] = {}
+        if self._crowding_cache:
+            return self._crowding_cache
+
+        try:
+            from src.engines.crowding.engine import CrowdingEngine
+            engine = CrowdingEngine()
+            self._crowding_cache = engine.get_all_penalties()
+        except Exception:
+            # Graceful degradation: no crowding data → no penalty
+            self._crowding_cache = {}
+
+        return self._crowding_cache
 
     @staticmethod
     def _compute_normalized_score(
