@@ -157,27 +157,31 @@ export default function AlphaSignalsView({
     const allCategories = ["value", "quality", "growth", "momentum", "volatility", "flow", "event", "macro"];
 
     return (
-        <div className="flex flex-col gap-1.5 px-2 py-2">
+        <div className="flex flex-col gap-6">
             {/* Header */}
-            <div className="flex items-center justify-between px-1">
-                <div className="flex items-center gap-1.5">
-                    <Radio size={11} className="text-[#d4af37]" />
-                    <span className="text-[9px] font-black uppercase tracking-widest text-[#d4af37]">
-                        Alpha Signals
-                    </span>
-                    <span className="text-[10px] font-mono font-bold text-white">
-                        {profile.ticker}
-                    </span>
+            <div className="glass-card p-5 border-[#30363d] flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <div className="bg-[#d4af37]/10 p-2 rounded-xl border border-[#d4af37]/20">
+                        <Radio size={16} className="text-[#d4af37]" />
+                    </div>
+                    <div>
+                        <h2 className="text-sm font-black uppercase tracking-widest text-white">
+                            Alpha Signals
+                        </h2>
+                        <p className="text-[10px] text-gray-500 font-mono">
+                            {profile.ticker} · {profile.fired_signals} of {profile.total_signals} signals fired
+                        </p>
+                    </div>
                 </div>
-                <span className="text-[8px] font-mono text-gray-600">
+                <span className="text-lg font-black font-mono text-[#d4af37]">
                     {profile.fired_signals}/{profile.total_signals}
                 </span>
             </div>
 
             {/* Composite Alpha Score — Gauge + Radar */}
             {profile.composite_alpha && (
-                <div className="flex flex-col gap-2">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="flex flex-col gap-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <CompositeAlphaGauge data={profile.composite_alpha} />
                         <AlphaRadarChart data={profile.composite_alpha} />
                     </div>
@@ -188,57 +192,59 @@ export default function AlphaSignalsView({
                 </div>
             )}
 
-            {/* Category rows */}
-            {allCategories.map((catKey) => {
-                const cfg = CATEGORY_CONFIG[catKey];
-                const catScore = profile.category_summary[catKey];
-                const firedSignals = catScore
-                    ? profile.signals.filter(
-                        (s) => s.category === catKey && s.fired
-                    )
-                    : [];
+            {/* Category rows — 2 columns on large screens */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                {allCategories.map((catKey) => {
+                    const cfg = CATEGORY_CONFIG[catKey];
+                    const catScore = profile.category_summary[catKey];
+                    const firedSignals = catScore
+                        ? profile.signals.filter(
+                            (s) => s.category === catKey && s.fired
+                        )
+                        : [];
 
-                return (
-                    <CategoryRow
-                        key={catKey}
-                        catKey={catKey}
-                        cfg={cfg}
-                        score={catScore}
-                        signals={firedSignals}
-                    />
-                );
-            })}
+                    return (
+                        <CategoryRow
+                            key={catKey}
+                            catKey={catKey}
+                            cfg={cfg}
+                            score={catScore}
+                            signals={firedSignals}
+                        />
+                    );
+                })}
+            </div>
 
             {/* Composite footer */}
-            <div className="mt-1 p-2 rounded-lg border border-[#30363d] bg-[#0d1117]/80">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <span className="text-[9px] font-bold text-gray-400 uppercase">
-                            Composite
+            <div className="glass-card p-5 border-[#30363d]">
+                <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                        <span className="text-xs font-black text-gray-300 uppercase tracking-wider">
+                            Composite Alpha Strength
                         </span>
-                        <span className="text-[13px] font-black text-white font-mono">
+                        <span className="text-xl font-black text-white font-mono">
                             {(composite.overall_strength * 100).toFixed(0)}%
                         </span>
                     </div>
                     <div className="flex items-center gap-2">
                         {composite.dominant_category && (
                             <span
-                                className={`text-[7px] font-bold uppercase px-1.5 py-0.5 rounded border ${CATEGORY_CONFIG[composite.dominant_category]?.bg || ""
+                                className={`text-[8px] font-bold uppercase px-2 py-1 rounded border ${CATEGORY_CONFIG[composite.dominant_category]?.bg || ""
                                     } ${CATEGORY_CONFIG[composite.dominant_category]?.color || ""} ${CATEGORY_CONFIG[composite.dominant_category]?.border || ""
                                     }`}
                             >
-                                {CATEGORY_CONFIG[composite.dominant_category]?.label || composite.dominant_category}
+                                Dominant: {CATEGORY_CONFIG[composite.dominant_category]?.label || composite.dominant_category}
                             </span>
                         )}
                         {composite.multi_category_bonus && (
-                            <span className="text-[7px] font-bold text-[#d4af37] bg-[#d4af37]/10 px-1.5 py-0.5 rounded border border-[#d4af37]/30">
-                                ✓ Multi-Style
+                            <span className="text-[8px] font-bold text-[#d4af37] bg-[#d4af37]/10 px-2 py-1 rounded border border-[#d4af37]/30">
+                                ✓ Multi-Style Bonus
                             </span>
                         )}
                     </div>
                 </div>
                 {/* Strength bar */}
-                <div className="w-full h-1.5 rounded-full bg-[#30363d] overflow-hidden mt-1.5">
+                <div className="w-full h-2 rounded-full bg-[#30363d] overflow-hidden">
                     <div
                         className={`h-full rounded-full transition-all duration-500 ${composite.overall_strength > 0.7
                             ? "bg-green-500"
@@ -280,19 +286,19 @@ function CategoryRow({
             {/* Summary row */}
             <button
                 onClick={() => hasFired && setExpanded(!expanded)}
-                className="w-full flex items-center gap-2 px-2.5 py-1.5 text-left"
+                className="w-full flex items-center gap-3 px-3 py-2.5 text-left"
                 disabled={!hasFired}
             >
                 {/* Category badge */}
-                <span className={`flex items-center gap-0.5 ${cfg.color}`}>
+                <span className={`flex items-center gap-1 ${cfg.color}`}>
                     {cfg.icon}
                 </span>
-                <span className={`text-[9px] font-bold uppercase tracking-wider ${cfg.color} w-16`}>
+                <span className={`text-[10px] font-bold uppercase tracking-wider ${cfg.color} w-20`}>
                     {cfg.label}
                 </span>
 
                 {/* Strength bar */}
-                <div className="flex-1 h-1 rounded-full bg-[#30363d] overflow-hidden">
+                <div className="flex-1 h-1.5 rounded-full bg-[#30363d] overflow-hidden">
                     {score && (
                         <div
                             className={`h-full rounded-full transition-all ${score.composite_strength > 0.7

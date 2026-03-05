@@ -54,7 +54,7 @@ function StatusTimeline({ status }: { status: string }) {
                 return (
                     <div key={s.key} className="flex items-center gap-1">
                         <div
-                            className={`w-2 h-2 rounded-full transition-all duration-300 ${done ? "bg-green-500" : active ? "bg-[#d4af37] animate-pulse" : "bg-[#30363d]"
+                            className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${done ? "bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.4)]" : active ? "bg-[#d4af37] animate-pulse shadow-[0_0_6px_rgba(212,175,55,0.4)]" : "bg-[#30363d]"
                                 }`}
                         />
                         <span
@@ -146,7 +146,7 @@ export default function CombinedDashboard({ state, onForceRefresh }: CombinedDas
 
             {/* ── CIO Decision Hero (shown when decision is ready) ── */}
             {hasDecision && decision && overallSignal && (
-                <div className={`glass-card p-6 sm:p-8 border flex flex-col gap-6 ${signalBg(overallSignal)} bg-opacity-20`} style={{ animation: "verdictReveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both" }}>
+                <div className={`glass-card p-6 sm:p-8 border flex flex-col gap-6 decision-border ${signalBg(overallSignal)} bg-opacity-20`} style={{ animation: "verdictReveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both" }}>
 
                     {/* Header: Position & Confidence */}
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-[#30363d]/50 pb-4">
@@ -254,14 +254,14 @@ export default function CombinedDashboard({ state, onForceRefresh }: CombinedDas
 
             {/* ── Sub-tab nav ── */}
             {(status === "fundamental" || status === "technical" || status === "decision" || status === "complete") && (
-                <div className="flex gap-1 p-1 bg-[#161b22]/60 rounded-xl border border-[#30363d] w-fit">
+                <div className="flex gap-1 p-1.5 bg-[#161b22]/60 rounded-2xl border border-[#30363d] w-fit">
                     {(["overview", "fundamental", "technical", "history"] as const).map((tab) => (
                         <button
                             key={tab}
                             onClick={() => setActiveView(tab)}
-                            className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all ${activeView === tab
-                                ? "bg-[#d4af37] text-black"
-                                : "text-gray-500 hover:text-[#d4af37]"
+                            className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all ${activeView === tab
+                                ? "tab-active"
+                                : "text-gray-500 tab-inactive"
                                 }`}
                         >
                             {tab === "overview" ? "CIO Memo" :

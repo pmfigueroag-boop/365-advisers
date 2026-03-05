@@ -85,7 +85,7 @@ export const AgentCard = ({ agent, index }: { agent: AgentSignal; index: number 
     const isSell = ["SELL", "DEFENSIVE"].includes(agent.signal?.toUpperCase());
     return (
         <div
-            className="agent-card glass-card p-5 border-[#30363d] flex flex-col h-[320px] hover:border-[#d4af37]/50 transition-all group"
+            className="agent-card glass-card p-5 border-[#30363d] flex flex-col h-[320px] glow-border transition-all group"
             style={{ animation: `fadeSlideIn 0.45s ease both`, animationDelay: `${index * 60}ms` }}
         >
             <div className="flex justify-between items-start mb-3">
@@ -131,7 +131,7 @@ export const AgentCard = ({ agent, index }: { agent: AgentSignal; index: number 
 
 // ─── Skeleton Card ───────────────────────────────────────────────────────────
 export const AgentSkeletonCard = ({ label }: { label: string }) => (
-    <div className="glass-card p-5 border-[#30363d] flex flex-col h-[320px] opacity-60">
+    <div className="glass-card p-5 border-[#30363d] flex flex-col h-[320px] opacity-60 shimmer">
         <div className="flex items-center gap-2 mb-3">
             <Loader2 size={12} className="text-[#d4af37] animate-spin" />
             <span className="font-black text-base text-gray-600">{label}</span>
@@ -166,7 +166,7 @@ export const ProgressBar = ({ completed, total, status }: { completed: number; t
                 <span className="text-xs font-mono text-[#d4af37]">{pct}%</span>
             </div>
             <div className="h-1.5 bg-[#161b22] rounded-full overflow-hidden">
-                <div className="h-full bg-[#d4af37] transition-all duration-500 ease-out" style={{ width: `${pct}%` }} />
+                <div className={`h-full bg-[#d4af37] transition-all duration-500 ease-out ${!isDone ? "progress-shimmer" : ""}`} style={{ width: `${pct}%` }} />
             </div>
         </div>
     );

@@ -1,13 +1,34 @@
 @import "tailwindcss";
 
+/* ═══════════════════════════════════════════════════════════════════════════════
+   365 ADVISERS — Premium Design System
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
 :root {
+  /* Core palette */
   --background: #060913;
   --foreground: #f4f5f8;
   --accent: #d4af37;
-  /* Metallic Gold */
+  --accent-soft: #f9e29c;
   --card-bg: rgba(13, 17, 26, 0.65);
   --border: #232a3b;
+
+  /* Surfaces */
+  --surface-0: #060913;
+  --surface-1: #0d1117;
+  --surface-2: #161b22;
+  --surface-3: #21262d;
+
+  /* Semantic colors */
+  --green: #22c55e;
+  --green-soft: rgba(34, 197, 94, 0.12);
+  --red: #ef4444;
+  --red-soft: rgba(239, 68, 68, 0.12);
+  --gold-glow: rgba(212, 175, 55, 0.25);
+  --gold-glow-strong: rgba(212, 175, 55, 0.45);
 }
+
+/* ─── Base ──────────────────────────────────────────────────────────────────── */
 
 body {
   background-color: var(--background);
@@ -19,33 +40,374 @@ body {
   font-family: var(--font-playfair), serif;
 }
 
-.glass-card {
-  background: var(--card-bg);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+/* ─── Scrollbar (Dark-themed) ──────────────────────────────────────────────── */
+
+.custom-scrollbar::-webkit-scrollbar,
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--surface-3);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface-3) transparent;
+}
+
+/* ─── Glass Card ───────────────────────────────────────────────────────────── */
+
+.glass-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.25),
+    0 2px 4px -1px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.03);
+}
+
+/* ─── Gold Gradient Text ───────────────────────────────────────────────────── */
+
 .gold-gradient {
-  background: linear-gradient(90deg, #d4af37 0%, #f9e29c 50%, #d4af37 100%);
+  background: linear-gradient(135deg, #d4af37 0%, #f9e29c 40%, #d4af37 70%, #f9e29c 100%);
+  background-size: 200% 200%;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  animation: goldShift 6s ease-in-out infinite;
 }
 
+@keyframes goldShift {
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* ─── Agent Card Hover ─────────────────────────────────────────────────────── */
+
 .agent-card {
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
 }
 
 .agent-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(212, 175, 55, 0.1);
+  transform: translateY(-4px);
+  box-shadow:
+    0 12px 28px -8px rgba(212, 175, 55, 0.12),
+    0 0 0 1px rgba(212, 175, 55, 0.1);
+  border-color: rgba(212, 175, 55, 0.25);
 }
 
-@media print {
+/* ─── Glow Border Utility ──────────────────────────────────────────────────── */
 
-  /* Marca de agua institucional para Free Tier */
+.glow-border {
+  position: relative;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.glow-border:hover {
+  border-color: rgba(212, 175, 55, 0.3);
+  box-shadow: 0 0 20px -5px var(--gold-glow);
+}
+
+/* ─── Shimmer Skeleton ─────────────────────────────────────────────────────── */
+
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(212, 175, 55, 0.04) 40%,
+      rgba(212, 175, 55, 0.08) 50%,
+      rgba(212, 175, 55, 0.04) 60%,
+      transparent 100%);
+  animation: shimmerSlide 2s ease-in-out infinite;
+}
+
+@keyframes shimmerSlide {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ─── Progress Bar Fill Shimmer ────────────────────────────────────────────── */
+
+.progress-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.15) 50%,
+      transparent 100%);
+  animation: shimmerSlide 1.5s ease-in-out infinite;
+}
+
+/* ─── Orbital Spinner ──────────────────────────────────────────────────────── */
+
+.orbital-spinner {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.orbital-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid transparent;
+}
+
+.orbital-ring-1 {
+  border-top-color: #d4af37;
+  animation: spin 1.2s linear infinite;
+}
+
+.orbital-ring-2 {
+  inset: 6px;
+  border-right-color: rgba(212, 175, 55, 0.5);
+  animation: spin 1.8s linear infinite reverse;
+}
+
+.orbital-ring-3 {
+  inset: 12px;
+  border-bottom-color: rgba(212, 175, 55, 0.25);
+  animation: spin 2.4s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ─── Mesh Gradient Background (Empty State) ───────────────────────────────── */
+
+.mesh-gradient {
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(212, 175, 55, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(96, 165, 250, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(192, 132, 252, 0.05) 0%, transparent 50%),
+    var(--background);
+  animation: meshMove 12s ease-in-out infinite alternate;
+}
+
+@keyframes meshMove {
+  0% {
+    background-position: 0% 0%, 100% 0%, 50% 100%;
+  }
+
+  100% {
+    background-position: 100% 100%, 0% 100%, 50% 0%;
+  }
+}
+
+/* ─── Glow Ring (Icon halos) ───────────────────────────────────────────────── */
+
+.glow-ring {
+  box-shadow:
+    0 0 0 1px rgba(212, 175, 55, 0.1),
+    0 0 20px -4px rgba(212, 175, 55, 0.15),
+    0 0 40px -8px rgba(212, 175, 55, 0.08);
+}
+
+/* ─── Breathing Pulse ──────────────────────────────────────────────────────── */
+
+.breathe {
+  animation: breathe 3s ease-in-out infinite;
+}
+
+@keyframes breathe {
+
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+/* ─── Tab Glow (Active state) ──────────────────────────────────────────────── */
+
+.tab-active {
+  background: linear-gradient(135deg, #d4af37 0%, #e8c84a 50%, #d4af37 100%);
+  box-shadow: 0 0 14px -3px rgba(212, 175, 55, 0.4);
+  color: #000;
+}
+
+.tab-inactive:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* ─── Blinking Cursor ──────────────────────────────────────────────────────── */
+
+.blink-cursor::after {
+  content: "▎";
+  animation: blink 1s step-end infinite;
+  color: var(--accent);
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ─── Separator Line ───────────────────────────────────────────────────────── */
+
+.separator-gold {
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(212, 175, 55, 0.3) 50%, transparent 100%);
+}
+
+/* ─── Stagger children animation ───────────────────────────────────────────── */
+
+.stagger-children>* {
+  opacity: 0;
+  animation: fadeSlideIn 0.4s ease forwards;
+}
+
+.stagger-children>*:nth-child(1) {
+  animation-delay: 0ms;
+}
+
+.stagger-children>*:nth-child(2) {
+  animation-delay: 60ms;
+}
+
+.stagger-children>*:nth-child(3) {
+  animation-delay: 120ms;
+}
+
+.stagger-children>*:nth-child(4) {
+  animation-delay: 180ms;
+}
+
+.stagger-children>*:nth-child(5) {
+  animation-delay: 240ms;
+}
+
+.stagger-children>*:nth-child(6) {
+  animation-delay: 300ms;
+}
+
+.stagger-children>*:nth-child(7) {
+  animation-delay: 360ms;
+}
+
+.stagger-children>*:nth-child(8) {
+  animation-delay: 420ms;
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── Signal badge glow ────────────────────────────────────────────────────── */
+
+.signal-buy {
+  box-shadow: 0 0 8px -2px rgba(34, 197, 94, 0.3);
+}
+
+.signal-sell {
+  box-shadow: 0 0 8px -2px rgba(239, 68, 68, 0.3);
+}
+
+.signal-hold {
+  box-shadow: 0 0 8px -2px rgba(234, 179, 8, 0.3);
+}
+
+/* ─── Decision hero animated border ────────────────────────────────────────── */
+
+.decision-border {
+  position: relative;
+}
+
+.decision-border::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg,
+      rgba(212, 175, 55, 0.6),
+      transparent 40%,
+      transparent 60%,
+      rgba(212, 175, 55, 0.6));
+  background-size: 300% 300%;
+  animation: borderGlow 4s ease-in-out infinite;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes borderGlow {
+
+  0%,
+  100% {
+    background-position: 0% 0%;
+  }
+
+  50% {
+    background-position: 100% 100%;
+  }
+}
+
+/* ─── Print styles ─────────────────────────────────────────────────────────── */
+
+@media print {
   body::after {
     content: "365 ADVISERS — FREE TIER PREVIEW";
     position: fixed;

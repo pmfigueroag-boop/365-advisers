@@ -234,15 +234,15 @@ export default function Home() {
   const [showProGate, setShowProGate] = useState(false);
   const { showOnboarding, dismiss: dismissOnboarding } = useOnboarding();
 
-  // Main analysis tab: "fundamental" | "technical" | "combined" | "portfolio"
-  const [mainTab, setMainTab] = useState<"fundamental" | "technical" | "combined" | "portfolio">("combined");
+  // Main analysis tab
+  const [mainTab, setMainTab] = useState<"fundamental" | "technical" | "combined" | "portfolio" | "signals">("combined");
 
   // Compare mode state
   const [compareMode, setCompareMode] = useState(false);
   const [compareInput, setCompareInput] = useState("");
   const [compareState, setCompareState] = useState<CompareState>({ status: "idle", results: [] });
 
-  const [sidebarTab, setSidebarTab] = useState<"watchlist" | "history" | "ideas" | "signals">("watchlist");
+  const [sidebarTab, setSidebarTab] = useState<"watchlist" | "history" | "ideas">("watchlist");
   const [helpOpen, setHelpOpen] = useState(false);
 
   // Auto-collapse sidebar on mobile screens on first render
@@ -393,10 +393,6 @@ export default function Home() {
   return (
     <>
       <style>{`
-        @keyframes fadeSlideIn {
-          from { opacity: 0; transform: translateY(16px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
         @keyframes badgePop {
           0%   { opacity: 0; transform: scale(0.6); }
           70%  { transform: scale(1.08); }
@@ -451,61 +447,46 @@ export default function Home() {
                 <div className="flex border-b border-[#30363d]">
                   <button
                     onClick={() => setSidebarTab("watchlist")}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[9px] font-black uppercase tracking-widest transition-colors border-b-2 ${sidebarTab === "watchlist"
-                      ? "border-[#d4af37] text-[#d4af37]"
+                    className={`flex-1 flex items-center justify-center gap-1 py-3 text-[10px] font-black uppercase tracking-wider transition-all border-b-2 ${sidebarTab === "watchlist"
+                      ? "border-[#d4af37] text-[#d4af37] shadow-[0_2px_8px_-2px_rgba(212,175,55,0.5)]"
                       : "border-transparent text-gray-600 hover:text-gray-400"
                       }`}
                   >
-                    <BookMarked size={10} />
+                    <BookMarked size={11} />
                     Watch
                     {watchlist.items.length > 0 && (
-                      <span className="bg-[#30363d] text-gray-400 rounded-full px-1 text-[8px] font-mono">
+                      <span className="bg-[#30363d] text-gray-400 rounded-full px-1.5 py-0.5 text-[7px] font-mono ml-0.5">
                         {watchlist.items.length}
                       </span>
                     )}
                   </button>
                   <button
                     onClick={() => setSidebarTab("history")}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[9px] font-black uppercase tracking-widest transition-colors border-b-2 ${sidebarTab === "history"
-                      ? "border-[#d4af37] text-[#d4af37]"
+                    className={`flex-1 flex items-center justify-center gap-1 py-3 text-[10px] font-black uppercase tracking-wider transition-all border-b-2 ${sidebarTab === "history"
+                      ? "border-[#d4af37] text-[#d4af37] shadow-[0_2px_8px_-2px_rgba(212,175,55,0.5)]"
                       : "border-transparent text-gray-600 hover:text-gray-400"
                       }`}
                   >
-                    <History size={10} />
-                    History
+                    <History size={11} />
+                    Hist
                     {history.entries.length > 0 && (
-                      <span className="bg-[#30363d] text-gray-400 rounded-full px-1 text-[8px] font-mono">
+                      <span className="bg-[#30363d] text-gray-400 rounded-full px-1.5 py-0.5 text-[7px] font-mono ml-0.5">
                         {history.entries.length}
                       </span>
                     )}
                   </button>
                   <button
                     onClick={() => setSidebarTab("ideas")}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[9px] font-black uppercase tracking-widest transition-colors border-b-2 ${sidebarTab === "ideas"
-                      ? "border-[#d4af37] text-[#d4af37]"
+                    className={`flex-1 flex items-center justify-center gap-1 py-3 text-[10px] font-black uppercase tracking-wider transition-all border-b-2 ${sidebarTab === "ideas"
+                      ? "border-[#d4af37] text-[#d4af37] shadow-[0_2px_8px_-2px_rgba(212,175,55,0.5)]"
                       : "border-transparent text-gray-600 hover:text-gray-400"
                       }`}
                   >
-                    <Lightbulb size={10} />
+                    <Lightbulb size={11} />
                     Ideas
                     {ideasEngine.ideas.length > 0 && (
-                      <span className="bg-[#d4af37]/20 text-[#d4af37] rounded-full px-1 text-[8px] font-mono">
+                      <span className="bg-[#d4af37]/20 text-[#d4af37] rounded-full px-1.5 py-0.5 text-[7px] font-mono ml-0.5">
                         {ideasEngine.ideas.length}
-                      </span>
-                    )}
-                  </button>
-                  <button
-                    onClick={() => setSidebarTab("signals")}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[9px] font-black uppercase tracking-widest transition-colors border-b-2 ${sidebarTab === "signals"
-                      ? "border-[#d4af37] text-[#d4af37]"
-                      : "border-transparent text-gray-600 hover:text-gray-400"
-                      }`}
-                  >
-                    <Radio size={10} />
-                    Signals
-                    {alphaSignals.profile && alphaSignals.profile.fired_signals > 0 && (
-                      <span className="bg-[#d4af37]/20 text-[#d4af37] rounded-full px-1 text-[8px] font-mono">
-                        {alphaSignals.profile.fired_signals}
                       </span>
                     )}
                   </button>
@@ -536,7 +517,7 @@ export default function Home() {
                       onRemove={history.removeById}
                       onClear={history.clear}
                     />
-                  ) : sidebarTab === "ideas" ? (
+                  ) : (
                     <IdeasPanel
                       ideas={ideasEngine.ideas}
                       scanStatus={ideasEngine.scanStatus}
@@ -547,16 +528,6 @@ export default function Home() {
                       }}
                       onAnalyze={(t) => handleAnalyze(t)}
                       onDismiss={(id) => ideasEngine.dismiss(id)}
-                    />
-                  ) : (
-                    <AlphaSignalsView
-                      profile={alphaSignals.profile}
-                      status={alphaSignals.status}
-                      error={alphaSignals.error}
-                      onEvaluate={() => {
-                        const t = combined.state.ticker || ticker;
-                        if (t) alphaSignals.evaluate(t);
-                      }}
                     />
                   )}
                 </div>
@@ -569,122 +540,132 @@ export default function Home() {
         <main className="flex-1 min-w-0 flex flex-col gap-6">
 
           {/* Header */}
-          <header className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-3">
-              {/* Hamburger — only visible on mobile */}
-              <button
-                id="mobile-sidebar-btn"
-                className="md:hidden p-2 rounded-lg border border-[#30363d] text-gray-500 hover:text-[#d4af37] hover:border-[#d4af37]/40 transition-colors"
-                onClick={() => setSidebarCollapsed((v) => !v)}
-                title="Toggle sidebar"
-              >
-                <Menu size={18} />
-              </button>
-              <div className="bg-[#d4af37] p-2 rounded-lg">
-                <TrendingUp size={28} className="text-black" />
-              </div>
-              <h1 className="text-3xl font-black gold-gradient tracking-tighter">365 ADVISERS</h1>
-            </div>
-
-            <div className="flex gap-2 w-full md:w-auto items-center">
-              <div className="relative flex-1 md:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
-                <input
-                  type="text"
-                  id="ticker-input"
-                  placeholder="Ticker (e.g. NVDA)"
-                  className="w-full bg-[#161b22] border border-[#30363d] pl-9 pr-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-[#d4af37] transition-all"
-                  value={ticker}
-                  onChange={(e) => setTicker(e.target.value.toUpperCase())}
-                  onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
-                />
+          <header className="flex flex-col gap-4">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+              <div className="flex items-center gap-3">
+                {/* Hamburger — only visible on mobile */}
+                <button
+                  id="mobile-sidebar-btn"
+                  className="md:hidden p-2 rounded-lg border border-[#30363d] text-gray-500 hover:text-[#d4af37] hover:border-[#d4af37]/40 transition-colors"
+                  onClick={() => setSidebarCollapsed((v) => !v)}
+                  title="Toggle sidebar"
+                >
+                  <Menu size={18} />
+                </button>
+                <div className="relative bg-gradient-to-br from-[#d4af37] to-[#b8962e] p-2.5 rounded-xl glow-ring breathe">
+                  <TrendingUp size={26} className="text-black" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-black gold-gradient tracking-tighter leading-none">365 ADVISERS</h1>
+                  <p className="text-[9px] font-mono text-gray-600 uppercase tracking-[0.2em] mt-0.5">Institutional Analysis Engine</p>
+                </div>
               </div>
 
-              <button
-                id="analyze-btn"
-                onClick={() => handleAnalyze()}
-                disabled={isLoading}
-                className="bg-[#d4af37] text-black font-bold px-6 py-2.5 rounded-xl hover:bg-[#f9e29c] transition-all disabled:opacity-50 flex items-center gap-2 text-sm"
-              >
-                {isLoading ? (
-                  <><Loader2 className="animate-spin" size={16} /><span>Analyzing...</span></>
-                ) : (
-                  <><Zap size={16} /><span>Analyze</span></>
-                )}
-              </button>
+              <div className="flex gap-2 w-full md:w-auto items-center">
+                <div className="relative flex-1 md:w-72">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+                  <input
+                    type="text"
+                    id="ticker-input"
+                    placeholder="Ticker (e.g. NVDA)"
+                    className="w-full bg-[#161b22] border border-[#30363d] pl-10 pr-4 py-2.5 rounded-2xl text-sm focus:outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/15 transition-all placeholder:text-gray-600"
+                    value={ticker}
+                    onChange={(e) => setTicker(e.target.value.toUpperCase())}
+                    onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
+                  />
+                </div>
 
-              {/* Cache badge + Force Refresh */}
-              {fromCache && dataReady?.ticker && (
-                <>
-                  <CacheBadge cachedAt={cachedAt} />
+                <button
+                  id="analyze-btn"
+                  onClick={() => handleAnalyze()}
+                  disabled={isLoading}
+                  className="bg-gradient-to-r from-[#d4af37] to-[#e8c84a] text-black font-bold px-6 py-2.5 rounded-2xl hover:brightness-110 transition-all disabled:opacity-50 flex items-center gap-2 text-sm shadow-[0_0_16px_-4px_rgba(212,175,55,0.3)]"
+                >
+                  {isLoading ? (
+                    <><Loader2 className="animate-spin" size={16} /><span>Analyzing...</span></>
+                  ) : (
+                    <><Zap size={16} /><span>Analyze</span></>
+                  )}
+                </button>
+
+                {/* Toolbar icons — grouped */}
+                <div className="flex items-center gap-1.5 glass-card px-2 py-1 border-[#30363d] rounded-2xl">
+                  {/* Cache badge + Force Refresh */}
+                  {fromCache && dataReady?.ticker && (
+                    <>
+                      <CacheBadge cachedAt={cachedAt} />
+                      <button
+                        id="force-refresh-btn"
+                        onClick={() => forceRefresh(dataReady.ticker)}
+                        disabled={isLoading}
+                        title="Force fresh analysis (bypass cache)"
+                        className="p-2 rounded-xl text-gray-500 hover:text-[#d4af37] hover:bg-[#d4af37]/10 transition-all disabled:opacity-40"
+                      >
+                        <RefreshCw size={14} />
+                      </button>
+                    </>
+                  )}
+
+                  {/* Export PDF */}
+                  {status === "complete" && dataReady && (
+                    <button
+                      id="export-pdf-btn"
+                      onClick={() => {
+                        document.body.setAttribute("data-print-date", new Date().toLocaleString());
+                        window.print();
+                      }}
+                      title="Export Executive Memo as PDF"
+                      className="p-2 rounded-xl text-gray-500 hover:text-[#d4af37] hover:bg-[#d4af37]/10 transition-all"
+                    >
+                      <Download size={14} />
+                    </button>
+                  )}
+
+                  {/* Watchlist toggle */}
+                  {dataReady?.ticker && (
+                    <button
+                      id="watchlist-btn"
+                      onClick={handleToggleWatchlist}
+                      title={inWatchlist ? "Remove from watchlist" : "Add to watchlist"}
+                      className={`p-2 rounded-xl transition-all ${inWatchlist
+                        ? "text-[#d4af37] hover:text-red-400"
+                        : "text-gray-500 hover:text-[#d4af37] hover:bg-[#d4af37]/10"
+                        }`}
+                    >
+                      {inWatchlist ? <Star size={15} fill="currentColor" /> : <Star size={15} />}
+                    </button>
+                  )}
+
+                  {/* Compare mode toggle */}
                   <button
-                    id="force-refresh-btn"
-                    onClick={() => forceRefresh(dataReady.ticker)}
-                    disabled={isLoading}
-                    title="Force fresh analysis (bypass cache)"
-                    className="p-2.5 rounded-xl border bg-[#161b22] border-[#30363d] text-gray-500 hover:border-[#d4af37]/40 hover:text-[#d4af37] transition-all disabled:opacity-40"
+                    id="compare-btn"
+                    onClick={() => { setCompareMode((v) => !v); }}
+                    title={compareMode ? "Exit compare mode" : "Compare up to 3 tickers"}
+                    className={`p-2 rounded-xl transition-all ${compareMode
+                      ? "text-purple-400 bg-purple-500/10"
+                      : "text-gray-500 hover:text-purple-400 hover:bg-purple-500/10"
+                      }`}
                   >
-                    <RefreshCw size={14} />
+                    <GitCompare size={15} />
                   </button>
-                </>
-              )}
 
-              {/* Export PDF */}
-              {status === "complete" && dataReady && (
-                <button
-                  id="export-pdf-btn"
-                  onClick={() => {
-                    document.body.setAttribute("data-print-date", new Date().toLocaleString());
-                    window.print();
-                  }}
-                  title="Export Executive Memo as PDF"
-                  className="p-2.5 rounded-xl border bg-[#161b22] border-[#30363d] text-gray-500 hover:border-[#d4af37]/40 hover:text-[#d4af37] transition-all relative"
-                >
-                  <Download size={14} />
-                </button>
-              )}
-
-              {/* Watchlist toggle: only show when there's an active analyzed ticker */}
-              {dataReady?.ticker && (
-                <button
-                  id="watchlist-btn"
-                  onClick={handleToggleWatchlist}
-                  title={inWatchlist ? "Remove from watchlist" : "Add to watchlist"}
-                  className={`p-2.5 rounded-xl border transition-all ${inWatchlist
-                    ? "bg-[#d4af37]/10 border-[#d4af37]/40 text-[#d4af37] hover:bg-red-500/10 hover:border-red-500/40 hover:text-red-400"
-                    : "bg-[#161b22] border-[#30363d] text-gray-500 hover:border-[#d4af37]/40 hover:text-[#d4af37]"
-                    }`}
-                >
-                  {inWatchlist ? <Star size={16} fill="currentColor" /> : <Star size={16} />}
-                </button>
-              )}
-
-              {/* Compare mode toggle */}
-              <button
-                id="compare-btn"
-                onClick={() => { setCompareMode((v) => !v); }}
-                title={compareMode ? "Exit compare mode" : "Compare up to 3 tickers"}
-                className={`p-2.5 rounded-xl border transition-all ${compareMode
-                  ? "bg-purple-500/10 border-purple-500/40 text-purple-400"
-                  : "bg-[#161b22] border-[#30363d] text-gray-500 hover:border-purple-500/40 hover:text-purple-400"
-                  }`}
-              >
-                <GitCompare size={16} />
-              </button>
-
-              {/* Help panel trigger */}
-              <button
-                id="help-btn"
-                onClick={() => setHelpOpen(true)}
-                title="Centro de ayuda (Shift + ?)"
-                className={`p-2.5 rounded-xl border transition-all ${helpOpen
-                  ? "bg-[#d4af37]/10 border-[#d4af37]/40 text-[#d4af37]"
-                  : "bg-[#161b22] border-[#30363d] text-gray-500 hover:border-[#d4af37]/40 hover:text-[#d4af37]"
-                  }`}
-              >
-                <HelpCircle size={16} />
-              </button>
+                  {/* Help panel trigger */}
+                  <button
+                    id="help-btn"
+                    onClick={() => setHelpOpen(true)}
+                    title="Centro de ayuda (Shift + ?)"
+                    className={`p-2 rounded-xl transition-all ${helpOpen
+                      ? "text-[#d4af37] bg-[#d4af37]/10"
+                      : "text-gray-500 hover:text-[#d4af37] hover:bg-[#d4af37]/10"
+                      }`}
+                  >
+                    <HelpCircle size={15} />
+                  </button>
+                </div>
+              </div>
             </div>
+            {/* Gradient separator */}
+            <div className="separator-gold" />
           </header>
 
           {/* ── Compare Input Panel ── */}
@@ -724,62 +705,77 @@ export default function Home() {
 
           {/* ── Analysis Mode Tab Bar ── */}
           {!compareMode && (status !== "idle" || technical.state.status !== "idle") && (
-            <div className="flex gap-1 p-1 glass-card border-[#30363d] rounded-xl w-full md:w-fit overflow-x-auto">
+            <div className="flex gap-1 p-1.5 glass-card border-[#30363d] rounded-2xl w-full md:w-fit overflow-x-auto">
               <button
                 onClick={() => setMainTab("fundamental")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${mainTab === "fundamental"
-                  ? "bg-[#d4af37] text-black"
-                  : "text-gray-500 hover:text-[#d4af37]"
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mainTab === "fundamental"
+                  ? "tab-active"
+                  : "text-gray-500 tab-inactive"
                   }`}
               >
-                <ShieldCheck size={12} />
+                <ShieldCheck size={13} />
                 Fundamental
               </button>
               <button
                 onClick={() => setMainTab("technical")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${mainTab === "technical"
-                  ? "bg-[#d4af37] text-black"
-                  : "text-gray-500 hover:text-[#d4af37]"
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mainTab === "technical"
+                  ? "tab-active"
+                  : "text-gray-500 tab-inactive"
                   }`}
               >
-                <LineChart size={12} />
+                <LineChart size={13} />
                 Technical
                 {technical.state.status === "loading" && (
                   <Loader2 size={10} className="animate-spin" />
                 )}
                 {technical.state.status === "done" && (
-                  <span className="bg-[#d4af37]/20 text-[#d4af37] rounded px-1 text-[8px] font-mono">
+                  <span className="bg-black/20 text-black rounded-md px-1.5 text-[8px] font-mono">
                     {technical.state.data?.summary.technical_score.toFixed(1)}
                   </span>
                 )}
               </button>
               <button
                 onClick={() => setMainTab("combined")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${mainTab === "combined"
-                  ? "bg-[#d4af37] text-black"
-                  : "text-gray-500 hover:text-[#d4af37]"
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mainTab === "combined"
+                  ? "tab-active"
+                  : "text-gray-500 tab-inactive"
                   }`}
               >
-                <Zap size={12} />
+                <Zap size={13} />
                 Combined
                 {(combined.state.status === "fetching_data" || combined.state.status === "fundamental" || combined.state.status === "technical") && (
                   <Loader2 size={10} className="animate-spin" />
                 )}
                 {combined.state.status === "complete" && combined.state.committee && (
-                  <span className="bg-[#d4af37]/20 text-[#d4af37] rounded px-1 text-[8px] font-mono">
+                  <span className="bg-black/20 text-black rounded-md px-1.5 text-[8px] font-mono">
                     {(((combined.state.committee.score ?? 0) + (combined.state.technical?.summary?.technical_score ?? 0)) / 2).toFixed(1)}
                   </span>
                 )}
               </button>
               <button
                 onClick={() => setMainTab("portfolio")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${mainTab === "portfolio"
-                  ? "bg-[#d4af37] text-black"
-                  : "text-gray-500 hover:text-[#d4af37]"
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mainTab === "portfolio"
+                  ? "tab-active"
+                  : "text-gray-500 tab-inactive"
                   }`}
               >
-                <Briefcase size={12} />
+                <Briefcase size={13} />
                 Portfolio
+              </button>
+              <button
+                onClick={() => setMainTab("signals")}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mainTab === "signals"
+                  ? "tab-active"
+                  : "text-gray-500 tab-inactive"
+                  }`}
+              >
+                <Radio size={13} />
+                Signals
+                {alphaSignals.profile && alphaSignals.profile.fired_signals > 0 && (
+                  <span className={`rounded-md px-1.5 text-[8px] font-mono ${mainTab === "signals" ? "bg-black/20 text-black" : "bg-[#d4af37]/20 text-[#d4af37]"}`}>
+                    {alphaSignals.profile.fired_signals}
+                  </span>
+                )}
               </button>
             </div>
           )}
@@ -872,20 +868,21 @@ export default function Home() {
                 </div>
 
               ) : (
-                /* \u2500\u2500 Pristine empty state (no watchlist) */
-                <div className="flex flex-col items-center justify-center flex-1 text-center">
-                  <div className="w-20 h-20 bg-[#161b22] rounded-3xl flex items-center justify-center mb-6 border border-[#30363d]">
-                    <Activity size={40} className="text-[#d4af37]/20" />
+                /* ── Pristine empty state (no watchlist) */
+                <div className="flex flex-col items-center justify-center flex-1 text-center mesh-gradient rounded-2xl py-20 px-6">
+                  <div className="w-24 h-24 bg-[#161b22] rounded-3xl flex items-center justify-center mb-8 border border-[#d4af37]/15 glow-ring">
+                    <Activity size={44} className="text-[#d4af37]/40 breathe" />
                   </div>
-                  <h2 className="text-xl font-bold mb-3">Investment Analysis Engine</h2>
-                  <p className="text-gray-500 max-w-sm mx-auto leading-relaxed text-sm">
-                    Select an asset to convene the Investment Committee — fundamental, technical, and combined in one report.
+                  <h2 className="text-2xl font-black gold-gradient mb-3">Investment Analysis Engine</h2>
+                  <p className="text-gray-500 max-w-md mx-auto leading-relaxed text-sm mb-2">
+                    Convene the Investment Committee — fundamental, technical, and combined analysis in one institutional-grade report.
                   </p>
-                  <div className="mt-6 flex gap-4 text-xs font-mono text-gray-600 flex-wrap justify-center">
-                    <span className="flex items-center gap-1"><ShieldCheck size={12} /> Fundamental</span>
-                    <span className="flex items-center gap-1"><LineChart size={12} /> Technical</span>
-                    <span className="flex items-center gap-1"><Zap size={12} /> Combined</span>
-                    <span className="flex items-center gap-1"><Star size={12} /> Watchlist</span>
+                  <p className="text-[#d4af37]/60 text-xs font-mono mb-8 blink-cursor">Type a ticker above to begin</p>
+                  <div className="flex gap-3 text-xs font-mono text-gray-500 flex-wrap justify-center stagger-children">
+                    <span className="flex items-center gap-1.5 glass-card px-3 py-1.5 border-[#30363d]"><ShieldCheck size={12} className="text-[#d4af37]/60" /> Fundamental</span>
+                    <span className="flex items-center gap-1.5 glass-card px-3 py-1.5 border-[#30363d]"><LineChart size={12} className="text-[#60a5fa]/60" /> Technical</span>
+                    <span className="flex items-center gap-1.5 glass-card px-3 py-1.5 border-[#30363d]"><Zap size={12} className="text-[#c084fc]/60" /> Combined</span>
+                    <span className="flex items-center gap-1.5 glass-card px-3 py-1.5 border-[#30363d]"><Star size={12} className="text-[#d4af37]/60" /> Watchlist</span>
                   </div>
                 </div>
               )}
@@ -903,14 +900,27 @@ export default function Home() {
 
           {/* ── Fetching State ── */}
           {status === "fetching_data" && (
-            <div className="flex flex-col items-center justify-center flex-1">
-              <div className="relative">
-                <div className="w-16 h-16 border-4 border-[#d4af37]/20 border-t-[#d4af37] rounded-full animate-spin" />
-                <Activity className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[#d4af37]" size={20} />
+            <div className="flex flex-col items-center justify-center flex-1 py-16">
+              <div className="orbital-spinner mb-6">
+                <div className="orbital-ring orbital-ring-1" />
+                <div className="orbital-ring orbital-ring-2" />
+                <div className="orbital-ring orbital-ring-3" />
+                <Activity className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[#d4af37] breathe" size={22} />
               </div>
-              <p className="mt-5 text-[#d4af37] font-bold animate-pulse tracking-widest text-sm uppercase">
+              <p className="text-[#d4af37] font-bold tracking-widest text-sm uppercase mb-3">
                 Fetching Market Data for {state.ticker}...
               </p>
+              <div className="flex items-center gap-2 text-[8px] font-mono uppercase tracking-widest">
+                <span className="text-[#d4af37]">Data</span>
+                <div className="w-3 h-px bg-[#d4af37]/30" />
+                <span className="text-gray-700">Analysts</span>
+                <div className="w-3 h-px bg-[#30363d]" />
+                <span className="text-gray-700">Technical</span>
+                <div className="w-3 h-px bg-[#30363d]" />
+                <span className="text-gray-700">CIO</span>
+                <div className="w-3 h-px bg-[#30363d]" />
+                <span className="text-gray-700">Done</span>
+              </div>
             </div>
           )}
 
@@ -1073,11 +1083,13 @@ export default function Home() {
               {/* Loading */}
               {technical.state.status === "loading" && (
                 <div className="flex flex-col items-center justify-center py-24">
-                  <div className="relative mb-6">
-                    <div className="w-16 h-16 border-4 border-[#d4af37]/20 border-t-[#d4af37] rounded-full animate-spin" />
-                    <Activity className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[#d4af37]" size={20} />
+                  <div className="orbital-spinner mb-6">
+                    <div className="orbital-ring orbital-ring-1" />
+                    <div className="orbital-ring orbital-ring-2" />
+                    <div className="orbital-ring orbital-ring-3" />
+                    <LineChart className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[#d4af37] breathe" size={22} />
                   </div>
-                  <p className="text-[#d4af37] font-bold tracking-widest text-sm uppercase animate-pulse">
+                  <p className="text-[#d4af37] font-bold tracking-widest text-sm uppercase">
                     Running Technical Engine...
                   </p>
                   <p className="text-gray-600 text-xs mt-2">RSI · MACD · Bollinger Bands · ATR · OBV · Support/Resistance</p>
@@ -1230,6 +1242,21 @@ export default function Home() {
           {mainTab === "portfolio" && (
             <div style={{ animation: "fadeSlideIn 0.3s ease both" }}>
               <PortfolioDashboard historyEntries={history.entries} />
+            </div>
+          )}
+
+          {/* ── Alpha Signals (Full-Width) ── */}
+          {mainTab === "signals" && (
+            <div style={{ animation: "fadeSlideIn 0.3s ease both" }}>
+              <AlphaSignalsView
+                profile={alphaSignals.profile}
+                status={alphaSignals.status}
+                error={alphaSignals.error}
+                onEvaluate={() => {
+                  const t = combined.state.ticker || ticker;
+                  if (t) alphaSignals.evaluate(t);
+                }}
+              />
             </div>
           )}
         </main >
