@@ -13,6 +13,7 @@ import {
     RefreshCw,
     ChevronDown,
     ChevronUp,
+    Radio,
 } from "lucide-react";
 import type { IdeaItem, IdeaSignal } from "@/hooks/useIdeasEngine";
 
@@ -125,8 +126,8 @@ export default function IdeasPanel({
                 <button
                     onClick={() => setFilter(null)}
                     className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider transition-all border ${filter === null
-                            ? "bg-[#d4af37]/20 text-[#d4af37] border-[#d4af37]/40"
-                            : "bg-transparent text-gray-600 border-transparent hover:text-gray-400"
+                        ? "bg-[#d4af37]/20 text-[#d4af37] border-[#d4af37]/40"
+                        : "bg-transparent text-gray-600 border-transparent hover:text-gray-400"
                         }`}
                 >
                     All
@@ -136,8 +137,8 @@ export default function IdeasPanel({
                         key={key}
                         onClick={() => setFilter(filter === key ? null : key)}
                         className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider transition-all border flex items-center gap-1 ${filter === key
-                                ? `${cfg.bg} ${cfg.color} ${cfg.border}`
-                                : "bg-transparent text-gray-600 border-transparent hover:text-gray-400"
+                            ? `${cfg.bg} ${cfg.color} ${cfg.border}`
+                            : "bg-transparent text-gray-600 border-transparent hover:text-gray-400"
                             }`}
                     >
                         {cfg.icon}
@@ -203,6 +204,20 @@ export default function IdeasPanel({
                                     {idea.name && (
                                         <p className="text-[8px] text-gray-600 truncate">{idea.name}</p>
                                     )}
+                                    {/* Alpha Signals source indicator */}
+                                    {idea.metadata?.source === "alpha_signals_library" && (
+                                        <div className="flex items-center gap-1 mt-0.5">
+                                            <Radio size={7} className="text-[#d4af37]" />
+                                            <span className="text-[7px] font-bold text-[#d4af37]/70">
+                                                α Signals
+                                            </span>
+                                            {idea.metadata.signals_fired != null && idea.metadata.total_possible != null && (
+                                                <span className="text-[7px] font-mono text-gray-600">
+                                                    {idea.metadata.signals_fired}/{idea.metadata.total_possible}
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Signal strength bar */}
@@ -210,10 +225,10 @@ export default function IdeasPanel({
                                     <div className="w-10 h-1.5 rounded-full bg-[#30363d] overflow-hidden">
                                         <div
                                             className={`h-full rounded-full transition-all ${idea.signal_strength > 0.7
-                                                    ? "bg-green-500"
-                                                    : idea.signal_strength > 0.4
-                                                        ? "bg-yellow-500"
-                                                        : "bg-gray-500"
+                                                ? "bg-green-500"
+                                                : idea.signal_strength > 0.4
+                                                    ? "bg-yellow-500"
+                                                    : "bg-gray-500"
                                                 }`}
                                             style={{ width: `${idea.signal_strength * 100}%` }}
                                         />
@@ -266,10 +281,10 @@ export default function IdeasPanel({
                                                 </span>
                                                 <span
                                                     className={`ml-2 text-[7px] font-bold uppercase px-1 rounded flex-shrink-0 ${sig.strength === "strong"
-                                                            ? "text-green-400 bg-green-500/15"
-                                                            : sig.strength === "moderate"
-                                                                ? "text-yellow-400 bg-yellow-500/15"
-                                                                : "text-gray-500 bg-gray-500/15"
+                                                        ? "text-green-400 bg-green-500/15"
+                                                        : sig.strength === "moderate"
+                                                            ? "text-yellow-400 bg-yellow-500/15"
+                                                            : "text-gray-500 bg-gray-500/15"
                                                         }`}
                                                 >
                                                     {sig.strength}

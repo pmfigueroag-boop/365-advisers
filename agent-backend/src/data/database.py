@@ -149,6 +149,22 @@ class IdeaRecord(Base):
     metadata_json    = Column(Text, default="{}")
 
 
+class SignalSnapshot(Base):
+    """Persisted alpha signal evaluation snapshot for a single ticker."""
+    __tablename__ = "signal_snapshots"
+
+    id                = Column(Integer, primary_key=True, autoincrement=True)
+    ticker            = Column(String(16), nullable=False, index=True)
+    evaluated_at      = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    category          = Column(String(20), nullable=False)       # value|quality|momentum|...
+    signals_json      = Column(Text, nullable=False)             # JSON array of EvaluatedSignal
+    composite_strength= Column(Float, nullable=False, default=0.0)
+    confidence        = Column(String(10), nullable=False)       # high|medium|low
+    fired_count       = Column(Integer, default=0)
+    total_count       = Column(Integer, default=0)
+    scan_id           = Column(String(20))                       # Optional reference to IGE scan
+
+
 # ─── Create tables ────────────────────────────────────────────────────────────
 
 def init_db():
@@ -179,6 +195,14 @@ def init_db():
         conn.execute(text(
             "CREATE INDEX IF NOT EXISTS idx_ideas_ticker "
             "ON ideas(ticker, generated_at DESC)"
+        ))
+        conn.execute(text(
+            "CREATE INDEX IF NOT EXISTS idx_signal_snapshots_ticker "
+            "ON signal_snapshots(ticker, evaluated_at DESC)"
+        ))
+        conn.execute(text(
+            "CREATE INDEX IF NOT EXISTS idx_signal_snapshots_category "
+            "ON signal_snapshots(ticker, category, evaluated_at DESC)"
         ))
         conn.commit()
     print(f"[DB] Database initialised at {DB_PATH}")

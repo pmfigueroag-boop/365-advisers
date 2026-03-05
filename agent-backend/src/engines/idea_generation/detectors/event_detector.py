@@ -19,6 +19,7 @@ from src.engines.idea_generation.models import (
     SignalDetail,
     SignalStrength,
 )
+from src.engines.alpha_signals.models import SignalCategory
 from src.engines.idea_generation.detectors.base import BaseDetector
 
 
@@ -27,6 +28,7 @@ class EventDetector(BaseDetector):
 
     name = "event"
     weight = 0.9
+    signal_category = SignalCategory.EVENT
 
     # ── Thresholds ────────────────────────────────────────────────────────
     SCORE_DELTA_THRESHOLD = 1.5

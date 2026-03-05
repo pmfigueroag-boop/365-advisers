@@ -18,6 +18,7 @@ from src.engines.idea_generation.models import (
     IdeaType,
     SignalDetail,
 )
+from src.engines.alpha_signals.models import SignalCategory
 from src.engines.idea_generation.detectors.base import BaseDetector
 
 
@@ -26,6 +27,7 @@ class ValueDetector(BaseDetector):
 
     name = "value"
     weight = 1.0
+    signal_category = SignalCategory.VALUE
 
     # ── Thresholds ────────────────────────────────────────────────────────
     FCF_YIELD_THRESHOLD = 0.08      # 8 %

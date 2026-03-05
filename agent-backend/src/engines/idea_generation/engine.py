@@ -36,7 +36,12 @@ from src.engines.idea_generation.detectors.quality_detector import QualityDetect
 from src.engines.idea_generation.detectors.momentum_detector import MomentumDetector
 from src.engines.idea_generation.detectors.reversal_detector import ReversalDetector
 from src.engines.idea_generation.detectors.event_detector import EventDetector
+from src.engines.idea_generation.detectors.growth_detector import GrowthDetector
 from src.engines.idea_generation.ranker import rank_ideas
+
+# ── Alpha Signals Library integration ─────────────────────────────────────
+from src.engines.alpha_signals.evaluator import SignalEvaluator
+from src.engines.alpha_signals.models import SignalProfile
 
 
 logger = logging.getLogger("365advisers.idea_generation.engine")
@@ -63,8 +68,10 @@ class IdeaGenerationEngine:
             QualityDetector(),
             MomentumDetector(),
             ReversalDetector(),
+            GrowthDetector(),
         ]
         self.event_detector = EventDetector()
+        self._signal_evaluator = SignalEvaluator()
 
     async def scan(
         self,
@@ -157,10 +164,30 @@ class IdeaGenerationEngine:
             logger.info(f"IDEA-ENGINE: No data available for {symbol}, skipping")
             return ideas
 
+        # ── Evaluate Alpha Signals ────────────────────────────────────────
+        signal_profile: SignalProfile | None = None
+        try:
+            signal_profile = self._signal_evaluator.evaluate(
+                ticker=symbol,
+                fundamental=fundamental_features,
+                technical=technical_features,
+            )
+            logger.debug(
+                f"IDEA-ENGINE: Signal profile for {symbol}: "
+                f"{signal_profile.fired_signals}/{signal_profile.total_signals} signals fired"
+            )
+        except Exception as exc:
+            logger.warning(f"IDEA-ENGINE: Signal evaluation failed for {symbol}: {exc}")
+
         # ── Run detectors ────────────────────────────────────────────────
         for detector in self.detectors:
             try:
-                result = detector.scan(fundamental_features, technical_features)
+                result = None
+                # Try Alpha Signals profile first, fall back to legacy
+                if signal_profile is not None:
+                    result = detector.scan_from_profile(signal_profile)
+                if result is None:
+                    result = detector.scan(fundamental_features, technical_features)
                 if result is not None:
                     ideas.append(self._result_to_candidate(
                         symbol, result, fundamental_features

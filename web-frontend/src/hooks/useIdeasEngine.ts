@@ -27,6 +27,7 @@ export interface IdeaItem {
     signals: IdeaSignal[];
     status: "active" | "analyzed" | "dismissed";
     generated_at: string;
+    metadata?: Record<string, any>;
 }
 
 export interface ScanResult {

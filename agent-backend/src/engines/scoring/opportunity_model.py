@@ -1,6 +1,8 @@
 from typing import TypedDict, Optional
 from datetime import datetime, timezone
 
+from src.engines.alpha_signals.models import SignalProfile
+
 class OpportunitySubscores(TypedDict, total=False):
     competitive_moat: float
     growth_quality: float
@@ -39,7 +41,8 @@ class OpportunityModel:
         cls,
         fundamental_metrics: dict,
         fundamental_agents: list[dict],
-        technical_summary: dict
+        technical_summary: dict,
+        signal_profile: SignalProfile | None = None,
     ) -> OpportunityScoreResult:
         
         # 1. Extract Agent Subscores
@@ -121,6 +124,21 @@ class OpportunityModel:
             "momentum": momentum_score,
             "institutional_flow": inst_flow_score
         }
+
+        # 4b. Alpha Signals adjustment (if available)
+        if signal_profile is not None:
+            try:
+                from src.engines.scoring.signal_bridge import (
+                    compute_signal_factor_adjustments,
+                    blend_signal_adjustments,
+                )
+                signal_adjustments = compute_signal_factor_adjustments(signal_profile)
+                if signal_adjustments:
+                    factors = blend_signal_adjustments(
+                        factors, signal_adjustments, alpha_weight=0.3
+                    )
+            except Exception:
+                pass  # Graceful degradation — signals are optional
 
         # 5. Calculate Dimensions
         dimensions = DimensionScores(

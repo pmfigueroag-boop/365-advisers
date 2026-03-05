@@ -20,6 +20,7 @@ from src.engines.idea_generation.models import (
     IdeaType,
     SignalDetail,
 )
+from src.engines.alpha_signals.models import SignalCategory
 from src.engines.idea_generation.detectors.base import BaseDetector
 
 
@@ -28,6 +29,7 @@ class QualityDetector(BaseDetector):
 
     name = "quality"
     weight = 1.0
+    signal_category = SignalCategory.QUALITY
 
     # ── Thresholds ────────────────────────────────────────────────────────
     ROIC_THRESHOLD = 0.15           # 15 %

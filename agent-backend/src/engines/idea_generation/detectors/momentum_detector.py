@@ -20,6 +20,7 @@ from src.engines.idea_generation.models import (
     SignalDetail,
     SignalStrength,
 )
+from src.engines.alpha_signals.models import SignalCategory
 from src.engines.idea_generation.detectors.base import BaseDetector
 
 
@@ -28,6 +29,7 @@ class MomentumDetector(BaseDetector):
 
     name = "momentum"
     weight = 1.0
+    signal_category = SignalCategory.MOMENTUM
 
     # ── Thresholds ────────────────────────────────────────────────────────
     RSI_LOW = 50.0

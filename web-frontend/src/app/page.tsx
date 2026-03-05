@@ -32,6 +32,7 @@ import {
   LayoutGrid,
   List,
   Briefcase,
+  Radio,
 } from "lucide-react";
 import HelpPanel from "@/components/HelpPanel";
 
@@ -41,7 +42,9 @@ import CompareView, { CompareState } from "@/components/CompareView";
 import ReportHeader from "@/components/ReportHeader";
 import HistoryPanel from "@/components/HistoryPanel";
 import IdeasPanel from "@/components/IdeasPanel";
+import AlphaSignalsView from "@/components/AlphaSignalsView";
 import { useIdeasEngine } from "@/hooks/useIdeasEngine";
+import { useAlphaSignals } from "@/hooks/useAlphaSignals";
 import { useAnalysisHistory } from "@/hooks/useAnalysisHistory";
 import { useTechnicalAnalysis } from "@/hooks/useTechnicalAnalysis";
 import IndicatorGrid from "@/components/IndicatorGrid";
@@ -239,7 +242,7 @@ export default function Home() {
   const [compareInput, setCompareInput] = useState("");
   const [compareState, setCompareState] = useState<CompareState>({ status: "idle", results: [] });
 
-  const [sidebarTab, setSidebarTab] = useState<"watchlist" | "history" | "ideas">("watchlist");
+  const [sidebarTab, setSidebarTab] = useState<"watchlist" | "history" | "ideas" | "signals">("watchlist");
   const [helpOpen, setHelpOpen] = useState(false);
 
   // Auto-collapse sidebar on mobile screens on first render
@@ -268,6 +271,15 @@ export default function Home() {
   const watchlist = useWatchlist();
   const history = useAnalysisHistory();
   const ideasEngine = useIdeasEngine();
+  const alphaSignals = useAlphaSignals();
+
+  // Auto-evaluate alpha signals when a combined analysis completes
+  useEffect(() => {
+    if (combined.state.status === "complete" && combined.state.ticker) {
+      alphaSignals.evaluate(combined.state.ticker);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [combined.state.status, combined.state.ticker]);
 
 
   const { status, dataReady, agents, dalio, error, agentCount, fromCache, cachedAt } = state;
@@ -483,6 +495,21 @@ export default function Home() {
                     )}
                   </button>
                   <button
+                    onClick={() => setSidebarTab("signals")}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[9px] font-black uppercase tracking-widest transition-colors border-b-2 ${sidebarTab === "signals"
+                      ? "border-[#d4af37] text-[#d4af37]"
+                      : "border-transparent text-gray-600 hover:text-gray-400"
+                      }`}
+                  >
+                    <Radio size={10} />
+                    Signals
+                    {alphaSignals.profile && alphaSignals.profile.fired_signals > 0 && (
+                      <span className="bg-[#d4af37]/20 text-[#d4af37] rounded-full px-1 text-[8px] font-mono">
+                        {alphaSignals.profile.fired_signals}
+                      </span>
+                    )}
+                  </button>
+                  <button
                     onClick={() => setSidebarCollapsed(true)}
                     className="px-2 text-gray-700 hover:text-gray-400 transition-colors"
                     title="Collapse sidebar"
@@ -509,7 +536,7 @@ export default function Home() {
                       onRemove={history.removeById}
                       onClear={history.clear}
                     />
-                  ) : (
+                  ) : sidebarTab === "ideas" ? (
                     <IdeasPanel
                       ideas={ideasEngine.ideas}
                       scanStatus={ideasEngine.scanStatus}
@@ -520,6 +547,16 @@ export default function Home() {
                       }}
                       onAnalyze={(t) => handleAnalyze(t)}
                       onDismiss={(id) => ideasEngine.dismiss(id)}
+                    />
+                  ) : (
+                    <AlphaSignalsView
+                      profile={alphaSignals.profile}
+                      status={alphaSignals.status}
+                      error={alphaSignals.error}
+                      onEvaluate={() => {
+                        const t = combined.state.ticker || ticker;
+                        if (t) alphaSignals.evaluate(t);
+                      }}
                     />
                   )}
                 </div>

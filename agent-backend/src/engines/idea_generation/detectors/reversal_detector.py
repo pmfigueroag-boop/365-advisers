@@ -21,6 +21,7 @@ from src.engines.idea_generation.models import (
     SignalDetail,
     SignalStrength,
 )
+from src.engines.alpha_signals.models import SignalCategory
 from src.engines.idea_generation.detectors.base import BaseDetector
 
 
@@ -29,6 +30,7 @@ class ReversalDetector(BaseDetector):
 
     name = "reversal"
     weight = 0.8  # slightly lower weight — reversals are higher risk
+    signal_category = SignalCategory.VOLATILITY
 
     # ── Thresholds ────────────────────────────────────────────────────────
     RSI_OVERSOLD = 30.0

@@ -133,6 +133,7 @@ async def scan_universe(body: ScanRequest):
                 "signals": [s.model_dump() for s in idea.signals],
                 "status": idea.status.value,
                 "generated_at": idea.generated_at.isoformat(),
+                "metadata": idea.metadata,
             }
             for idea in result.ideas
         ],
@@ -166,6 +167,7 @@ async def get_ideas(
                 "signals": json.loads(r.signals_json or "[]"),
                 "status": r.status,
                 "generated_at": r.generated_at.isoformat() if r.generated_at else None,
+                "metadata": json.loads(r.metadata_json or "{}"),
             }
             for r in rows
         ]
