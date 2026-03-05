@@ -47,6 +47,9 @@ from src.engines.alpha_signals.models import SignalProfile
 from src.engines.composite_alpha.engine import CompositeAlphaEngine
 from src.engines.composite_alpha.models import CompositeAlphaResult
 
+# ── Alpha Decay Engine ────────────────────────────────────────────
+from src.engines.alpha_decay import DecayEngine, ActivationTracker, DecayConfig
+
 
 logger = logging.getLogger("365advisers.idea_generation.engine")
 
@@ -77,6 +80,12 @@ class IdeaGenerationEngine:
         self.event_detector = EventDetector()
         self._signal_evaluator = SignalEvaluator()
         self._composite_alpha_engine = CompositeAlphaEngine()
+        # Alpha Decay
+        _decay_config = DecayConfig()
+        self._decay_engine = DecayEngine(
+            tracker=ActivationTracker(config=_decay_config),
+            config=_decay_config,
+        )
 
     async def scan(
         self,
@@ -188,7 +197,9 @@ class IdeaGenerationEngine:
         # ── Compute Composite Alpha Score ─────────────────────────────────
         if signal_profile is not None:
             try:
-                composite_alpha = self._composite_alpha_engine.compute(signal_profile)
+                composite_alpha = self._composite_alpha_engine.compute(
+                    signal_profile, decay_engine=self._decay_engine
+                )
                 logger.debug(
                     f"IDEA-ENGINE: CASE for {symbol}: "
                     f"score={composite_alpha.composite_alpha_score}, "

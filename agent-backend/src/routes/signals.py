@@ -25,6 +25,7 @@ from src.engines.alpha_signals.registry import registry
 from src.engines.alpha_signals.models import SignalCategory
 from src.engines.composite_alpha.engine import CompositeAlphaEngine
 from src.engines.composite_alpha.models import CompositeAlphaResult
+from src.engines.alpha_decay import DecayEngine, ActivationTracker, DecayConfig
 from src.data.database import SessionLocal, SignalSnapshot, CompositeAlphaHistory
 
 # Reuse existing data fetching and feature extraction
@@ -37,6 +38,9 @@ router = APIRouter(prefix="/signals", tags=["Alpha Signals"])
 # Singletons
 _evaluator = SignalEvaluator()
 _combiner = SignalCombiner()
+_decay_config = DecayConfig()
+_activation_tracker = ActivationTracker(config=_decay_config)
+_decay_engine = DecayEngine(tracker=_activation_tracker, config=_decay_config)
 _composite_alpha_engine = CompositeAlphaEngine()
 _ige = IdeaGenerationEngine()
 
@@ -107,8 +111,10 @@ async def evaluate_signals(ticker: str):
     profile = _evaluator.evaluate(symbol, fundamental_features, technical_features)
     composite = _combiner.combine(profile)
 
-    # Compute Composite Alpha Score
-    case_result = _composite_alpha_engine.compute(profile)
+    # Compute Composite Alpha Score (with decay)
+    case_result = _composite_alpha_engine.compute(
+        profile, decay_engine=_decay_engine
+    )
 
     # Persist snapshots and CASE history
     _persist_snapshots(symbol, profile)
@@ -133,6 +139,12 @@ async def evaluate_signals(ticker: str):
             "active_categories": case_result.active_categories,
             "convergence_bonus": case_result.convergence_bonus,
             "cross_category_conflicts": case_result.cross_category_conflicts,
+            "decay": {
+                "applied": case_result.decay_applied,
+                "average_freshness": case_result.average_freshness,
+                "expired_signals": case_result.expired_signal_count,
+                "freshness_level": case_result.freshness_level.value,
+            },
         },
     }
 

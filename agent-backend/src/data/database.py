@@ -179,6 +179,22 @@ class CompositeAlphaHistory(Base):
     evaluated_at    = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
 
 
+class SignalActivationRecord(Base):
+    """Persisted activation timestamps for the Alpha Decay engine."""
+    __tablename__ = "signal_activations"
+
+    id                 = Column(Integer, primary_key=True, autoincrement=True)
+    signal_id          = Column(String(64), nullable=False)
+    ticker             = Column(String(16), nullable=False, index=True)
+    activated_at       = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    deactivated_at     = Column(DateTime, nullable=True)
+    initial_strength   = Column(String(10), default="weak")
+    initial_confidence = Column(Float, default=0.0)
+    category           = Column(String(20), nullable=False)
+    half_life_days     = Column(Float, nullable=False, default=30.0)
+    is_expired         = Column(Integer, default=0)  # SQLite boolean
+
+
 # ─── Create tables ────────────────────────────────────────────────────────────
 
 def init_db():
@@ -221,6 +237,14 @@ def init_db():
         conn.execute(text(
             "CREATE INDEX IF NOT EXISTS idx_composite_alpha_ticker "
             "ON composite_alpha_history(ticker, evaluated_at DESC)"
+        ))
+        conn.execute(text(
+            "CREATE INDEX IF NOT EXISTS idx_signal_activations_ticker "
+            "ON signal_activations(ticker, is_expired)"
+        ))
+        conn.execute(text(
+            "CREATE INDEX IF NOT EXISTS idx_signal_activations_signal "
+            "ON signal_activations(signal_id, ticker, is_expired)"
         ))
         conn.commit()
     print(f"[DB] Database initialised at {DB_PATH}")

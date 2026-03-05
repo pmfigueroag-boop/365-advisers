@@ -33,6 +33,7 @@ from src.engines.composite_alpha.models import (
     CompositeAlphaResult,
     SignalEnvironment,
 )
+from src.engines.alpha_decay.models import DecayAdjustedProfile, FreshnessLevel
 
 logger = logging.getLogger("365advisers.composite_alpha.engine")
 
@@ -77,9 +78,10 @@ class CompositeAlphaEngine:
         self,
         profile: SignalProfile,
         weights: CASEWeightConfig | None = None,
+        decay_engine: "DecayEngine | None" = None,
     ) -> CompositeAlphaResult:
         """
-        Run the full 5-stage pipeline.
+        Run the full pipeline (6 stages when decay is active).
 
         Parameters
         ----------
@@ -87,25 +89,42 @@ class CompositeAlphaEngine:
             Evaluated signal profile from the Alpha Signals Evaluator.
         weights : CASEWeightConfig | None
             Optional custom weight profile.  Uses defaults if not provided.
+        decay_engine : DecayEngine | None
+            Optional decay engine.  When provided, Stage 0 applies temporal
+            decay before normalization.
 
         Returns
         -------
         CompositeAlphaResult
-            Complete composite score with subscores and environment label.
+            Complete composite score with subscores, environment, and
+            freshness metadata.
         """
         if weights is None:
             weights = CASEWeightConfig()
 
         weight_dict = weights.as_dict()
 
+        # Stage 0 (optional): Apply temporal decay
+        decayed_profile: DecayAdjustedProfile | None = None
+        effective_profile = profile
+
+        if decay_engine is not None:
+            decayed_profile = decay_engine.apply(profile)
+            # Rebuild a SignalProfile with decay-adjusted confidences
+            effective_profile = self._apply_decay_to_profile(
+                profile, decayed_profile
+            )
+
         # Stage 1: Normalize all signals
-        normalized = self._normalize_signals(profile)
+        normalized = self._normalize_signals(effective_profile)
 
         # Stage 2: Aggregate into category subscores
-        subscores = self._aggregate_categories(normalized, profile)
+        subscores = self._aggregate_categories(normalized, effective_profile)
 
         # Stage 3: Detect and resolve conflicts
-        subscores, conflict_list = self._resolve_conflicts(subscores, profile)
+        subscores, conflict_list = self._resolve_conflicts(
+            subscores, effective_profile
+        )
 
         # Stage 4: Compute weighted final score
         raw_score, convergence_bonus = self._compute_weighted_score(
@@ -128,9 +147,16 @@ class CompositeAlphaEngine:
             1 for s in subscores.values() if s.fired > 0
         )
 
+        # Extract decay metadata
+        decay_applied = decayed_profile is not None
+        avg_freshness = decayed_profile.average_freshness if decayed_profile else 1.0
+        expired_count = decayed_profile.expired_signals if decayed_profile else 0
+        freshness_lvl = decayed_profile.overall_freshness if decayed_profile else FreshnessLevel.FRESH
+
         logger.info(
             f"CASE: {profile.ticker} → score={final_score}, "
             f"env={environment.value}, active={active_count}"
+            f"{f', freshness={avg_freshness:.3f}' if decay_applied else ''}"
         )
 
         return CompositeAlphaResult(
@@ -144,6 +170,58 @@ class CompositeAlphaEngine:
             weight_profile=weight_dict,
             evaluated_at=datetime.now(timezone.utc),
             signal_profile=profile,
+            decay_applied=decay_applied,
+            average_freshness=round(avg_freshness, 4),
+            expired_signal_count=expired_count,
+            freshness_level=freshness_lvl,
+        )
+
+    # ═════════════════════════════════════════════════════════════════════════
+    # Stage 0: Decay Adjuster
+    # ═════════════════════════════════════════════════════════════════════════
+
+    @staticmethod
+    def _apply_decay_to_profile(
+        original: SignalProfile,
+        decayed: DecayAdjustedProfile,
+    ) -> SignalProfile:
+        """
+        Rebuild a SignalProfile with decay-adjusted confidences.
+
+        Expired signals have their `fired` flag cleared so downstream stages
+        ignore them.  Active signals have confidence scaled by decay_factor.
+        """
+        from copy import deepcopy
+
+        adjusted_signals = []
+        decay_map = {
+            ds.signal_id: ds for ds in decayed.signals
+        }
+
+        for sig in original.signals:
+            adj_sig = deepcopy(sig)
+            ds = decay_map.get(sig.signal_id)
+
+            if ds is not None and sig.fired:
+                if ds.is_expired:
+                    adj_sig.fired = False
+                    adj_sig.confidence = 0.0
+                else:
+                    adj_sig.confidence = round(
+                        sig.confidence * ds.decay_factor, 4
+                    )
+
+            adjusted_signals.append(adj_sig)
+
+        fired_count = sum(1 for s in adjusted_signals if s.fired)
+
+        return SignalProfile(
+            ticker=original.ticker,
+            evaluated_at=original.evaluated_at,
+            total_signals=len(adjusted_signals),
+            fired_signals=fired_count,
+            signals=adjusted_signals,
+            category_summary=original.category_summary,
         )
 
     # ═════════════════════════════════════════════════════════════════════════

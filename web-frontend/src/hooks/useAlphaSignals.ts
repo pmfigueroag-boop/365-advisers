@@ -58,6 +58,13 @@ export interface CategorySubscoreResponse {
     conflict_penalty: number;
 }
 
+export interface DecayInfo {
+    applied: boolean;
+    average_freshness: number;
+    expired_signals: number;
+    freshness_level: "fresh" | "aging" | "stale" | "expired";
+}
+
 export interface CompositeAlphaResponse {
     score: number;
     environment: string;
@@ -65,6 +72,7 @@ export interface CompositeAlphaResponse {
     active_categories: number;
     convergence_bonus: number;
     cross_category_conflicts: string[];
+    decay?: DecayInfo;
 }
 
 export interface SignalProfileResponse {

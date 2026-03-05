@@ -15,6 +15,7 @@ from enum import Enum
 from pydantic import BaseModel, Field, model_validator
 
 from src.engines.alpha_signals.models import SignalCategory, SignalProfile
+from src.engines.alpha_decay.models import FreshnessLevel
 
 
 # ─── Signal Environment Classification ───────────────────────────────────────
@@ -107,3 +108,13 @@ class CompositeAlphaResult(BaseModel):
     signal_profile: SignalProfile | None = Field(
         None, description="Reference to the source SignalProfile",
     )
+    # ── Decay-awareness fields ──
+    decay_applied: bool = Field(False, description="Whether decay was active")
+    average_freshness: float = Field(
+        1.0, ge=0.0, le=1.0,
+        description="Mean decay factor across fired signals (1.0 = all fresh)",
+    )
+    expired_signal_count: int = Field(
+        0, description="Number of signals excluded due to expiration",
+    )
+    freshness_level: FreshnessLevel = FreshnessLevel.FRESH

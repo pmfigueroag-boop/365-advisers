@@ -21,6 +21,7 @@ import type {
 } from "@/hooks/useAlphaSignals";
 import CompositeAlphaGauge from "./CompositeAlphaGauge";
 import AlphaRadarChart from "./AlphaRadarChart";
+import FreshnessBadge from "./FreshnessBadge";
 
 // ── Category config ─────────────────────────────────────────────────────────
 
@@ -175,9 +176,15 @@ export default function AlphaSignalsView({
 
             {/* Composite Alpha Score — Gauge + Radar */}
             {profile.composite_alpha && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <CompositeAlphaGauge data={profile.composite_alpha} />
-                    <AlphaRadarChart data={profile.composite_alpha} />
+                <div className="flex flex-col gap-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <CompositeAlphaGauge data={profile.composite_alpha} />
+                        <AlphaRadarChart data={profile.composite_alpha} />
+                    </div>
+                    {/* Signal Freshness Badge */}
+                    {profile.composite_alpha.decay && (
+                        <FreshnessBadge decay={profile.composite_alpha.decay} />
+                    )}
                 </div>
             )}
 
