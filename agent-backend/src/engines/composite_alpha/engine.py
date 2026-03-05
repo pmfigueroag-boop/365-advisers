@@ -242,8 +242,8 @@ class CompositeAlphaEngine:
         """
         result: dict[str, list[tuple[EvaluatedSignal, float]]] = {}
 
-        # Lazy-load tier multipliers (cached per engine instance)
-        tier_multipliers = self._get_tier_multipliers()
+        # Lazy-load dynamic weights from backtest evidence (cached)
+        dynamic_weights = self._get_dynamic_weights()
 
         for sig in profile.signals:
             cat_key = sig.category.value
@@ -263,37 +263,41 @@ class CompositeAlphaEngine:
             # Modulate by confidence and weight
             effective = nss * sig.confidence * sig_def.weight
 
-            # Apply backtest-validated tier multiplier (A=1.3, B=1.0, C=0.7, D=0.4)
-            bt_multiplier = tier_multipliers.get(sig.signal_id, 1.0)
+            # Apply continuous dynamic weight from backtest evidence
+            bt_multiplier = dynamic_weights.get(sig.signal_id, 1.0)
             effective *= bt_multiplier
 
             result[cat_key].append((sig, effective))
 
         return result
 
-    def _get_tier_multipliers(self) -> dict[str, float]:
+    def _get_dynamic_weights(self) -> dict[str, float]:
         """
-        Load tier multipliers from the performance service.
+        Load continuous dynamic weights from the DynamicWeightEngine.
 
-        Returns an empty dict (no-op) if the service is unavailable
-        or no backtest data exists yet.
+        Uses the P(s)×C(s)×R(s) formula where:
+          P(s) = Performance Score (Sharpe + HitRate blend)
+          C(s) = Confidence Score (sample size + p-value)
+          R(s) = Recency Factor (exponential decay)
+
+        Returns an empty dict (no-op) if no backtest data exists.
         """
-        if not hasattr(self, "_tier_cache"):
-            self._tier_cache: dict[str, float] = {}
-        if self._tier_cache:
-            return self._tier_cache
+        if not hasattr(self, "_weight_cache"):
+            self._weight_cache: dict[str, float] = {}
+        if self._weight_cache:
+            return self._weight_cache
 
         try:
-            from src.engines.backtesting.performance_service import (
-                SignalPerformanceService,
+            from src.engines.backtesting.dynamic_weights import (
+                DynamicWeightEngine,
             )
-            service = SignalPerformanceService()
-            self._tier_cache = service.get_tier_multipliers()
+            engine = DynamicWeightEngine()
+            self._weight_cache = engine.get_weight_dict()
         except Exception:
             # Graceful degradation: no backtest data → no modulation
-            self._tier_cache = {}
+            self._weight_cache = {}
 
-        return self._tier_cache
+        return self._weight_cache
 
     @staticmethod
     def _compute_normalized_score(

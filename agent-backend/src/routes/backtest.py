@@ -239,3 +239,19 @@ async def get_calibration_history(
         "records": [r.model_dump(mode="json") for r in records],
         "total": len(records),
     }
+
+
+@router.get("/weights")
+async def get_dynamic_weights():
+    """Get current dynamic weights for all signals with backtest data."""
+    from src.engines.backtesting.dynamic_weights import DynamicWeightEngine
+
+    engine = DynamicWeightEngine()
+    profile = engine.compute_all()
+    return {
+        "weights": profile.weights,
+        "details": [d.model_dump() for d in profile.details],
+        "signal_count": profile.signal_count,
+        "computed_at": profile.computed_at.isoformat(),
+        "config": profile.config.model_dump(),
+    }
