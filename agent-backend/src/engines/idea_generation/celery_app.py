@@ -55,3 +55,21 @@ celery_app.conf.update(
 )
 
 logger.info(f"Celery app configured with broker: {REDIS_URL}")
+
+
+# ─── Worker DB Connection Safety ──────────────────────────────────────────────
+# PostgreSQL connections must not be shared across forked processes.
+# Dispose the inherited engine pool so each worker creates fresh connections.
+
+from celery.signals import worker_process_init  # noqa: E402
+
+
+@worker_process_init.connect
+def _init_worker_db(**kwargs):
+    """Re-initialize the DB engine after Celery worker fork."""
+    try:
+        from src.data.database import ENGINE
+        ENGINE.dispose()
+        logger.info("Worker DB pool disposed — fresh connections will be created")
+    except Exception as exc:
+        logger.warning(f"Could not dispose DB pool in worker: {exc}")

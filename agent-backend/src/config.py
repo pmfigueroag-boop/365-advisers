@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     YFINANCE_RETRY_DELAY: float = 1.0   # seconds
 
     # ── Database
-    DB_PATH: str = ""  # Resolved at runtime if empty
+    DATABASE_URL: str = "sqlite:///advisers.db"  # Override with postgresql+psycopg://... in .env
 
     model_config = {"env_file": ".env", "extra": "ignore"}
 
