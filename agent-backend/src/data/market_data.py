@@ -17,11 +17,16 @@ Also provides:
 from __future__ import annotations
 
 import os
+import logging
 import pandas as pd
 import yfinance as yf
 from tradingview_ta import TA_Handler, Interval
 
 from src.utils.helpers import sanitize_data
+from src.config import get_settings
+
+logger = logging.getLogger("365advisers.market_data")
+_settings = get_settings()
 
 
 # ─── Types (inline TypedDicts for clear contracts) ───────────────────────────
@@ -87,7 +92,7 @@ def fetch_company_info(ticker: str) -> dict:
             "industry": info.get("industry", ""),
         })
     except Exception as exc:
-        print(f"[MarketData] fetch_company_info error for {ticker}: {exc}")
+        logger.warning(f"fetch_company_info error for {ticker}: {exc}")
         return {"ticker": ticker.upper(), "name": ticker, "price": None}
 
 
@@ -109,9 +114,9 @@ def fetch_fundamental_data(ticker: str) -> dict:
       }
     """
     symbol = ticker.upper()
-    print(f"[MarketData] Fetching fundamental data for {symbol}")
+    logger.info(f"Fetching fundamental data for {symbol}")
 
-    try:
+    def _fetch():
         stock = yf.Ticker(symbol)
         info = stock.info or {}
 
@@ -121,7 +126,7 @@ def fetch_fundamental_data(ticker: str) -> dict:
             bs = stock.balance_sheet       # Balance sheet (annual)
             cf = stock.cashflow            # Cash flow statement (annual)
         except Exception as exc:
-            print(f"[MarketData] Statement fetch error: {exc}")
+            logger.warning(f"Statement fetch error: {exc}")
             is_, bs, cf = pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 
         # ── Derived values ────────────────────────────────────────────────────
@@ -172,7 +177,7 @@ def fetch_fundamental_data(ticker: str) -> dict:
                 # Sort ascending (oldest → newest)
                 cashflow_series.sort(key=lambda x: x["year"])
         except Exception as cf_exc:
-            print(f"[MarketData] cashflow_series build error: {cf_exc}")
+            logger.warning(f"cashflow_series build error: {cf_exc}")
 
         def pct_or_none(num, denom):
             if num is not None and denom:
@@ -221,8 +226,37 @@ def fetch_fundamental_data(ticker: str) -> dict:
             "industry": info.get("industry", ""),
         })
 
+    try:
+        import threading
+        result_container = {}
+        def _thread_target():
+            try:
+                result_container['data'] = _fetch()
+            except Exception as e:
+                result_container['error'] = e
+
+        t = threading.Thread(target=_thread_target, daemon=True)
+        t.start()
+        t.join(timeout=_settings.YFINANCE_TIMEOUT)
+
+        if t.is_alive():
+            logger.error(f"fetch_fundamental_data for {symbol} timed out after {_settings.YFINANCE_TIMEOUT}s")
+            return sanitize_data({
+                "ticker": symbol,
+                "name": symbol,
+                "info": {},
+                "ratios": {},
+                "cashflow_series": [],
+                "error": "Timeout fetching market data from source",
+            })
+            
+        if 'error' in result_container:
+            raise result_container['error']
+            
+        return result_container.get('data')
+
     except Exception as exc:
-        print(f"[MarketData] CRITICAL error in fetch_fundamental_data for {symbol}: {exc}")
+        logger.error(f"fetch_fundamental_data for {symbol}: {exc}")
         return sanitize_data({
             "ticker": symbol,
             "name": symbol,
@@ -254,7 +288,13 @@ def fetch_technical_data(ticker: str) -> dict:
       }
     """
     symbol = ticker.upper()
-    print(f"[MarketData] Fetching technical data for {symbol}")
+    logger.info(f"Fetching technical data for {symbol}")
+
+    def _fetch_yf():
+        stock = yf.Ticker(symbol)
+        info = stock.info or {}
+        history = stock.history(period="1y")
+        return info, history
 
     ohlcv: list[dict] = []
     history = pd.DataFrame()
@@ -262,9 +302,26 @@ def fetch_technical_data(ticker: str) -> dict:
 
     # ── 1. yfinance OHLCV ────────────────────────────────────────────────────
     try:
-        stock = yf.Ticker(symbol)
-        info = stock.info or {}
-        history = stock.history(period="1y")
+        import threading
+        result_container = {}
+        def _thread_target_tech():
+            try:
+                result_container['data'] = _fetch_yf()
+            except Exception as e:
+                result_container['error'] = e
+
+        t = threading.Thread(target=_thread_target_tech, daemon=True)
+        t.start()
+        t.join(timeout=_settings.YFINANCE_TIMEOUT)
+
+        if t.is_alive():
+            logger.error(f"fetch_technical_data yfinance for {symbol} timed out.")
+            # We'll continue with empty yfinance data, maybe TradingView works
+        elif 'error' in result_container:
+            logger.warning(f"yfinance technical error: {result_container['error']}")
+        else:
+            info, history = result_container.get('data', ({}, pd.DataFrame()))
+            
         if not history.empty:
             for idx, row in history.iterrows():
                 ohlcv.append({
@@ -276,7 +333,7 @@ def fetch_technical_data(ticker: str) -> dict:
                     "volume": int(row["Volume"]),
                 })
     except Exception as exc:
-        print(f"[MarketData] OHLCV fetch error for {symbol}: {exc}")
+        logger.error(f"OHLCV fetch error for {symbol}: {exc}")
 
     last_price = float(history["Close"].iloc[-1]) if not history.empty else 0.0
     exchange = _resolve_exchange(info.get("exchange", ""))
@@ -329,7 +386,7 @@ def fetch_technical_data(ticker: str) -> dict:
         tv_moving_averages = analysis.moving_averages
 
     except Exception as exc:
-        print(f"[MarketData] TradingView fetch error for {symbol}: {exc}")
+        logger.warning(f"TradingView fetch error for {symbol}: {exc}")
         # Minimal fallback so the Technical Engine can still run
         raw_indicators = {
             "close": last_price, "rsi": 50.0,
@@ -379,4 +436,6 @@ def fetch_financial_data(ticker_symbol: str) -> dict:
             "oscillators":      tech.get("tv_oscillators", {}),
             "moving_averages":  tech.get("tv_moving_averages", {}),
         },
+        "sector":            fund.get("sector", ""),
+        "industry":          fund.get("industry", ""),
     })

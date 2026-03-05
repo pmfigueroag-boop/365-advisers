@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { PriceChart, CashFlowChart } from "@/components/Charts";
+import { CashFlowChart } from "@/components/Charts";
 import TradingViewChart from "@/components/TradingViewChart";
 import TradingViewTechnicalWidget from "@/components/TradingViewTechnicalWidget";
 import {
@@ -30,6 +30,7 @@ import {
   Menu,
   LayoutGrid,
   List,
+  Briefcase,
 } from "lucide-react";
 import HelpPanel from "@/components/HelpPanel";
 
@@ -46,44 +47,13 @@ import ResearchMemoCard from "@/components/ResearchMemoCard";
 import OnboardingOverlay, { useOnboarding } from "@/components/OnboardingOverlay";
 import { useCombinedStream } from "@/hooks/useCombinedStream";
 import CombinedDashboard from "@/components/CombinedDashboard";
+import PortfolioDashboard from "@/components/PortfolioDashboard";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 
 
+import { CacheBadge, SignalBadge, FundamentalTable, AgentCard, AgentSkeletonCard, ProgressBar, AGENT_ORDER } from "@/components/AnalysisWidgets";
 
-// ─── Cache Badge ─────────────────────────────────────────────────────────────
-function CacheBadge({ cachedAt }: { cachedAt: string | null }) {
-  if (!cachedAt) return null;
-  const ageMs = Date.now() - new Date(cachedAt).getTime();
-  const ageMin = Math.round(ageMs / 60000);
-  const ageLabel = ageMin < 1 ? "just now" : `${ageMin} min ago`;
-  return (
-    <span
-      title={`Result from cache — Cached ${ageLabel}`}
-      className="flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest bg-amber-500/10 border border-amber-500/30 text-amber-400 cursor-help select-none"
-    >
-      <Zap size={9} fill="currentColor" />
-      Cached · {ageLabel}
-    </span>
-  );
-}
-
-// ─── Signal Badge helper ─────────────────────────────────────────────────────
-function SignalBadge({ signal }: { signal?: string }) {
-  if (!signal) return null;
-  const s = signal.toUpperCase();
-  const cls = s.includes("BUY") || s === "AGGRESSIVE"
-    ? "bg-green-500/15 text-green-400 border-green-500/30"
-    : s.includes("SELL") || s === "DEFENSIVE"
-      ? "bg-red-500/15 text-red-400 border-red-500/30"
-      : "bg-gray-500/15 text-gray-400 border-gray-500/30";
-  return (
-    <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border ${cls}`}>
-      {signal}
-    </span>
-  );
-}
-
-// ─── Watchlist Sidebar ───────────────────────────────────────────────────────
 function WatchlistSidebar({
   items,
   collapsed,
@@ -248,128 +218,6 @@ function WatchlistSidebar({
   );
 }
 
-// ─── Fundamental Table ───────────────────────────────────────────────────────
-const FundamentalTable = ({ engine }: { engine: any }) => {
-  if (!engine) return null;
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      {Object.entries(engine).map(([category, metrics]: [string, any]) => (
-        <div key={category} className="glass-card p-4 border-[#30363d] bg-[#0d1117]/30">
-          <h4 className="text-[10px] font-black uppercase text-[#d4af37] mb-3 tracking-widest">
-            {category.replace("_", " ")}
-          </h4>
-          <div className="space-y-2">
-            {Object.entries(metrics).map(([key, val]: [string, any]) => (
-              <div key={key} className="flex justify-between items-center">
-                <span className="text-[10px] text-gray-500 capitalize">{key.replace(/_/g, " ")}</span>
-                <span className={`text-[10px] font-mono ${val === "DATA_INCOMPLETE" ? "text-red-500/50" : "text-gray-200"}`}>
-                  {typeof val === "number"
-                    ? val > 1 || val < -1
-                      ? val.toLocaleString("en-US", { maximumFractionDigits: 2 })
-                      : (val * 100).toFixed(2) + "%"
-                    : val}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
-
-// ─── Agent Card ──────────────────────────────────────────────────────────────
-const AgentCard = ({ agent, index }: { agent: AgentSignal; index: number }) => {
-  const isBuy = ["BUY", "AGGRESSIVE"].includes(agent.signal?.toUpperCase());
-  const isSell = ["SELL", "DEFENSIVE"].includes(agent.signal?.toUpperCase());
-  return (
-    <div
-      className="agent-card glass-card p-5 border-[#30363d] flex flex-col h-[320px] hover:border-[#d4af37]/50 transition-all group"
-      style={{ animation: `fadeSlideIn 0.45s ease both`, animationDelay: `${index * 60}ms` }}
-    >
-      <div className="flex justify-between items-start mb-3">
-        <div className="flex items-center gap-2">
-          <CheckCircle2 size={12} className="text-[#d4af37]" />
-          <h3 className="font-black text-base group-hover:text-[#d4af37] transition-colors">{agent.agent_name}</h3>
-        </div>
-        <span className={`px-2 py-0.5 rounded text-[9px] font-black tracking-tighter ${isBuy ? "bg-green-500/10 text-green-400" : isSell ? "bg-red-500/10 text-red-400" : "bg-gray-500/10 text-gray-400"}`}>
-          {agent.signal}
-        </span>
-      </div>
-      <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-        <p className="text-[11px] text-gray-400 leading-relaxed text-pretty mb-3">{agent.analysis}</p>
-        {agent.selected_metrics && agent.selected_metrics.length > 0 && (
-          <div className="space-y-1">
-            <span className="text-[8px] font-black text-[#d4af37] uppercase tracking-widest">Métricas Priorizadas</span>
-            <div className="flex flex-wrap gap-1">
-              {agent.selected_metrics.map((m: any, idx: number) => {
-                const label = typeof m === "string" ? m : m.metric || m.name || `Metric ${idx}`;
-                const tooltip = typeof m === "object" ? m.justification || m.reason : null;
-                return (
-                  <span key={idx} title={tooltip} className="px-1.5 py-0.5 bg-[#d4af37]/10 text-[#f9e29c] rounded-sm text-[8px] font-mono border border-[#d4af37]/20 cursor-help">
-                    {label}
-                  </span>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
-      <div className="mt-4 pt-3 border-t border-[#30363d] flex justify-between items-center bg-[#0d1117]/50 -mx-5 -mb-5 p-4 rounded-b-xl">
-        <span className="text-[9px] text-gray-500 uppercase font-bold tracking-widest">Confidence</span>
-        <div className="flex items-center gap-2">
-          <div className="w-12 h-1 bg-[#161b22] rounded-full overflow-hidden">
-            <div className="h-full bg-[#d4af37]" style={{ width: `${(agent.confidence || 0) * 100}%` }} />
-          </div>
-          <span className="text-[9px] font-mono text-[#d4af37]">{((agent.confidence || 0) * 100).toFixed(0)}%</span>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// ─── Skeleton Card ───────────────────────────────────────────────────────────
-const AgentSkeletonCard = ({ label }: { label: string }) => (
-  <div className="glass-card p-5 border-[#30363d] flex flex-col h-[320px] opacity-60">
-    <div className="flex items-center gap-2 mb-3">
-      <Loader2 size={12} className="text-[#d4af37] animate-spin" />
-      <span className="font-black text-base text-gray-600">{label}</span>
-    </div>
-    <div className="flex-1 space-y-2 pt-2">
-      {[100, 80, 90, 60, 75].map((w, i) => (
-        <div key={i} className="h-2 bg-[#30363d] rounded animate-pulse" style={{ width: `${w}%` }} />
-      ))}
-    </div>
-    <div className="mt-4 pt-3 border-t border-[#30363d] flex items-center justify-center -mx-5 -mb-5 p-4 rounded-b-xl bg-[#0d1117]/30">
-      <Clock size={12} className="text-gray-600 mr-2" />
-      <span className="text-[9px] text-gray-600 uppercase tracking-widest">Analyzing...</span>
-    </div>
-  </div>
-);
-
-// ─── Progress Bar ────────────────────────────────────────────────────────────
-const AGENT_ORDER = ["Lynch", "Buffett", "Marks", "Icahn", "Bollinger", "RSI", "MACD", "Gann"];
-
-const ProgressBar = ({ completed, total, status }: { completed: number; total: number; status: string }) => {
-  const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
-  const isDone = completed >= total;
-  return (
-    <div className="glass-card p-4 border-[#30363d] bg-[#0d1117]/40 mb-6">
-      <div className="flex justify-between items-center mb-2">
-        <div className="flex items-center gap-2">
-          {isDone ? <CheckCircle2 size={14} className="text-[#d4af37]" /> : <Loader2 size={14} className="text-[#d4af37] animate-spin" />}
-          <span className="text-xs font-black uppercase tracking-widest text-gray-400">
-            {status === "fetching_data" ? "Fetching market data..." : status === "analyzing" ? `Committee at work — ${completed} / ${total} minds reporting` : "Analysis complete"}
-          </span>
-        </div>
-        <span className="text-xs font-mono text-[#d4af37]">{pct}%</span>
-      </div>
-      <div className="h-1.5 bg-[#161b22] rounded-full overflow-hidden">
-        <div className="h-full bg-[#d4af37] transition-all duration-500 ease-out" style={{ width: `${pct}%` }} />
-      </div>
-    </div>
-  );
-};
 
 // ─── Main Page ───────────────────────────────────────────────────────────────
 export default function Home() {
@@ -380,8 +228,8 @@ export default function Home() {
   const [showProGate, setShowProGate] = useState(false);
   const { showOnboarding, dismiss: dismissOnboarding } = useOnboarding();
 
-  // Main analysis tab: "fundamental" | "technical" | "combined"
-  const [mainTab, setMainTab] = useState<"fundamental" | "technical" | "combined">("combined");
+  // Main analysis tab: "fundamental" | "technical" | "combined" | "portfolio"
+  const [mainTab, setMainTab] = useState<"fundamental" | "technical" | "combined" | "portfolio">("combined");
 
   // Compare mode state
   const [compareMode, setCompareMode] = useState(false);
@@ -431,28 +279,54 @@ export default function Home() {
         : "HOLD"
     : undefined;
 
-  // Update watchlist badge + save to history when analysis completes
+  // Update history + watchlist badge when COMBINED analysis completes
   useEffect(() => {
-    if (status === "complete" && dataReady?.ticker && derivedSignal) {
+    if (combined.state.status === "complete" && combined.state.ticker && combined.state.fundamentalDataReady) {
+      // derivedSignal uses dalio.final_verdict if legacy, or combined.state.decision.investment_position if combined
+      const signalToSave = combined.state.decision?.investment_position ?? derivedSignal ?? "HOLD";
+      const scoreToSave = combined.state.committee?.score ?? fundamental.state.committee?.score ?? 0;
+
       watchlist.updateSignal(
-        dataReady.ticker,
-        derivedSignal,
-        fundamental.state.committee?.score ?? undefined
+        combined.state.ticker,
+        signalToSave,
+        scoreToSave
       );
+
       history.add({
-        ticker: dataReady.ticker,
-        name: dataReady.name ?? dataReady.ticker,
-        signal: derivedSignal,
-        agentSummary: agents.map((a) => ({
-          name: a.agent_name,
+        ticker: combined.state.ticker,
+        name: combined.state.fundamentalDataReady.name ?? combined.state.ticker,
+        signal: signalToSave,
+        agentSummary: combined.state.agentMemos.map((a) => ({
+          name: a.agent,
           signal: a.signal,
-          confidence: a.confidence ?? 0,
+          confidence: a.conviction ?? 0,
         })),
-        dalioVerdict: dalio?.final_verdict ?? dalio?.dalio_response?.verdict ?? "",
-        fromCache: fromCache ?? false,
+        dalioVerdict: combined.state.decision?.cio_memo.thesis_summary ?? "",
+        fromCache: combined.state.fromCache ?? false,
+        // Insert Institutional Data required by the Risk Parity / Portfolio Builder
+        fundamental_score: scoreToSave,
+        opportunity_score: combined.state.opportunity?.opportunity_score,
+        dimensions: combined.state.opportunity?.dimensions,
+        position_sizing: combined.state.positionSizing as any,
+        sector: combined.state.fundamentalDataReady.sector,
+        volatility_atr: combined.state.technical?.indicators?.volatility?.atr_pct,
       });
     }
-  }, [status]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [
+    combined.state.status,
+    combined.state.ticker,
+    combined.state.fundamentalDataReady,
+    combined.state.decision,
+    combined.state.committee,
+    combined.state.agentMemos,
+    combined.state.fromCache,
+    combined.state.opportunity,
+    combined.state.positionSizing,
+    derivedSignal,
+    fundamental.state.committee?.score,
+    history,
+    watchlist
+  ]);
 
 
   const handleAnalyze = (symbol?: string) => {
@@ -477,8 +351,9 @@ export default function Home() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       setCompareState({ status: "done", results: json.results ?? [] });
-    } catch (e: any) {
-      setCompareState({ status: "error", results: [], error: e.message });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setCompareState({ status: "error", results: [], error: msg });
     }
   };
 
@@ -827,6 +702,16 @@ export default function Home() {
                   </span>
                 )}
               </button>
+              <button
+                onClick={() => setMainTab("portfolio")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${mainTab === "portfolio"
+                  ? "bg-[#d4af37] text-black"
+                  : "text-gray-500 hover:text-[#d4af37]"
+                  }`}
+              >
+                <Briefcase size={12} />
+                Portfolio
+              </button>
             </div>
           )}
 
@@ -1077,9 +962,7 @@ export default function Home() {
                   </div>
                   <ChevronDown size={14} className="text-gray-600 transition-transform duration-200 group-open:rotate-180" />
                 </summary>
-                <div className="p-4 border-t border-[#30363d]/40">
-                  <FundamentalTable engine={dataReady.fundamental_metrics} />
-                </div>
+                <FundamentalTable engine={dataReady.fundamental_metrics as Record<string, Record<string, unknown>>} />
               </details>
 
               {/* 8-Agent Legacy Grid — collapsible, hidden by default */}
@@ -1271,6 +1154,13 @@ export default function Home() {
                   }}
                 />
               )}
+            </div>
+          )}
+
+          {/* ── Portfolio Dashboard (Core/Satellite Construction) ── */}
+          {mainTab === "portfolio" && (
+            <div style={{ animation: "fadeSlideIn 0.3s ease both" }}>
+              <PortfolioDashboard historyEntries={history.entries} />
             </div>
           )}
         </main >

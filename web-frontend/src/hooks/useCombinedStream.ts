@@ -21,6 +21,22 @@ export interface DecisionReady {
     elapsed_ms?: number;
 }
 
+export interface OpportunityScore {
+    opportunity_score: number;
+    dimensions: Record<string, number>;
+    factors: Record<string, number>;
+}
+
+export interface PositionSizing {
+    opportunity_score: number;
+    conviction_level: string;
+    risk_level: string;
+    base_position_size: number;
+    risk_adjustment: number;
+    suggested_allocation: number;
+    recommended_action: string;
+}
+
 export type CombinedStatus = "idle" | "fetching_data" | "fundamental" | "technical" | "decision" | "complete" | "error";
 
 export interface CombinedState {
@@ -33,6 +49,9 @@ export interface CombinedState {
     researchMemo: string | null;
     // Technical track
     technical: TechnicalAnalysisResult | null;
+    // Portfolio track
+    opportunity: OpportunityScore | null;
+    positionSizing: PositionSizing | null;
     // Decision track
     decision: DecisionReady | null;
     // Meta
@@ -53,6 +72,8 @@ const INITIAL: CombinedState = {
     committee: null,
     researchMemo: null,
     technical: null,
+    opportunity: null,
+    positionSizing: null,
     decision: null,
     error: null,
     fromCache: false,
@@ -111,6 +132,18 @@ export function useCombinedStream() {
         es.addEventListener("technical_ready", (e) => {
             const tech: TechnicalAnalysisResult = JSON.parse((e as MessageEvent).data);
             setState((prev) => ({ ...prev, technical: tech, status: "decision" }));
+        });
+
+        // opportunity_score
+        es.addEventListener("opportunity_score", (e) => {
+            const opp: OpportunityScore = JSON.parse((e as MessageEvent).data);
+            setState((prev) => ({ ...prev, opportunity: opp }));
+        });
+
+        // position_sizing
+        es.addEventListener("position_sizing", (e) => {
+            const pos: PositionSizing = JSON.parse((e as MessageEvent).data);
+            setState((prev) => ({ ...prev, positionSizing: pos }));
         });
 
         // decision_ready — Final CIO Memo and Investment Position

@@ -1,5 +1,7 @@
+import type { TechnicalAnalysisResult } from "./useTechnicalAnalysis";
+
 export function useCSVExport() {
-    const downloadCSV = (dataReady: any, techSummary: any, ticker: string) => {
+    const downloadCSV = (dataReady: { name?: string; fundamental_metrics?: Record<string, Record<string, unknown>> } | null, techAnalysis: TechnicalAnalysisResult | null, ticker: string) => {
         if (!dataReady) return;
 
         try {
@@ -14,9 +16,9 @@ export function useCSVExport() {
             // FUNDAMENTAL RATIOS
             rows.push(["FUNDAMENTAL METRICS"]);
             if (dataReady.fundamental_metrics) {
-                Object.entries(dataReady.fundamental_metrics).forEach(([category, metrics]: [string, any]) => {
+                Object.entries(dataReady.fundamental_metrics).forEach(([category, metrics]) => {
                     rows.push([`-- ${category.toUpperCase()} --`]);
-                    Object.entries(metrics).forEach(([key, val]: [string, any]) => {
+                    Object.entries(metrics).forEach(([key, val]) => {
                         rows.push([key, String(val)]);
                     });
                     rows.push([]);
@@ -25,21 +27,18 @@ export function useCSVExport() {
 
             // TECHNICAL INDICATORS
             rows.push(["TECHNICAL INDICATORS"]);
-            if (techSummary && techSummary.indicators) {
-                Object.entries(techSummary.indicators).forEach(([category, data]: [string, any]) => {
+            if (techAnalysis && techAnalysis.indicators) {
+                Object.entries(techAnalysis.indicators).forEach(([category, data]) => {
                     rows.push([`-- ${category.toUpperCase()} --`]);
-                    if (data.values) {
-                        Object.entries(data.values).forEach(([key, val]: [string, any]) => {
+                    if (data && typeof data === 'object') {
+                        Object.entries(data).forEach(([key, val]) => {
                             let formattedVal = val;
                             if (typeof val === 'number') {
                                 formattedVal = val.toFixed(2);
+                            } else if (typeof val === 'object') {
+                                formattedVal = JSON.stringify(val);
                             }
                             rows.push([key, String(formattedVal)]);
-                        });
-                    }
-                    if (data.signals) {
-                        Object.entries(data.signals).forEach(([key, val]: [string, any]) => {
-                            rows.push([`${key} Signal`, String(val)]);
                         });
                     }
                     rows.push([]);
@@ -57,7 +56,7 @@ export function useCSVExport() {
             link.click();
             document.body.removeChild(link);
 
-        } catch (e) {
+        } catch (e: unknown) {
             console.error("Failed to generate CSV", e);
         }
     };

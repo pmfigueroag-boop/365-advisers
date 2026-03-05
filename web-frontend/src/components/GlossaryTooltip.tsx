@@ -1,5 +1,3 @@
-import { HelpCircle } from "lucide-react";
-
 export const GLOSSARY: Record<string, string> = {
     // Technical
     "RSI": "Relative Strength Index. Mide la magnitud de cambios de precios recientes para evaluar condiciones de sobrecompra (>70) o sobreventa (<30).",

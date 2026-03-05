@@ -21,9 +21,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from sqlalchemy import (
-    Column, Integer, Float, String, Text, DateTime, create_engine, text
+    Column, Integer, Float, String, Text, DateTime, create_engine, text, ForeignKey
 )
-from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
+from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker, relationship
 
 
 # ─── Database setup ───────────────────────────────────────────────────────────
@@ -97,6 +97,35 @@ class OpportunityScoreHistory(Base):
     financial_strength= Column(Float)               # 0-10
     market_behavior   = Column(Float)               # 0-10
     score_breakdown_json = Column(Text)             # Full 12-factor JSON payload
+
+
+class Portfolio(Base):
+    __tablename__ = "portfolios"
+
+    id               = Column(Integer, primary_key=True, autoincrement=True)
+    name             = Column(String(100), nullable=False)
+    strategy         = Column(String(100))
+    risk_level       = Column(String(50))
+    total_allocation = Column(Float)
+    created_at       = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    # Relationship to positions
+    positions        = relationship("PortfolioPosition", back_populates="portfolio", cascade="all, delete-orphan")
+
+
+class PortfolioPosition(Base):
+    __tablename__ = "portfolio_positions"
+
+    id               = Column(Integer, primary_key=True, autoincrement=True)
+    portfolio_id     = Column(Integer, ForeignKey("portfolios.id"), nullable=False, index=True)
+    ticker           = Column(String(16), nullable=False)
+    target_weight    = Column(Float, nullable=False)
+    role             = Column(String(20))           # CORE | SATELLITE
+    sector           = Column(String(100))
+    volatility_atr   = Column(Float)
+
+    # Relationship back to Portfolio
+    portfolio        = relationship("Portfolio", back_populates="positions")
 
 
 # ─── Create tables ────────────────────────────────────────────────────────────

@@ -27,12 +27,12 @@ interface CashFlowData {
     revenue: number;
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: { name: string; value: number; color: string }[]; label?: string }) => {
     if (active && payload && payload.length) {
         return (
             <div className="bg-[#161b22] border border-[#30363d] p-3 rounded-lg shadow-xl">
                 <p className="text-gray-400 text-xs mb-1">{label}</p>
-                {payload.map((entry: any, index: number) => (
+                {payload.map((entry, index: number) => (
                     <p key={index} style={{ color: entry.color }} className="text-sm font-bold">
                         {entry.name}: {new Intl.NumberFormat('en-US', {
                             style: 'currency',

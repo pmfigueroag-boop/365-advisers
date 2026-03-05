@@ -7,6 +7,9 @@ import {
     Zap,
     RefreshCw,
     Clock,
+    Target,
+    Activity,
+    SlidersHorizontal
 } from "lucide-react";
 import { useState } from "react";
 import type { CombinedState } from "@/hooks/useCombinedStream";
@@ -79,7 +82,11 @@ export default function CombinedDashboard({ state, onForceRefresh }: CombinedDas
     const [activeView, setActiveView] = useState<"overview" | "fundamental" | "technical" | "history">("overview");
     const { downloadCSV } = useCSVExport();
 
-    const { status, ticker, committee, technical, decision, agentMemos, researchMemo, fundamentalDataReady, processingMs, fromCache } = state;
+    const {
+        status, ticker, committee, technical, decision,
+        agentMemos, researchMemo, fundamentalDataReady,
+        processingMs, fromCache, positionSizing
+    } = state;
 
     const fundScore = committee?.score ?? 0;
     const techScore = technical?.summary?.technical_score ?? 0;
@@ -117,7 +124,7 @@ export default function CombinedDashboard({ state, onForceRefresh }: CombinedDas
                             {status === "complete" && (
                                 <button
                                     onClick={() => {
-                                        if (ticker) downloadCSV(fundamentalDataReady, technical?.summary, ticker);
+                                        if (ticker) downloadCSV(fundamentalDataReady ?? null, technical ?? null, ticker);
                                     }}
                                     className="flex items-center gap-1.5 text-[8px] font-bold text-[#d4af37] border border-[#d4af37]/30 hover:bg-[#d4af37]/10 px-2 py-1 rounded transition-colors tracking-wider uppercase"
                                 >
@@ -176,6 +183,71 @@ export default function CombinedDashboard({ state, onForceRefresh }: CombinedDas
                         <p className="font-serif text-[1.15rem] leading-[1.6] text-gray-200 italic mb-2 border-l-2 border-[#d4af37] pl-4">
                             &ldquo;{decision.cio_memo.thesis_summary}&rdquo;
                         </p>
+                    </div>
+                </div>
+            )}
+
+            {/* ── Portfolio Allocation Suggestion (Position Sizing) ── */}
+            {hasDecision && positionSizing && (
+                <div className="glass-card p-6 border border-[#30363d] bg-gradient-to-br from-[#0d1117] to-[#161b22] flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-[#30363d]" style={{ animation: "fadeSlideIn 0.5s ease 0.2s both" }}>
+
+                    {/* Left: Headline & Action */}
+                    <div className="flex-1 md:pr-6 pb-6 md:pb-0 flex flex-col justify-center">
+                        <div className="flex items-center gap-2 mb-4">
+                            <Target size={16} className="text-[#60a5fa]" />
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.15em] text-gray-400">
+                                Portfolio Allocation Suggestion
+                            </h3>
+                        </div>
+                        <div className="flex items-end gap-3 mb-2">
+                            <h2 className="text-4xl font-black text-white font-mono tracking-tight">
+                                {positionSizing.suggested_allocation.toFixed(1)}<span className="text-xl text-gray-500">%</span>
+                            </h2>
+                            <span className={`text-[10px] font-black px-2 py-1 rounded uppercase mb-1 tracking-wider ${positionSizing.recommended_action.includes("Increase") ? "bg-green-500/20 text-green-400 border border-green-500/30" : positionSizing.recommended_action.includes("Reduce") || positionSizing.recommended_action.includes("Exit") ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"}`}>
+                                {positionSizing.recommended_action}
+                            </span>
+                        </div>
+                        <p className="text-[11px] text-gray-500 font-medium">
+                            Risk-adjusted target based on Conviction and Volatility constraints. Max 10%.
+                        </p>
+                    </div>
+
+                    {/* Middle: Math Breakdown 1 */}
+                    <div className="flex-1 md:px-6 py-6 md:py-0 flex flex-col gap-4 justify-center">
+                        <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                                <Activity size={12} className="text-[#d4af37]" />
+                                <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Opportunity</span>
+                            </div>
+                            <span className="text-sm font-black text-white font-mono">{positionSizing.opportunity_score.toFixed(1)} <span className="text-gray-600 text-[10px]">/ 10</span></span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider ml-5">Conviction</span>
+                            <span className="text-xs font-bold text-gray-300">{positionSizing.conviction_level}</span>
+                        </div>
+                        <div className="flex justify-between items-center bg-[#21262d]/50 px-3 py-1.5 rounded">
+                            <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Base Size</span>
+                            <span className="text-xs font-black text-white font-mono">{positionSizing.base_position_size.toFixed(1)}%</span>
+                        </div>
+                    </div>
+
+                    {/* Right: Math Breakdown 2 & Total */}
+                    <div className="flex-1 md:pl-6 pt-6 md:pt-0 flex flex-col gap-4 justify-center">
+                        <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                                <SlidersHorizontal size={12} className="text-[#c084fc]" />
+                                <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Risk Level</span>
+                            </div>
+                            <span className="text-xs font-bold text-[#c084fc]">{positionSizing.risk_level}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider ml-5">Adjustment</span>
+                            <span className="text-xs font-bold text-gray-300 font-mono">× {positionSizing.risk_adjustment.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between items-center bg-[#21262d]/50 px-3 py-1.5 rounded border border-[#30363d]">
+                            <span className="text-[10px] uppercase font-bold text-[#60a5fa] tracking-wider">Suggested</span>
+                            <span className="text-xs font-black text-[#60a5fa] font-mono">{positionSizing.suggested_allocation.toFixed(1)}%</span>
+                        </div>
                     </div>
                 </div>
             )}

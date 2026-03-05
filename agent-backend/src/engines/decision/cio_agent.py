@@ -1,7 +1,11 @@
-import os
+import logging
 from typing import TypedDict
 from langchain_google_genai import ChatGoogleGenerativeAI
 from src.utils.helpers import extract_json
+from src.config import get_settings
+
+logger = logging.getLogger("365advisers.cio_agent")
+_settings = get_settings()
 
 class CIOMemoOutput(TypedDict):
     thesis_summary: str
@@ -11,8 +15,8 @@ class CIOMemoOutput(TypedDict):
     key_risks: list[str]
 
 _llm_cio = ChatGoogleGenerativeAI(
-    model="gemini-2.5-pro",
-    google_api_key=os.getenv("GOOGLE_API_KEY"),
+    model=_settings.LLM_MODEL,
+    google_api_key=_settings.GOOGLE_API_KEY,
 )
 
 def synthesize_investment_memo(
@@ -20,7 +24,8 @@ def synthesize_investment_memo(
     investment_position: str,
     fundamental_verdict: dict,
     technical_summary: dict,
-    opportunity_data: dict = {}
+    opportunity_data: dict = {},
+    position_data: dict = {}
 ) -> CIOMemoOutput:
     """
     Acts as the Chief Investment Officer synthesizing the final Investment Memo
@@ -47,13 +52,23 @@ def synthesize_investment_memo(
 - Market Behavior: {opp_dims.get('market_behavior', 'N/A')}/10
     """ if opp_dims else ""
     
+    if position_data:
+        opp_str += f"""
+[POSITION SIZING SUGGESTION]
+- Conviction Level: {position_data.get('conviction_level', 'N/A')}
+- Risk Level: {position_data.get('risk_level', 'N/A')}
+- Target Allocation: {position_data.get('suggested_allocation', 'N/A')}%
+- Recommended Action: {position_data.get('recommended_action', 'N/A')}
+"""
+    
     prompt = f"""You are the Chief Investment Officer (CIO) of a top-tier institutional fund.
 Your Investment Committee and Technical Desk just analyzed {ticker}.
 Based on our proprietary Decision Matrix, the EXACT institutional posture must be: **{investment_position}**.
+We also calculated a structured target portfolio allocation based on risk and conviction.
 
 YOUR TASK:
-Write a compelling, institutional-grade summary justifying this final posture.
-Do NOT disagree with the posture '{investment_position}'. Your job is to articulate exactly WHY this posture was chosen based on the tension between fundamental and technical realities, heavily weighting the new 12-factor Opportunity Score.
+Write a compelling, institutional-grade summary justifying this final posture and target allocation.
+Do NOT disagree with the posture '{investment_position}' or the Target Allocation. Your job is to articulate exactly WHY this posture and allocation size were chosen based on the tension between fundamental and technical realities, heavily weighting the new 12-factor Opportunity Score and the Risk Level.
 
 CONTEXT DATA:
 - Ticker: {ticker}
@@ -69,7 +84,7 @@ CONTEXT DATA:
 OUTPUT REQUIREMENTS:
 Respond ONLY with valid JSON (NO markdown code blocks, strict JSON) containing these fields in SPANISH:
 {{
-  "thesis_summary": "<One very strong, executive paragraph explaining the primary reason for the {investment_position} posture. Cite the Opportunity Score.>",
+  "thesis_summary": "<One very strong, executive paragraph explaining the primary reason for the {investment_position} posture and the allocation % size. Cite the Opportunity Score and Conviction.>",
   "valuation_view": "<Short analysis on the intrinsic valuation and business quality.>",
   "technical_context": "<Short analysis on the timing, momentum, and technical setup.>",
   "key_catalysts": ["<catalyst1>", "<catalyst2>", ...],
@@ -100,5 +115,5 @@ Respond ONLY with valid JSON (NO markdown code blocks, strict JSON) containing t
             "key_risks": list(parsed.get("key_risks", fund_risks))
         }
     except Exception as exc:
-        print(f"[DecisionEngine] CIO Agent error for {ticker}: {exc}")
+        logger.error(f"CIO Agent error for {ticker}: {exc}")
         return fallback

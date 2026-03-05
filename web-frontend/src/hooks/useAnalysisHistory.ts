@@ -19,6 +19,14 @@ export interface HistoryEntry {
     agentSummary: HistoryAgentSummary[];
     dalioVerdict: string;
     fromCache: boolean;
+    // New fields for Portfolio Builder
+    fundamental_score?: number;
+    opportunity_score?: number;
+    position_sizing?: Record<string, unknown>;
+    sector?: string;
+    dimensions?: Record<string, number>;
+    volatility_atr?: number;
+    timestamp?: string;
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -62,6 +70,7 @@ export function useAnalysisHistory() {
             ...entry,
             id: `${entry.ticker}-${now}`,
             analyzedAt: new Date(now).toISOString(),
+            timestamp: new Date(now).toISOString(),
         };
         setEntries((prev) => {
             // Newest first, capped at MAX_ENTRIES

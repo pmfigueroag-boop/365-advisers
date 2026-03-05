@@ -32,12 +32,12 @@ interface ScoreHistoryChartProps {
 
 // ─── Custom Tooltip ───────────────────────────────────────────────────────────
 
-function CustomTooltip({ active, payload, label }: any) {
+function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: { dataKey: string; color: string; value: number; payload: Record<string, string> }[]; label?: string }) {
     if (!active || !payload?.length) return null;
     return (
         <div className="glass-card p-3 border border-[#30363d] text-[10px]">
-            <p className="text-gray-500 mb-2 font-mono">{new Date(label).toLocaleDateString()}</p>
-            {payload.map((p: any) => (
+            <p className="text-gray-500 mb-2 font-mono">{label ? new Date(label).toLocaleDateString() : ""}</p>
+            {payload.map((p) => (
                 <div key={p.dataKey} className="flex items-center gap-2 mb-1">
                     <div className="w-2 h-2 rounded-full" style={{ background: p.color }} />
                     <span className="text-gray-400 capitalize">{p.dataKey}:</span>
@@ -53,9 +53,10 @@ function CustomTooltip({ active, payload, label }: any) {
 
 // ─── Signal dot ───────────────────────────────────────────────────────────────
 
-function SignalDot(props: any) {
+function SignalDot(props: { cx?: number; cy?: number; payload?: Record<string, string>; dataKey?: string }) {
     const { cx, cy, payload, dataKey } = props;
-    const signal = payload[`${dataKey}_signal`] ?? "";
+    if (!cx || !cy || !payload || !dataKey) return null;
+    const signal = payload[`${dataKey}_signal`] as string ?? "";
     let fill = "#6b7280";
     if (signal === "BUY" || signal === "STRONG_BUY") fill = "#4ade80";
     else if (signal === "SELL" || signal === "STRONG_SELL" || signal === "AVOID") fill = "#f87171";

@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, CheckCircle2, AlertCircle, Zap, Trophy } from "lucide-react";
+import { Loader2, AlertCircle, Zap, Trophy } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 

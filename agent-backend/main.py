@@ -1,13 +1,23 @@
 import json
 import time
 import asyncio
+import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from graph import app_graph, sanitize_data, run_analysis_stream
+from src.config import get_settings
+
+# ── Structured Logging ──────────────────────────────────────────────────────
+settings = get_settings()
+logging.basicConfig(
+    level=getattr(logging, settings.LOG_LEVEL, logging.INFO),
+    format="%(asctime)s | %(name)-28s | %(levelname)-5s | %(message)s",
+    datefmt="%H:%M:%S",
+)
+logger = logging.getLogger("365advisers.main")
 
 # ── Phase 2: Technical Engine
 from src.data.market_data import fetch_technical_data
@@ -32,7 +42,6 @@ from src.engines.decision.cio_agent import synthesize_investment_memo
 
 # ── Phase 6: Institutional Scoring Engine
 from src.engines.scoring.opportunity_model import OpportunityModel
-from src.data.database import OpportunityScoreHistory, SessionLocal
 
 
 @asynccontextmanager
@@ -45,113 +54,28 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="365 Advisers API", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[o.strip() for o in settings.CORS_ORIGINS.split(",")],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ─── In-memory TTL Cache ─────────────────────────────────────────────────────
+# ── Rate Limiting Middleware (#15)
+from src.middleware import RateLimitMiddleware
+app.add_middleware(RateLimitMiddleware, max_requests=30, window_seconds=60)
 
-class AnalysisCache:
-    """
-    Simple in-memory cache with per-entry TTL.
-    Thread-safe for asyncio (single-threaded event loop).
+# ── Portfolio Router (#1)
+from src.routes.portfolio import router as portfolio_router
+app.include_router(portfolio_router)
 
-    Cache structure per ticker:
-    {
-        "data_ready": { ...DataFetcher payload... },
-        "agents":     [ ...8 agent dicts... ],
-        "dalio":      { final_verdict, dalio_response },
-        "cached_at":  <ISO UTC string>,
-        "ts":         <unix float>
-    }
-    """
-    TTL_ANALYSIS = 300   # 5 minutes
-    TTL_TICKER   = 900   # 15 minutes (price changes more slowly)
+# ─── Unified Cache Manager (#6) ──────────────────────────────────────────────
+from src.services.cache_manager import cache_manager
 
-    def __init__(self):
-        self._store: dict[str, dict] = {}
-        self._ticker_store: dict[str, dict] = {}
-
-    # ---- Analysis cache ----
-
-    def get(self, ticker: str) -> dict | None:
-        entry = self._store.get(ticker.upper())
-        if entry and (time.time() - entry["ts"]) < self.TTL_ANALYSIS:
-            return entry
-        if entry:
-            del self._store[ticker.upper()]  # expired — evict
-        return None
-
-    def set(self, ticker: str, data_ready: dict, agents: list, dalio: dict):
-        now = time.time()
-        self._store[ticker.upper()] = {
-            "data_ready": data_ready,
-            "agents": agents,
-            "dalio": dalio,
-            "cached_at": datetime.fromtimestamp(now, tz=timezone.utc).isoformat(),
-            "ts": now,
-        }
-        print(f"[CACHE] Stored analysis for {ticker.upper()} (TTL {self.TTL_ANALYSIS}s)")
-
-    def invalidate(self, ticker: str) -> bool:
-        return self._store.pop(ticker.upper(), None) is not None
-
-    def status(self) -> list[dict]:
-        now = time.time()
-        result = []
-        for t, entry in list(self._store.items()):
-            age = now - entry["ts"]
-            if age < self.TTL_ANALYSIS:
-                result.append({
-                    "ticker": t,
-                    "cached_at": entry["cached_at"],
-                    "age_s": round(age),
-                    "expires_in_s": round(self.TTL_ANALYSIS - age),
-                })
-            else:
-                del self._store[t]  # lazy eviction
-        return result
-
-    # ---- Ticker-info cache ----
-
-    def get_ticker_info(self, ticker: str) -> dict | None:
-        entry = self._ticker_store.get(ticker.upper())
-        if entry and (time.time() - entry["ts"]) < self.TTL_TICKER:
-            return entry["data"]
-        if entry:
-            del self._ticker_store[ticker.upper()]
-        return None
-
-    def set_ticker_info(self, ticker: str, data: dict):
-        self._ticker_store[ticker.upper()] = {"data": data, "ts": time.time()}
-
-
-cache = AnalysisCache()
-
-
-# ── Technical Cache (Phase 2) ───────────────────────────────────────────
-
-tech_cache = TechnicalDBCache()
-
-
-# ── Fundamental Cache (Phase 4 — DB-backed, was in-memory Phase 3) ──────────
-fund_cache = FundamentalDBCache()
-
-# ── Decision Cache (Phase 5) ──────────
-class DecisionCache:
-    def __init__(self):
-        self._store = {}
-    def get(self, ticker: str):
-        entry = self._store.get(ticker.upper())
-        if entry and time.time() - entry["ts"] < 900:
-            return entry["data"]
-        return None
-    def set(self, ticker: str, data: dict):
-        self._store[ticker.upper()] = {"data": data, "ts": time.time()}
-
-decision_cache = DecisionCache()
+# Backward-compatible aliases (used by inline endpoints below)
+cache = cache_manager.analysis
+tech_cache = cache_manager.technical
+fund_cache = cache_manager.fundamental
+decision_cache = cache_manager.decision
 
 
 
@@ -164,7 +88,7 @@ def sse(event: str, data: dict) -> str:
 
 async def stream_from_cache(ticker: str, entry: dict):
     """Replay a cached analysis as SSE events — nearly instant."""
-    print(f"[CACHE] HIT for {ticker} — replaying from cache")
+    logger.info(f"CACHE HIT for {ticker} — replaying")
 
     # Inject cache metadata into data_ready
     data_ready = dict(entry["data_ready"])
@@ -230,6 +154,16 @@ def read_root():
     return {"message": "365 Advisers API is running"}
 
 
+@app.get("/health")
+def health_check():
+    """System health check for monitoring."""
+    return {
+        "status": "healthy",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "version": "2.5.0",
+    }
+
+
 # ─── Technical Analysis Endpoint (Phase 2) ────────────────────────────────────
 
 @app.get("/analysis/technical")
@@ -254,7 +188,7 @@ async def get_technical_analysis(ticker: str, force: bool = False):
     if not force:
         cached = tech_cache.get(symbol)
         if cached:
-            print(f"[TECH-CACHE] HIT for {symbol}")
+            logger.info(f"TECH-CACHE HIT for {symbol}")
             return {**cached, "from_cache": True}
 
     # Run the Technical Engine
@@ -345,7 +279,7 @@ async def fundamental_analysis_stream(ticker: str, force: bool = False):
     if not force:
         cached = fund_cache.get(symbol)
         if cached:
-            print(f"[FUND-CACHE] HIT for {symbol}")
+            logger.info(f"FUND-CACHE HIT for {symbol}")
             async def replay_cache():
                 for event_dict in cached["events"]:
                     yield sse(event_dict["event"], event_dict["data"])
@@ -443,7 +377,7 @@ async def combined_analysis_stream(ticker: str, force: bool = False):
         # ── Part 1: Fundamental Engine ──────────────────────────────────────
         cached_fund = fund_cache.get(symbol) if not force else None
         if cached_fund:
-            print(f"[COMBINED] Fundamental HIT for {symbol}")
+            logger.info(f"COMBINED: Fundamental HIT for {symbol}")
             is_from_cache = True
             fund_events = cached_fund["events"]
             for ev in fund_events:
@@ -468,7 +402,7 @@ async def combined_analysis_stream(ticker: str, force: bool = False):
         # ── Part 2: Technical Engine ────────────────────────────────────────
         cached_tech = tech_cache.get(symbol) if not force else None
         if cached_tech:
-            print(f"[COMBINED] Technical HIT for {symbol}")
+            logger.info(f"COMBINED: Technical HIT for {symbol}")
             tech_data = cached_tech
         else:
             import time as _time
@@ -503,7 +437,7 @@ async def combined_analysis_stream(ticker: str, force: bool = False):
         # ── Part 3: Institutional Opportunity Score ─────────────────────────
         opportunity_data = None
         if not is_from_cache or force: # Always calculate live if forced or not fully cached? Actually it's better to always calc or fetch from DB. For now, calc live.
-            print(f"[COMBINED] Calculating Opportunity Score for {symbol}")
+            logger.info(f"COMBINED: Calculating Opportunity Score for {symbol}")
             try:
                 # Extract required fundamental parts
                 fund_ratios = next((e["data"].get("ratios", {}) for e in fund_events if e["event"] == "data_ready"), {})
@@ -538,10 +472,10 @@ async def combined_analysis_stream(ticker: str, force: bool = False):
                         ))
                         db.commit()
                 except Exception as db_exc:
-                     print(f"[COMBINED] Error saving Opportunity Score to DB: {db_exc}")
+                     logger.warning(f"COMBINED: Error saving Opportunity Score to DB: {db_exc}")
                      
             except Exception as exc:
-                print(f"[COMBINED] Opportunity Score Error for {ticker}: {exc}")
+                logger.warning(f"COMBINED: Opportunity Score Error for {ticker}: {exc}")
                 import traceback; traceback.print_exc()
                 opportunity_data = {"error": str(exc)}
                 
@@ -549,12 +483,29 @@ async def combined_analysis_stream(ticker: str, force: bool = False):
             yield sse("opportunity_score", opportunity_data)
         await asyncio.sleep(0)
 
+        # ── Part 3.5: Position Sizing Engine ────────────────────────────────
+        position_data = None
+        if opportunity_data and "opportunity_score" in opportunity_data:
+            logger.info(f"COMBINED: Calculating Position Sizing for {symbol}")
+            try:
+                from src.engines.portfolio.position_sizing import PositionSizingModel
+                risk_cond = tech_data.get("summary", {}).get("volatility_condition", "NORMAL") if tech_data else "NORMAL"
+                position_data = await asyncio.to_thread(
+                    PositionSizingModel.calculate,
+                    opportunity_score=opportunity_data["opportunity_score"],
+                    risk_condition=risk_cond
+                )
+                yield sse("position_sizing", position_data)
+            except Exception as p_exc:
+                logger.warning(f"COMBINED: Position Sizing Error for {symbol}: {p_exc}")
+        await asyncio.sleep(0)
+
         # ── Part 4: Decision Engine ─────────────────────────────────────────
         decision_data = decision_cache.get(symbol) if not force else None
         if decision_data and is_from_cache:
-            print(f"[COMBINED] Decision HIT for {symbol}")
+            logger.info(f"COMBINED: Decision HIT for {symbol}")
         else:
-            print(f"[COMBINED] Running CIO Synthesizer for {symbol}")
+            logger.info(f"COMBINED: Running CIO Synthesizer for {symbol}")
             import time as dec_time
             d_start = dec_time.monotonic_ns() / 1e6
             try:
@@ -572,7 +523,8 @@ async def combined_analysis_stream(ticker: str, force: bool = False):
                     investment_position=metrics["investment_position"],
                     fundamental_verdict=fund_committee,
                     technical_summary=tech_data or {},
-                    opportunity_data=opportunity_data or {}
+                    opportunity_data=opportunity_data or {},
+                    position_data=position_data or {}
                 )
                 
                 d_elapsed = (dec_time.monotonic_ns() / 1e6) - d_start
@@ -580,11 +532,12 @@ async def combined_analysis_stream(ticker: str, force: bool = False):
                     "investment_position": metrics["investment_position"],
                     "confidence_score": metrics["confidence_score"],
                     "cio_memo": memo,
+                    "position_sizing": position_data,
                     "elapsed_ms": round(d_elapsed)
                 }
                 decision_cache.set(symbol, decision_data)
             except Exception as exc:
-                print(f"[COMBINED] CIO Synthesizer Error: {exc}")
+                logger.error(f"COMBINED: CIO Synthesizer Error: {exc}")
                 decision_data = {"error": str(exc)}
 
         if decision_data:
@@ -734,14 +687,14 @@ def invalidate_cache(ticker: str):
 @app.get("/cache/status")
 def cache_status():
     """List all tickers currently in cache with TTL info."""
-    return {"entries": cache.status(), "ttl_analysis_s": AnalysisCache.TTL_ANALYSIS}
+    return {"entries": cache.status(), "ttl_analysis_s": cache.TTL_ANALYSIS}
 
 
 # ---- Legacy Blocking Endpoint ----
 @app.post("/analyze")
 async def analyze_stock(request: AnalysisRequest):
     try:
-        print(f"Starting analysis for ticker: {request.ticker}")
+        logger.info(f"Starting analysis for ticker: {request.ticker}")
         initial_state = {
             "ticker": request.ticker,
             "financial_data": {},
@@ -763,7 +716,7 @@ async def analyze_stock(request: AnalysisRequest):
             "tradingview": result.get("financial_data", {}).get("tradingview", {})
         })
     except Exception as e:
-        print(f"CRITICAL ERROR in /analyze for {request.ticker}: {str(e)}")
+        logger.error(f"CRITICAL ERROR in /analyze for {request.ticker}: {str(e)}")
         import traceback
         traceback.print_exc()
         return sanitize_data({
@@ -772,6 +725,8 @@ async def analyze_stock(request: AnalysisRequest):
             "final_verdict": f"Error during analysis: {str(e)}",
             "chart_data": {"prices": [], "cashflow": []}
         })
+
+
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 "use client";
 
-import { TrendingUp, Activity, Zap, BarChart3, Layers, AlertCircle } from "lucide-react";
-import { TechnicalAnalysisResult, TechnicalSummary } from "@/hooks/useTechnicalAnalysis";
+import { TrendingUp, Activity, Zap, BarChart3, Layers } from "lucide-react";
+import { TechnicalAnalysisResult } from "@/hooks/useTechnicalAnalysis";
 import GlossaryTooltip from "./GlossaryTooltip";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
