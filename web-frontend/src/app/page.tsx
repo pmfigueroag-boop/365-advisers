@@ -27,6 +27,7 @@ import {
   History,
   LineChart,
   HelpCircle,
+  Lightbulb,
   Menu,
   LayoutGrid,
   List,
@@ -39,6 +40,8 @@ import { useWatchlist, WatchlistItem } from "@/hooks/useWatchlist";
 import CompareView, { CompareState } from "@/components/CompareView";
 import ReportHeader from "@/components/ReportHeader";
 import HistoryPanel from "@/components/HistoryPanel";
+import IdeasPanel from "@/components/IdeasPanel";
+import { useIdeasEngine } from "@/hooks/useIdeasEngine";
 import { useAnalysisHistory } from "@/hooks/useAnalysisHistory";
 import { useTechnicalAnalysis } from "@/hooks/useTechnicalAnalysis";
 import IndicatorGrid from "@/components/IndicatorGrid";
@@ -236,7 +239,7 @@ export default function Home() {
   const [compareInput, setCompareInput] = useState("");
   const [compareState, setCompareState] = useState<CompareState>({ status: "idle", results: [] });
 
-  const [sidebarTab, setSidebarTab] = useState<"watchlist" | "history">("watchlist");
+  const [sidebarTab, setSidebarTab] = useState<"watchlist" | "history" | "ideas">("watchlist");
   const [helpOpen, setHelpOpen] = useState(false);
 
   // Auto-collapse sidebar on mobile screens on first render
@@ -264,6 +267,7 @@ export default function Home() {
   const combined = useCombinedStream();
   const watchlist = useWatchlist();
   const history = useAnalysisHistory();
+  const ideasEngine = useIdeasEngine();
 
 
   const { status, dataReady, agents, dalio, error, agentCount, fromCache, cachedAt } = state;
@@ -464,6 +468,21 @@ export default function Home() {
                     )}
                   </button>
                   <button
+                    onClick={() => setSidebarTab("ideas")}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[9px] font-black uppercase tracking-widest transition-colors border-b-2 ${sidebarTab === "ideas"
+                      ? "border-[#d4af37] text-[#d4af37]"
+                      : "border-transparent text-gray-600 hover:text-gray-400"
+                      }`}
+                  >
+                    <Lightbulb size={10} />
+                    Ideas
+                    {ideasEngine.ideas.length > 0 && (
+                      <span className="bg-[#d4af37]/20 text-[#d4af37] rounded-full px-1 text-[8px] font-mono">
+                        {ideasEngine.ideas.length}
+                      </span>
+                    )}
+                  </button>
+                  <button
                     onClick={() => setSidebarCollapsed(true)}
                     className="px-2 text-gray-700 hover:text-gray-400 transition-colors"
                     title="Collapse sidebar"
@@ -483,12 +502,24 @@ export default function Home() {
                       onRemove={watchlist.remove}
                       activeTicker={dataReady?.ticker}
                     />
-                  ) : (
+                  ) : sidebarTab === "history" ? (
                     <HistoryPanel
                       entries={history.entries}
                       onSelect={handleWatchlistSelect}
                       onRemove={history.removeById}
                       onClear={history.clear}
+                    />
+                  ) : (
+                    <IdeasPanel
+                      ideas={ideasEngine.ideas}
+                      scanStatus={ideasEngine.scanStatus}
+                      error={ideasEngine.error}
+                      onScan={() => {
+                        const tickers = watchlist.items.map((i) => i.ticker);
+                        if (tickers.length > 0) ideasEngine.scan(tickers);
+                      }}
+                      onAnalyze={(t) => handleAnalyze(t)}
+                      onDismiss={(id) => ideasEngine.dismiss(id)}
                     />
                   )}
                 </div>

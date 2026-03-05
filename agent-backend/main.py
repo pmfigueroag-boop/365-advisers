@@ -67,13 +67,15 @@ from src.routes.health import router as health_router
 from src.routes.analysis import router as analysis_router
 from src.routes.cache import router as cache_router
 from src.routes.portfolio import router as portfolio_router
+from src.routes.ideas import router as ideas_router
 
 app.include_router(health_router)
 app.include_router(analysis_router)
 app.include_router(cache_router)
 app.include_router(portfolio_router)
+app.include_router(ideas_router)
 
-logger.info(f"Mounted {len(app.routes)} routes across 4 routers")
+logger.info(f"Mounted {len(app.routes)} routes across 5 routers")
 
 
 # ── Dev Server ───────────────────────────────────────────────────────────────
