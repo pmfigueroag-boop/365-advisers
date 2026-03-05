@@ -312,6 +312,7 @@ export default function Home() {
         volatility_atr: combined.state.technical?.indicators?.volatility?.atr_pct,
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     combined.state.status,
     combined.state.ticker,
@@ -324,8 +325,8 @@ export default function Home() {
     combined.state.positionSizing,
     derivedSignal,
     fundamental.state.committee?.score,
-    history,
-    watchlist
+    watchlist.updateSignal,
+    history.add,
   ]);
 
 
