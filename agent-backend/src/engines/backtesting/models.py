@@ -286,3 +286,57 @@ class SignalScorecard(BaseModel):
     last_calibrated: datetime | None = None
     quality_tier: str = "D"         # A|B|C|D
 
+
+# ─── Combination Backtest Result ─────────────────────────────────────────────
+
+class CombinationBacktestResult(BaseModel):
+    """Result of testing a signal combination (AND logic)."""
+    combination_id: str = Field(
+        ..., description="Canonical key, e.g. 'sig_a+sig_b+sig_c'",
+    )
+    signal_ids: list[str]
+    joint_firings: int = 0
+    individual_firings: dict[str, int] = Field(
+        default_factory=dict,
+        description="{signal_id: individual_firing_count}",
+    )
+    hit_rate: dict[int, float] = Field(
+        default_factory=dict,
+        description="{window: hit_rate} for joint firings",
+    )
+    avg_return: dict[int, float] = Field(default_factory=dict)
+    avg_excess_return: dict[int, float] = Field(default_factory=dict)
+    sharpe: dict[int, float] = Field(default_factory=dict)
+    incremental_alpha: float = Field(
+        0.0,
+        description="Excess alpha vs. best individual signal (T+20)",
+    )
+    synergy_score: float = Field(
+        0.0, ge=0.0, le=1.0,
+        description="Diversification benefit: 1.0 = max synergy",
+    )
+    backtest_date: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+    )
+
+
+# ─── Regime Performance Report ───────────────────────────────────────────────
+
+class RegimePerformanceReport(BaseModel):
+    """Per-regime breakdown of signal performance."""
+    signal_id: str
+    signal_name: str = ""
+    regime_results: dict[str, SignalPerformanceRecord] = Field(
+        default_factory=dict,
+        description="{regime_label: performance_record}",
+    )
+    best_regime: str = ""
+    worst_regime: str = ""
+    regime_stability: float = Field(
+        0.0,
+        description="StdDev of Sharpe across regimes (lower = more stable)",
+    )
+    backtest_date: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+    )
+

@@ -287,6 +287,9 @@ class CompositeAlphaEngine:
           C(s) = Confidence Score (sample size + p-value)
           R(s) = Recency Factor (exponential decay)
 
+        Also applies degradation penalties from the QVF: signals
+        flagged as degraded get their weights automatically reduced.
+
         Returns an empty dict (no-op) if no backtest data exists.
         """
         if not hasattr(self, "_weight_cache"):
@@ -303,6 +306,28 @@ class CompositeAlphaEngine:
         except Exception:
             # Graceful degradation: no backtest data → no modulation
             self._weight_cache = {}
+
+        # Apply degradation penalties from QVF
+        try:
+            from src.data.database import DegradationAlertRecord, SessionLocal
+            with SessionLocal() as db:
+                active_alerts = (
+                    db.query(DegradationAlertRecord)
+                    .filter(DegradationAlertRecord.resolved_at.is_(None))
+                    .all()
+                )
+                for alert in active_alerts:
+                    sid = alert.signal_id
+                    if alert.recommendation == "reduce_weight":
+                        # Apply 50% penalty for degraded signals
+                        current = self._weight_cache.get(sid, 1.0)
+                        self._weight_cache[sid] = current * 0.5
+                    elif alert.recommendation == "disable":
+                        # Near-zero weight for severely degraded
+                        self._weight_cache[sid] = 0.05
+        except Exception:
+            # Graceful degradation: no alerts → no penalty
+            pass
 
         return self._weight_cache
 

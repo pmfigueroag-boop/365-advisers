@@ -378,6 +378,77 @@ class OpportunityAlertRecord(Base):
     read        = Column(Boolean, default=False)
 
 
+# ─── Quantitative Validation Framework Tables ────────────────────────────────
+
+class RollingPerformanceRecord(Base):
+    """Rolling performance snapshots for degradation monitoring."""
+    __tablename__ = "rolling_performance"
+    __table_args__ = (
+        Index("idx_rolling_perf", "signal_id", "window_days", "as_of_date"),
+    )
+
+    id           = Column(Integer, primary_key=True, autoincrement=True)
+    signal_id    = Column(String(50), nullable=False, index=True)
+    window_days  = Column(Integer, nullable=False)          # 30, 90, 252
+    as_of_date   = Column(String(10), nullable=False)       # ISO date
+    hit_rate     = Column(Float)
+    sharpe       = Column(Float)
+    avg_return   = Column(Float)
+    avg_excess   = Column(Float)
+    sample_size  = Column(Integer)
+    regime       = Column(String(20))                       # bull|bear|range|null
+    created_at   = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class OpportunityPerformanceRecord(Base):
+    """Forward performance tracking for generated ideas."""
+    __tablename__ = "opportunity_performance"
+    __table_args__ = (
+        Index("idx_opp_perf_ticker", "ticker", "generated_at"),
+        Index("idx_opp_perf_type", "idea_type", "generated_at"),
+    )
+
+    id                   = Column(Integer, primary_key=True, autoincrement=True)
+    idea_uid             = Column(String(16), nullable=False, index=True)
+    ticker               = Column(String(16), nullable=False, index=True)
+    idea_type            = Column(String(20), nullable=False)
+    confidence           = Column(String(10), nullable=False)
+    signal_strength      = Column(Float, nullable=False)
+    opportunity_score    = Column(Float)                     # UOS at generation time
+    suggested_alloc      = Column(Float)                     # % allocation suggested
+    price_at_gen         = Column(Float)                     # Price when idea was generated
+    generated_at         = Column(DateTime, nullable=False)
+    # Forward returns (filled asynchronously by tracker)
+    return_1d            = Column(Float)
+    return_5d            = Column(Float)
+    return_20d           = Column(Float)
+    return_60d           = Column(Float)
+    benchmark_return_20d = Column(Float)
+    excess_return_20d    = Column(Float)
+    tracking_status      = Column(String(20), default="pending")  # pending|partial|complete
+    last_updated         = Column(DateTime)
+
+
+class DegradationAlertRecord(Base):
+    """Persistent record of signal degradation detections."""
+    __tablename__ = "degradation_alerts"
+    __table_args__ = (
+        Index("idx_degradation_signal", "signal_id", "detected_at"),
+    )
+
+    id              = Column(Integer, primary_key=True, autoincrement=True)
+    signal_id       = Column(String(50), nullable=False, index=True)
+    signal_name     = Column(String(100))
+    metric          = Column(String(30), nullable=False)
+    peak_value      = Column(Float, nullable=False)
+    current_value   = Column(Float, nullable=False)
+    decline_pct     = Column(Float, nullable=False)
+    recommendation  = Column(String(20), nullable=False)
+    action_taken    = Column(String(20), default="none")    # none|weight_reduced|disabled
+    detected_at     = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    resolved_at     = Column(DateTime)
+
+
 # ─── Create tables ────────────────────────────────────────────────────────────
 
 def init_db():

@@ -47,9 +47,12 @@ from src.engines.backtesting.models import (
     BacktestReport,
     BacktestRunSummary,
     BacktestStatus,
+    CombinationBacktestResult,
+    RegimePerformanceReport,
     SignalEvent,
     SignalPerformanceRecord,
 )
+from src.engines.backtesting.regime_detector import MarketRegime, RegimeDetector
 from src.engines.backtesting.report_builder import (
     build_category_summaries,
     generate_calibration_suggestions,
@@ -411,3 +414,272 @@ class BacktestEngine:
         )
 
         return results
+
+    # ── Combination Backtest ──────────────────────────────────────────────
+
+    async def run_combination(
+        self,
+        config: BacktestConfig,
+        signal_groups: list[list[str]],
+    ) -> list[CombinationBacktestResult]:
+        """
+        Test signal combinations using AND logic.
+
+        For each group of signal IDs, finds dates where ALL signals in
+        the group fired simultaneously, then measures forward returns
+        and compares against individual signal performance.
+
+        Parameters
+        ----------
+        config : BacktestConfig
+            Universe, date range, forward windows.
+        signal_groups : list[list[str]]
+            Each inner list is a combination to test.
+
+        Returns
+        -------
+        list[CombinationBacktestResult]
+        """
+        # Fetch data and run walk-forward for the full universe
+        all_signals = self._get_signals(None)
+        if not all_signals:
+            return []
+
+        ohlcv_data = await self._fetch_historical_data(
+            config.universe + [config.benchmark_ticker],
+            config.start_date,
+            config.end_date,
+        )
+
+        benchmark_ohlcv = ohlcv_data.get(config.benchmark_ticker, pd.DataFrame())
+        return_tracker = ReturnTracker(benchmark_ohlcv)
+        self._evaluator.cooldown_factor = config.cooldown_factor
+
+        # Collect all events
+        all_events: list[SignalEvent] = []
+        for ticker in config.universe:
+            ticker_ohlcv = ohlcv_data.get(ticker)
+            if ticker_ohlcv is None or ticker_ohlcv.empty:
+                continue
+            events = self._evaluator.evaluate(
+                ticker=ticker, ohlcv=ticker_ohlcv,
+                signals=all_signals, forward_windows=config.forward_windows,
+            )
+            events = return_tracker.enrich(events, config.forward_windows)
+            all_events.extend(events)
+
+        # Group events by (ticker, fired_date) for AND-join
+        from collections import defaultdict
+        event_index: dict[tuple[str, date], dict[str, SignalEvent]] = defaultdict(dict)
+        individual_counts: dict[str, int] = defaultdict(int)
+
+        for e in all_events:
+            event_index[(e.ticker, e.fired_date)][e.signal_id] = e
+            individual_counts[e.signal_id] += 1
+
+        results: list[CombinationBacktestResult] = []
+
+        for group in signal_groups:
+            if len(group) < 2:
+                continue
+
+            sorted_ids = sorted(group)
+            combo_id = "+".join(sorted_ids)
+
+            # Find joint firings: dates where ALL signals fired
+            joint_events: list[SignalEvent] = []
+            for (ticker, fired_date), sig_map in event_index.items():
+                if all(sid in sig_map for sid in sorted_ids):
+                    # Use the first signal's event as the carrier
+                    representative = sig_map[sorted_ids[0]]
+                    # Average forward returns across all signals
+                    avg_fwd: dict[int, float] = {}
+                    avg_exc: dict[int, float] = {}
+                    for w in config.forward_windows:
+                        vals = [sig_map[s].forward_returns.get(w) for s in sorted_ids]
+                        exc_vals = [sig_map[s].excess_returns.get(w) for s in sorted_ids]
+                        clean = [v for v in vals if v is not None]
+                        clean_exc = [v for v in exc_vals if v is not None]
+                        if clean:
+                            avg_fwd[w] = sum(clean) / len(clean)
+                        if clean_exc:
+                            avg_exc[w] = sum(clean_exc) / len(clean_exc)
+
+                    joint_events.append(representative.model_copy(update={
+                        "forward_returns": avg_fwd,
+                        "excess_returns": avg_exc,
+                    }))
+
+            if not joint_events:
+                continue
+
+            # Compute metrics for the combination
+            windows = config.forward_windows
+            combo_hit = compute_hit_rate(joint_events, windows)
+            combo_ret = compute_avg_return(joint_events, windows)
+            combo_exc = compute_avg_excess_return(joint_events, windows)
+            combo_sharpe = compute_sharpe(joint_events, windows)
+
+            # Incremental alpha: combo T+20 excess vs. best individual T+20 excess
+            ref_w = 20
+            best_individual_excess = 0.0
+            for sid in sorted_ids:
+                sid_events = [e for e in all_events if e.signal_id == sid]
+                if sid_events:
+                    ind_exc = compute_avg_excess_return(sid_events, [ref_w])
+                    ind_val = ind_exc.get(ref_w, 0.0)
+                    best_individual_excess = max(best_individual_excess, ind_val)
+
+            inc_alpha = combo_exc.get(ref_w, 0.0) - best_individual_excess
+
+            # Synergy: 1 - (joint / min(individual counts))
+            min_individual = min(individual_counts.get(s, 0) for s in sorted_ids)
+            synergy = 1.0 - (len(joint_events) / max(min_individual, 1))
+            synergy = max(0.0, min(1.0, synergy))
+
+            results.append(CombinationBacktestResult(
+                combination_id=combo_id,
+                signal_ids=sorted_ids,
+                joint_firings=len(joint_events),
+                individual_firings={s: individual_counts.get(s, 0) for s in sorted_ids},
+                hit_rate=combo_hit,
+                avg_return=combo_ret,
+                avg_excess_return=combo_exc,
+                sharpe=combo_sharpe,
+                incremental_alpha=round(inc_alpha, 6),
+                synergy_score=round(synergy, 4),
+            ))
+
+        logger.info(
+            "BACKTEST-COMBO: Tested %d combinations, %d had joint firings",
+            len(signal_groups), len(results),
+        )
+        return results
+
+    # ── Regime-Conditional Backtest ───────────────────────────────────────
+
+    async def run_regime_conditional(
+        self,
+        config: BacktestConfig,
+    ) -> list[RegimePerformanceReport]:
+        """
+        Run backtests partitioned by market regime.
+
+        Classifies each day as Bull / Bear / Range / HighVol using the
+        benchmark, then computes per-signal metrics within each regime.
+
+        Returns
+        -------
+        list[RegimePerformanceReport]
+            One report per signal with per-regime breakdown.
+        """
+        signals = self._get_signals(config.signal_ids)
+        if not signals:
+            return []
+
+        ohlcv_data = await self._fetch_historical_data(
+            config.universe + [config.benchmark_ticker],
+            config.start_date,
+            config.end_date,
+        )
+
+        benchmark_ohlcv = ohlcv_data.get(config.benchmark_ticker, pd.DataFrame())
+        return_tracker = ReturnTracker(benchmark_ohlcv)
+        self._evaluator.cooldown_factor = config.cooldown_factor
+
+        # Classify regimes
+        detector = RegimeDetector()
+        regimes = detector.classify(benchmark_ohlcv)
+
+        if not regimes:
+            logger.warning("BACKTEST-REGIME: Could not classify regimes")
+            return []
+
+        # Collect all events
+        all_events: list[SignalEvent] = []
+        for ticker in config.universe:
+            ticker_ohlcv = ohlcv_data.get(ticker)
+            if ticker_ohlcv is None or ticker_ohlcv.empty:
+                continue
+            events = self._evaluator.evaluate(
+                ticker=ticker, ohlcv=ticker_ohlcv,
+                signals=signals, forward_windows=config.forward_windows,
+            )
+            events = return_tracker.enrich(events, config.forward_windows)
+            all_events.extend(events)
+
+        # Segment events by regime
+        segmented = detector.segment_events(all_events, regimes)
+
+        # Compute per-signal, per-regime metrics
+        import numpy as np
+        signal_map = {s.id: s for s in signals}
+        reports: list[RegimePerformanceReport] = []
+
+        for sig_def in signals:
+            regime_results: dict[str, SignalPerformanceRecord] = {}
+            sharpe_values: list[float] = []
+
+            for regime in MarketRegime:
+                regime_events = [
+                    e for e in segmented.get(regime, [])
+                    if e.signal_id == sig_def.id
+                ]
+                if len(regime_events) < 5:
+                    continue
+
+                # Compute metrics for this signal in this regime
+                windows = config.forward_windows
+                hit_rate = compute_hit_rate(regime_events, windows)
+                avg_ret = compute_avg_return(regime_events, windows)
+                avg_excess = compute_avg_excess_return(regime_events, windows)
+                sharpe = compute_sharpe(regime_events, windows)
+                sortino = compute_sortino(regime_events, windows)
+                max_dd = compute_max_drawdown(regime_events)
+                t_stats, p_vals = compute_t_statistic(regime_events, windows)
+                confidence = classify_confidence(p_vals, len(regime_events))
+
+                record = SignalPerformanceRecord(
+                    signal_id=sig_def.id,
+                    signal_name=sig_def.name,
+                    category=sig_def.category,
+                    total_firings=len(regime_events),
+                    hit_rate=hit_rate,
+                    avg_return=avg_ret,
+                    avg_excess_return=avg_excess,
+                    sharpe_ratio=sharpe,
+                    sortino_ratio=sortino,
+                    max_drawdown=max_dd,
+                    t_statistic=t_stats,
+                    p_value=p_vals,
+                    confidence_level=confidence,
+                    sample_size=len(regime_events),
+                    universe_size=len(config.universe),
+                    date_range=f"{config.start_date} to {config.end_date}",
+                )
+                regime_results[regime.value] = record
+                sharpe_20 = sharpe.get(20, 0.0)
+                sharpe_values.append(sharpe_20)
+
+            if not regime_results:
+                continue
+
+            # Best/worst regime by T+20 Sharpe
+            best = max(regime_results.items(), key=lambda kv: kv[1].sharpe_ratio.get(20, 0.0))
+            worst = min(regime_results.items(), key=lambda kv: kv[1].sharpe_ratio.get(20, 0.0))
+            stability = float(np.std(sharpe_values)) if len(sharpe_values) > 1 else 0.0
+
+            reports.append(RegimePerformanceReport(
+                signal_id=sig_def.id,
+                signal_name=sig_def.name,
+                regime_results=regime_results,
+                best_regime=best[0],
+                worst_regime=worst[0],
+                regime_stability=round(stability, 4),
+            ))
+
+        logger.info(
+            "BACKTEST-REGIME: Produced %d regime reports across %d regimes",
+            len(reports), len(MarketRegime),
+        )
+        return reports

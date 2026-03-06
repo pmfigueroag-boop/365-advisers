@@ -73,6 +73,7 @@ from src.routes.backtest import router as backtest_router
 from src.routes.ranking import router as ranking_router
 from src.routes.monitoring import router as monitoring_router
 from src.routes.crowding import router as crowding_router
+from src.routes.validation import router as validation_router
 
 app.include_router(health_router)
 app.include_router(analysis_router)
@@ -84,8 +85,9 @@ app.include_router(backtest_router)
 app.include_router(ranking_router)
 app.include_router(monitoring_router)
 app.include_router(crowding_router)
+app.include_router(validation_router)
 
-logger.info(f"Mounted {len(app.routes)} routes across 10 routers")
+logger.info(f"Mounted {len(app.routes)} routes across 11 routers")
 
 
 # ── Dev Server ───────────────────────────────────────────────────────────────

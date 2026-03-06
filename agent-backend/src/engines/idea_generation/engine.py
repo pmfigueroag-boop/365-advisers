@@ -50,6 +50,9 @@ from src.engines.composite_alpha.models import CompositeAlphaResult
 # ── Alpha Decay Engine ────────────────────────────────────────────
 from src.engines.alpha_decay import DecayEngine, ActivationTracker, DecayConfig
 
+# ── Opportunity Performance Tracking ─────────────────────────────────────
+from src.engines.opportunity_tracking.tracker import OpportunityTracker
+
 
 logger = logging.getLogger("365advisers.idea_generation.engine")
 
@@ -86,6 +89,8 @@ class IdeaGenerationEngine:
             tracker=ActivationTracker(config=_decay_config),
             config=_decay_config,
         )
+        # Opportunity Performance Tracking
+        self._opportunity_tracker = OpportunityTracker()
 
     async def scan(
         self,
@@ -135,6 +140,20 @@ class IdeaGenerationEngine:
 
         # Rank and deduplicate
         ranked = rank_ideas(raw_ideas)
+
+        # ── Auto-register ideas for opportunity tracking ──────────────
+        for idea in ranked:
+            try:
+                cas = idea.metadata.get("composite_alpha_score")
+                self._opportunity_tracker.register_idea(
+                    idea,
+                    opp_score=float(cas) if cas is not None else None,
+                )
+            except Exception as exc:
+                logger.debug(
+                    "IDEA-ENGINE: Failed to register idea %s for tracking: %s",
+                    idea.id, exc,
+                )
 
         elapsed_ms = (_time.monotonic_ns() - start) / 1e6
 
