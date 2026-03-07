@@ -740,6 +740,213 @@ class AllocationLearningRecord(Base):
     created_at      = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
+# ─── Research Governance Tables ──────────────────────────────────────────────
+
+class ExperimentRecord(Base):
+    """Registry of all research experiments for institutional reproducibility."""
+    __tablename__ = "experiments"
+    __table_args__ = (
+        Index("idx_experiments_type_status", "experiment_type", "status"),
+        Index("idx_experiments_parent", "parent_experiment_id"),
+    )
+
+    id                    = Column(Integer, primary_key=True, autoincrement=True)
+    experiment_id         = Column(String(36), nullable=False, unique=True, index=True)
+    experiment_type       = Column(String(30), nullable=False)  # backtest|walk_forward|discovery|calibration|ensemble|online_learning
+    name                  = Column(String(200), nullable=False)
+    config_snapshot_json  = Column(Text, default="{}")           # Frozen config at run time
+    signal_versions_json  = Column(Text, default="{}")           # Snapshot of signal weights/thresholds
+    parent_experiment_id  = Column(String(36), nullable=True)    # Lineage: FK conceptual
+    status                = Column(String(20), default="pending")
+    metrics_json          = Column(Text, default="{}")           # Results summary
+    error_message         = Column(Text)
+    created_at            = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    completed_at          = Column(DateTime)
+    created_by            = Column(String(30), default="auto")   # auto|manual|scheduler
+
+    artifacts = relationship(
+        "ExperimentArtifactRecord", back_populates="experiment",
+        cascade="all, delete-orphan",
+    )
+
+
+class ExperimentArtifactRecord(Base):
+    """Artifacts produced by an experiment (weights, reports, configs…)."""
+    __tablename__ = "experiment_artifacts"
+    __table_args__ = (
+        Index("idx_exp_artifacts_experiment", "experiment_id"),
+    )
+
+    id              = Column(Integer, primary_key=True, autoincrement=True)
+    experiment_id   = Column(String(36), ForeignKey("experiments.experiment_id"), nullable=False)
+    artifact_type   = Column(String(30), nullable=False)         # weights|thresholds|model_params|report|config|metrics
+    artifact_json   = Column(Text, nullable=False)
+    created_at      = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    experiment = relationship("ExperimentRecord", back_populates="artifacts")
+
+
+class SignalVersionRecord(Base):
+    """Immutable version history of signal configurations."""
+    __tablename__ = "signal_versions"
+    __table_args__ = (
+        Index("idx_signal_versions_signal", "signal_id", "version_number"),
+        Index("idx_signal_versions_active", "signal_id", "effective_until"),
+    )
+
+    id                      = Column(Integer, primary_key=True, autoincrement=True)
+    signal_id               = Column(String(64), nullable=False, index=True)
+    version_number          = Column(Integer, nullable=False)
+    config_json             = Column(Text, nullable=False)       # threshold, weight, half_life, enabled, …
+    effective_from          = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    effective_until         = Column(DateTime)                    # NULL = currently active
+    produced_by_experiment  = Column(String(36))                  # FK conceptual → experiments.experiment_id
+    created_at              = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class GovernanceAuditRecord(Base):
+    """Immutable, append-only audit trail for governance events."""
+    __tablename__ = "governance_audit"
+    __table_args__ = (
+        Index("idx_audit_entity", "entity_type", "entity_id"),
+        Index("idx_audit_action", "action", "timestamp"),
+    )
+
+    id            = Column(Integer, primary_key=True, autoincrement=True)
+    action        = Column(String(40), nullable=False)           # experiment_created|weight_updated|…
+    entity_type   = Column(String(30), nullable=False)           # experiment|signal|weight|threshold
+    entity_id     = Column(String(64), nullable=False)
+    details_json  = Column(Text, default="{}")
+    performed_by  = Column(String(30), default="auto")
+    timestamp     = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+
+# ─── Live Performance Scorecard Tables ───────────────────────────────────────
+
+class LiveSignalTrackingRecord(Base):
+    """Tracks live signal fires with forward returns for P&L attribution."""
+    __tablename__ = "live_signal_tracking"
+    __table_args__ = (
+        Index("idx_live_tracking_signal", "signal_id", "fired_at"),
+        Index("idx_live_tracking_ticker", "ticker", "fired_at"),
+        Index("idx_live_tracking_complete", "tracking_complete", "fired_at"),
+    )
+
+    id                 = Column(Integer, primary_key=True, autoincrement=True)
+    signal_id          = Column(String(64), nullable=False, index=True)
+    signal_name        = Column(String(100))
+    category           = Column(String(20))
+    ticker             = Column(String(16), nullable=False, index=True)
+    strength           = Column(String(10))                  # strong|moderate|weak
+    confidence         = Column(Float, default=0.0)
+    entry_price        = Column(Float)
+    fired_at           = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    # Forward returns (filled asynchronously)
+    return_1d          = Column(Float)
+    return_5d          = Column(Float)
+    return_20d         = Column(Float)
+    return_60d         = Column(Float)
+    # Benchmark returns for excess calculation
+    benchmark_return_1d  = Column(Float)
+    benchmark_return_5d  = Column(Float)
+    benchmark_return_20d = Column(Float)
+    benchmark_return_60d = Column(Float)
+    # Tracking state
+    tracking_complete  = Column(Boolean, default=False)
+    last_updated       = Column(DateTime)
+
+
+# ─── Shadow Portfolio Tables ─────────────────────────────────────────────────
+
+class ShadowPortfolioRecord(Base):
+    """Persistent simulation portfolios."""
+    __tablename__ = "shadow_portfolios"
+
+    id              = Column(Integer, primary_key=True, autoincrement=True)
+    portfolio_id    = Column(String(36), nullable=False, unique=True, index=True)
+    name            = Column(String(200), nullable=False)
+    portfolio_type  = Column(String(20), nullable=False)     # research|benchmark|strategy
+    strategy_id     = Column(String(36))                     # FK conceptual → strategies
+    config_json     = Column(Text, default="{}")
+    inception_date  = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    is_active       = Column(Boolean, default=True)
+    created_at      = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class ShadowPositionRecord(Base):
+    """Individual positions within a shadow portfolio."""
+    __tablename__ = "shadow_positions"
+    __table_args__ = (
+        Index("idx_shadow_pos_portfolio", "portfolio_id", "exit_date"),
+    )
+
+    id              = Column(Integer, primary_key=True, autoincrement=True)
+    portfolio_id    = Column(String(36), nullable=False, index=True)
+    ticker          = Column(String(16), nullable=False)
+    weight          = Column(Float, nullable=False)
+    entry_price     = Column(Float, nullable=False)
+    entry_date      = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    exit_price      = Column(Float)
+    exit_date       = Column(DateTime)
+    sizing_method   = Column(String(20), default="vol_parity")
+
+
+class ShadowSnapshotRecord(Base):
+    """Daily NAV snapshots for performance tracking."""
+    __tablename__ = "shadow_snapshots"
+    __table_args__ = (
+        Index("idx_shadow_snap_portfolio", "portfolio_id", "snapshot_date"),
+    )
+
+    id                = Column(Integer, primary_key=True, autoincrement=True)
+    portfolio_id      = Column(String(36), nullable=False, index=True)
+    snapshot_date     = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    nav               = Column(Float, nullable=False, default=100.0)
+    daily_return      = Column(Float, default=0.0)
+    cumulative_return = Column(Float, default=0.0)
+    drawdown          = Column(Float, default=0.0)
+    positions_count   = Column(Integer, default=0)
+    positions_json    = Column(Text)                          # Full state snapshot
+
+
+# ─── Strategy Layer Tables ───────────────────────────────────────────────────
+
+class StrategyRecord(Base):
+    """Named investment strategies combining signals + rules."""
+    __tablename__ = "strategies"
+
+    id            = Column(Integer, primary_key=True, autoincrement=True)
+    strategy_id   = Column(String(36), nullable=False, unique=True, index=True)
+    name          = Column(String(200), nullable=False)
+    description   = Column(Text)
+    config_json   = Column(Text, nullable=False)              # Signal filters + score filters + portfolio rules
+    is_active     = Column(Boolean, default=True)
+    created_at    = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at    = Column(DateTime)
+    created_by    = Column(String(30), default="manual")
+
+
+# ─── Liquidity & Capacity Tables ─────────────────────────────────────────────
+
+class LiquidityProfileRecord(Base):
+    """Per-ticker liquidity and capacity estimates."""
+    __tablename__ = "liquidity_profiles"
+    __table_args__ = (
+        Index("idx_liquidity_ticker", "ticker", "updated_at"),
+    )
+
+    id                       = Column(Integer, primary_key=True, autoincrement=True)
+    ticker                   = Column(String(16), nullable=False, index=True)
+    avg_daily_volume_20d     = Column(Float)
+    avg_spread_bps           = Column(Float)
+    market_cap               = Column(Float)
+    estimated_impact_1pct    = Column(Float)                  # Cost for 1% participation
+    estimated_capacity_usd   = Column(Float)                  # Max investable size
+    turnover_annual          = Column(Float)
+    liquidity_tier           = Column(String(20))             # high|medium|low|illiquid
+    updated_at               = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
 # ─── Create tables ────────────────────────────────────────────────────────────
 
 def init_db():

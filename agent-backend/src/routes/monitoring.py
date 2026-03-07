@@ -108,3 +108,81 @@ async def mark_alert_read(alert_id: str):
 async def get_config():
     """Get the current monitoring configuration."""
     return _engine.config.model_dump()
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  SIGNAL HEALTH & CIRCUIT BREAKER
+# ═══════════════════════════════════════════════════════════════════════════════
+
+from src.engines.monitoring.health import (
+    CircuitBreakerConfig,
+    MonitoringSweepEngine,
+)
+
+_sweep_engine = MonitoringSweepEngine()
+
+
+class HealthSweepRequest(BaseModel):
+    """Request body for a health monitoring sweep."""
+    signal_metrics: list[dict] = Field(
+        ..., description="List of {signal_id, hit_rate, signal_stability, avg_return}",
+    )
+    drift_data: dict[str, float] = Field(
+        default_factory=dict, description="{signal_id: drift_severity (0-1)}",
+    )
+
+
+@router.post("/health/sweep")
+async def run_health_sweep(request: HealthSweepRequest):
+    """Run a unified health monitoring sweep across all signals.
+
+    Evaluates health scores, applies circuit breaker logic, and returns
+    a consolidated result with per-signal health breakdowns.
+    """
+    result = _sweep_engine.run_sweep(
+        signal_metrics=request.signal_metrics,
+        drift_data=request.drift_data,
+    )
+    return result.model_dump(mode="json")
+
+
+@router.get("/health/scores")
+async def get_health_scores():
+    """Get current health scores for all evaluated signals."""
+    result = _sweep_engine.run_sweep(signal_metrics=[])
+    return {
+        "signals": [s.model_dump() for s in result.signal_scores],
+        "summary": {
+            "healthy": result.signals_healthy,
+            "warning": result.signals_warning,
+            "critical": result.signals_critical,
+            "disabled": result.signals_auto_disabled,
+        },
+    }
+
+
+@router.get("/circuit-breaker/status")
+async def get_circuit_breaker_status():
+    """Get current circuit breaker status showing all disabled signals."""
+    disabled = _sweep_engine.circuit_breaker.get_disabled_signals()
+    return {
+        "disabled_signals": disabled,
+        "disabled_count": len(disabled),
+    }
+
+
+@router.post("/circuit-breaker/{signal_id}/enable")
+async def force_enable_signal(signal_id: str):
+    """Manually re-enable a disabled signal."""
+    ok = _sweep_engine.circuit_breaker.force_enable(signal_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Signal not currently disabled")
+    return {"signal_id": signal_id, "status": "re-enabled"}
+
+
+@router.post("/circuit-breaker/{signal_id}/disable")
+async def force_disable_signal(signal_id: str, reason: str = "manual"):
+    """Manually disable a signal via circuit breaker."""
+    _sweep_engine.circuit_breaker.force_disable(signal_id, reason)
+    return {"signal_id": signal_id, "status": "disabled", "reason": reason}
+
