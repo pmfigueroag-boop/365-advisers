@@ -212,7 +212,8 @@ export default function Home() {
           )}
 
           {/* ── View Router ── */}
-          <ErrorBoundary>
+          {/* Key forces React to fully unmount/mount on tab switch, preventing insertBefore DOM errors */}
+          <ErrorBoundary key={activeView}>
             {activeView === "terminal" && (
               <TerminalView
                 combined={combined.state}
