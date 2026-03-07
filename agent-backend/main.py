@@ -166,6 +166,7 @@ from src.routes.shadow import router as shadow_router
 from src.routes.strategy import router as strategy_router
 from src.routes.liquidity import router as liquidity_router
 from src.routes.providers import router as providers_router
+from src.routes.research import router as research_router
 
 app.include_router(health_router)
 app.include_router(analysis_router)
@@ -184,8 +185,9 @@ app.include_router(shadow_router)
 app.include_router(strategy_router)
 app.include_router(liquidity_router)
 app.include_router(providers_router)
+app.include_router(research_router)
 
-logger.info(f"Mounted {len(app.routes)} routes across 17 routers")
+logger.info(f"Mounted {len(app.routes)} routes across 18 routers")
 
 
 # ── Dev Server ───────────────────────────────────────────────────────────────
