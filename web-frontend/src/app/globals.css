@@ -26,6 +26,30 @@
   --red-soft: rgba(239, 68, 68, 0.12);
   --gold-glow: rgba(212, 175, 55, 0.25);
   --gold-glow-strong: rgba(212, 175, 55, 0.45);
+
+  /* ── Institutional Tokens (Bloomberg / Aladdin inspired) ── */
+
+  /* Decision colors — high contrast for terminal density */
+  --decision-green: #00d4aa;
+  --decision-red: #ff4757;
+  --decision-yellow: #ffc312;
+  --confidence-blue: #3b82f6;
+
+  /* Typography scale — data vs insight vs navigation */
+  --font-data: var(--font-geist-mono), 'SF Mono', monospace;
+  --font-insight: var(--font-playfair), Georgia, serif;
+  --font-ui: var(--font-inter), system-ui, sans-serif;
+
+  /* Information density spacing */
+  --density-compact: 4px;
+  --density-normal: 8px;
+  --density-relaxed: 16px;
+
+  /* Signal strength spectrum */
+  --signal-strong: #22c55e;
+  --signal-moderate: #f59e0b;
+  --signal-weak: #6b7280;
+  --signal-negative: #ef4444;
 }
 
 /* ─── Base ──────────────────────────────────────────────────────────────────── */
