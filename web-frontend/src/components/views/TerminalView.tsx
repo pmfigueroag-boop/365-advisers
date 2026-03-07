@@ -3,31 +3,33 @@
 /**
  * TerminalView.tsx
  * ──────────────────────────────────────────────────────────────────────────
- * Investment Terminal — the "Decision First" landing view.
+ * Investment Terminal (v2.0) — Decision First layout.
  *
  * Layout:
- * ┌────────────────────────────┬──────────────────────────┐
- * │ Decision Panel             │ Signal Health Strip      │
- * │ (VerdictHero)              │ (regime + CASE + health) │
- * ├────────────────────────────┤                          │
- * │ Quick Action Bar           │                          │
- * ├────────────────────────────┴──────────────────────────┤
- * │ Top Signals                                           │
- * ├───────────────────────────────────────────────────────┤
- * │ Coverage List (Watchlist Heatmap)                     │
- * └───────────────────────────────────────────────────────┘
+ * ┌────────────────────────────────┬─────────────────────────────┐
+ * │ OpportunityVerdict             │ SignalEnvironmentPanel       │
+ * │ (score, verdict, allocation)   │ (CASE, regime, crowding)    │
+ * ├────────────────────────────────┤                             │
+ * │ QuickActionBar                 │ KeyCatalystsPanel           │
+ * ├────────────────────────────────┤ RiskSnapshotPanel           │
+ * │ TopSignalsList                 │                             │
+ * ├────────────────────────────────┴─────────────────────────────┤
+ * │ CoverageHeatmap (Watchlist)                                  │
+ * └──────────────────────────────────────────────────────────────┘
  */
 
-import { Zap, Activity, Search, ShieldCheck, LineChart, Star, Radio } from "lucide-react";
-import VerdictHero from "@/components/VerdictHero";
-import RegimeContextBadge from "@/components/decision/RegimeContextBadge";
+import { Activity, Zap, ShieldCheck, LineChart, Radio, Star, Search } from "lucide-react";
+import OpportunityVerdict from "@/components/terminal/OpportunityVerdict";
+import SignalEnvironmentPanel from "@/components/terminal/SignalEnvironmentPanel";
+import KeyCatalystsPanel from "@/components/terminal/KeyCatalystsPanel";
+import RiskSnapshotPanel from "@/components/terminal/RiskSnapshotPanel";
 import QuickActionBar from "@/components/decision/QuickActionBar";
 import TopSignalsList from "@/components/insight/TopSignalsList";
-import SignalHealthStrip from "@/components/insight/SignalHealthStrip";
-import { SignalBadge } from "@/components/AnalysisWidgets";
+import SignalBadge from "@/components/shared/SignalBadge";
 import type { CombinedState } from "@/hooks/useCombinedStream";
 import type { SignalProfileResponse } from "@/hooks/useAlphaSignals";
 import type { WatchlistItem } from "@/hooks/useWatchlist";
+import type { CrowdingAssessment } from "@/hooks/useCrowding";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -35,6 +37,7 @@ interface TerminalViewProps {
     combined: CombinedState;
     alphaProfile: SignalProfileResponse | null;
     watchlistItems: WatchlistItem[];
+    crowding?: CrowdingAssessment | null;
     onAnalyze: (ticker: string) => void;
     onNavigateAnalysis: () => void;
 }
@@ -45,6 +48,7 @@ export default function TerminalView({
     combined,
     alphaProfile,
     watchlistItems,
+    crowding,
     onAnalyze,
     onNavigateAnalysis,
 }: TerminalViewProps) {
@@ -61,12 +65,14 @@ export default function TerminalView({
                 <div className="w-24 h-24 bg-[#161b22] rounded-3xl flex items-center justify-center mb-8 border border-[#d4af37]/15 glow-ring">
                     <Activity size={44} className="text-[#d4af37]/40 breathe" />
                 </div>
-                <h2 className="text-2xl font-black gold-gradient mb-3">Investment Intelligence Terminal</h2>
+                <h2 className="text-2xl font-black gold-gradient mb-3" style={{ fontFamily: "var(--font-insight)" }}>
+                    Investment Intelligence Terminal
+                </h2>
                 <p className="text-gray-500 max-w-md mx-auto leading-relaxed text-sm mb-2">
-                    Convene the Investment Committee — fundamental, technical, and combined analysis
-                    in one institutional-grade report.
+                    Institutional-grade investment analysis. Type a ticker to convene the
+                    Investment Committee and get your decision in seconds.
                 </p>
-                <p className="text-[#d4af37]/60 text-xs font-mono mb-8 blink-cursor">Type a ticker above to begin</p>
+                <p className="text-[#d4af37]/60 text-xs font-mono mb-8 blink-cursor">Search or type a ticker above</p>
                 <div className="flex gap-3 text-xs font-mono text-gray-500 flex-wrap justify-center stagger-children">
                     <span className="flex items-center gap-1.5 glass-card px-3 py-1.5 border-[#30363d]"><ShieldCheck size={12} className="text-[#d4af37]/60" /> Fundamental</span>
                     <span className="flex items-center gap-1.5 glass-card px-3 py-1.5 border-[#30363d]"><LineChart size={12} className="text-[#60a5fa]/60" /> Technical</span>
@@ -109,7 +115,9 @@ export default function TerminalView({
                             >
                                 <div className="flex items-start justify-between mb-3">
                                     <div>
-                                        <p className="text-lg font-black tracking-tight text-white">{item.ticker}</p>
+                                        <p className="text-lg font-black tracking-tight text-white" style={{ fontFamily: "var(--font-data)" }}>
+                                            {item.ticker}
+                                        </p>
                                         <p className="text-[10px] text-gray-600 truncate max-w-[140px]">{item.name ?? item.ticker}</p>
                                     </div>
                                     {sig !== "—" && (
@@ -171,53 +179,52 @@ export default function TerminalView({
         );
     }
 
-    // ── Active Terminal — Decision First ─────────────────────────────────────
+    // ── Active Terminal — Decision First layout ─────────────────────────────
     return (
         <div className="space-y-5" style={{ animation: "fadeSlideIn 0.3s ease both" }}>
-            {/* Regime badge */}
-            {combined.decision && (
-                <div className="flex items-center gap-3">
-                    <RegimeContextBadge regime={combined.decision.investment_position} />
-                    {combined.positionSizing && (
-                        <span className="text-[9px] font-mono text-gray-600">
-                            Conviction: <span className="text-gray-400 capitalize">{combined.positionSizing.conviction_level}</span>
-                        </span>
+            {/* Main Grid — Verdict + Environment */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                {/* Left: Decision Column (2/3) */}
+                <div className="lg:col-span-2 space-y-4">
+                    {/* Opportunity Verdict */}
+                    <OpportunityVerdict combined={combined} alphaProfile={alphaProfile} />
+
+                    {/* Quick Actions */}
+                    {isComplete && (
+                        <QuickActionBar
+                            ticker={combined.ticker ?? ""}
+                            onDeepAnalysis={onNavigateAnalysis}
+                            onExport={() => {
+                                document.body.setAttribute("data-print-date", new Date().toLocaleString());
+                                window.print();
+                            }}
+                            onRefresh={() => onAnalyze(combined.ticker ?? "")}
+                        />
+                    )}
+
+                    {/* Top Signals */}
+                    {isComplete && (
+                        <div className="glass-card p-5 border-[#30363d]">
+                            <TopSignalsList
+                                signals={alphaProfile?.signals ?? []}
+                                totalFired={alphaProfile?.fired_signals}
+                                totalSignals={alphaProfile?.total_signals}
+                            />
+                        </div>
                     )}
                 </div>
-            )}
 
-            {/* Decision Panel — VerdictHero */}
-            <VerdictHero combined={combined} alphaProfile={alphaProfile} />
-
-            {/* Quick Action Bar */}
-            {isComplete && (
-                <QuickActionBar
-                    ticker={combined.ticker}
-                    onDeepAnalysis={onNavigateAnalysis}
-                    onExport={() => {
-                        document.body.setAttribute("data-print-date", new Date().toLocaleString());
-                        window.print();
-                    }}
-                    onRefresh={() => {/* handled by parent */ }}
-                />
-            )}
-
-            {/* Signal Strip + Top Signals */}
-            {isComplete && (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                    {/* Top Signals (full component) */}
-                    <div className="lg:col-span-2 glass-card p-5 border-[#30363d]">
-                        <TopSignalsList
-                            signals={alphaProfile?.signals ?? []}
-                            totalFired={alphaProfile?.fired_signals}
-                            totalSignals={alphaProfile?.total_signals}
-                        />
-                    </div>
-
-                    {/* Signal Health Strip */}
-                    <SignalHealthStrip profile={alphaProfile} />
+                {/* Right: Context Column (1/3) */}
+                <div className="space-y-4">
+                    <SignalEnvironmentPanel alphaProfile={alphaProfile} crowding={crowding} />
+                    <KeyCatalystsPanel cioMemo={combined.decision?.cio_memo ?? null} />
+                    <RiskSnapshotPanel
+                        positionSizing={combined.positionSizing}
+                        technical={combined.technical}
+                        crowding={crowding}
+                    />
                 </div>
-            )}
+            </div>
 
             {/* Coverage Heatmap */}
             {isComplete && watchlistItems.length > 0 && (
@@ -238,8 +245,8 @@ export default function TerminalView({
                                         : "bg-[#161b22] border border-[#30363d] text-gray-400 hover:border-[#d4af37]/30 hover:text-gray-200"
                                         }`}
                                 >
-                                    {item.ticker}
-                                    {item.lastSignal && <SignalBadge signal={item.lastSignal} />}
+                                    <span style={{ fontFamily: "var(--font-data)" }}>{item.ticker}</span>
+                                    {item.lastSignal && <SignalBadge signal={item.lastSignal} size="xs" />}
                                 </button>
                             );
                         })}

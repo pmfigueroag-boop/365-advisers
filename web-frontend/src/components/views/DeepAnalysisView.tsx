@@ -29,11 +29,13 @@ import ResearchMemoCard from "@/components/ResearchMemoCard";
 import TradingViewChart from "@/components/TradingViewChart";
 import { CashFlowChart } from "@/components/Charts";
 import ScoreHistoryChart from "@/components/ScoreHistoryChart";
+import BacktestEvidenceTab from "@/components/analysis/BacktestEvidenceTab";
+import SignalEvidenceTab from "@/components/analysis/SignalEvidenceTab";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Section = "thesis" | "signals" | "technical" | "fundamental" | "evidence" | "charts";
+type Section = "thesis" | "signals" | "technical" | "fundamental" | "evidence" | "backtest" | "signal_evidence" | "charts";
 
 const SECTIONS: { id: Section; label: string; icon: React.ReactNode }[] = [
     { id: "thesis", label: "Thesis", icon: <Lightbulb size={12} /> },
@@ -41,6 +43,8 @@ const SECTIONS: { id: Section; label: string; icon: React.ReactNode }[] = [
     { id: "technical", label: "Technical", icon: <Activity size={12} /> },
     { id: "fundamental", label: "Fundamental", icon: <Users size={12} /> },
     { id: "evidence", label: "Evidence", icon: <BarChart3 size={12} /> },
+    { id: "backtest", label: "Backtest", icon: <BarChart3 size={12} /> },
+    { id: "signal_evidence", label: "Signal Map", icon: <Radio size={12} /> },
     { id: "charts", label: "Charts", icon: <LineChart size={12} /> },
 ];
 
@@ -188,6 +192,18 @@ export default function DeepAnalysisView({
                                 </div>
                             )}
                         </div>
+                    )}
+
+                    {section === "backtest" && ticker && (
+                        <BacktestEvidenceTab ticker={ticker} />
+                    )}
+
+                    {section === "signal_evidence" && alphaProfile && (
+                        <SignalEvidenceTab
+                            signals={alphaProfile.signals}
+                            categorySummary={alphaProfile.category_summary}
+                            ticker={ticker ?? ""}
+                        />
                     )}
 
                     {section === "charts" && (

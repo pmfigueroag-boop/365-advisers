@@ -5,6 +5,7 @@ import TopNav, { ViewId } from "@/components/navigation/TopNav";
 import CommandPalette from "@/components/navigation/CommandPalette";
 import WatchlistPanel from "@/components/navigation/WatchlistPanel";
 import TerminalView from "@/components/views/TerminalView";
+import MarketIntelligenceView from "@/components/views/MarketIntelligenceView";
 import IdeaExplorerView from "@/components/views/IdeaExplorerView";
 import DeepAnalysisView from "@/components/views/DeepAnalysisView";
 import PortfolioView from "@/components/views/PortfolioView";
@@ -219,6 +220,12 @@ export default function Home() {
                 watchlistItems={watchlist.items}
                 onAnalyze={handleAnalyze}
                 onNavigateAnalysis={() => setActiveView("analysis")}
+              />
+            )}
+
+            {activeView === "market" && (
+              <MarketIntelligenceView
+                onSelectTicker={(t) => handleAnalyze(t)}
               />
             )}
 

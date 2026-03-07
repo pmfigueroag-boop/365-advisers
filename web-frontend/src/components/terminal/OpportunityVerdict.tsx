@@ -1,0 +1,146 @@
+"use client";
+
+/**
+ * OpportunityVerdict.tsx
+ * ──────────────────────────────────────────────────────────────────────────
+ * Decision-first verdict panel for the Investment Terminal.
+ * Replaces VerdictHero with an opportunity-centric layout:
+ *   Opportunity Score → Verdict → Allocation → Confidence → Risk
+ */
+
+import { TrendingUp, TrendingDown, Minus, Shield, Target, DollarSign } from "lucide-react";
+import OpportunityScoreGauge from "@/components/shared/OpportunityScoreGauge";
+import ConfidenceMeter from "@/components/shared/ConfidenceMeter";
+import ScoreRing from "@/components/shared/ScoreRing";
+import SignalBadge from "@/components/shared/SignalBadge";
+import type { CombinedState } from "@/hooks/useCombinedStream";
+import type { SignalProfileResponse } from "@/hooks/useAlphaSignals";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface OpportunityVerdictProps {
+    combined: CombinedState;
+    alphaProfile: SignalProfileResponse | null;
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function riskColor(risk: string) {
+    const r = risk.toLowerCase();
+    if (r.includes("low")) return "text-green-400";
+    if (r.includes("moderate")) return "text-yellow-400";
+    if (r.includes("high")) return "text-red-400";
+    if (r.includes("extreme")) return "text-red-500";
+    return "text-gray-400";
+}
+
+function verdictIcon(position: string) {
+    const p = position.toUpperCase();
+    if (p.includes("BUY")) return <TrendingUp size={18} className="text-green-400" />;
+    if (p.includes("SELL")) return <TrendingDown size={18} className="text-red-400" />;
+    return <Minus size={18} className="text-yellow-400" />;
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export default function OpportunityVerdict({ combined, alphaProfile }: OpportunityVerdictProps) {
+    const { decision, opportunity, positionSizing, committee, fundamentalDataReady, ticker } = combined;
+
+    if (!decision || !ticker) return null;
+
+    const oppScore = opportunity?.opportunity_score ?? committee?.score ?? 0;
+    const caseScore = alphaProfile?.composite_alpha?.score ?? 0;
+    const confidence = decision.confidence_score;
+    const allocation = positionSizing?.suggested_allocation ?? 0;
+    const riskLevel = positionSizing?.risk_level ?? "unknown";
+    const position = decision.investment_position;
+    const name = fundamentalDataReady?.name ?? ticker;
+
+    return (
+        <div
+            className="glass-card border-[#30363d] overflow-hidden"
+            style={{ animation: "verdictReveal 0.5s ease both" }}
+        >
+            {/* Gold accent bar */}
+            <div className="h-1 bg-gradient-to-r from-[#d4af37] to-[#e8c84a]" />
+
+            <div className="p-6">
+                {/* Ticker + Name */}
+                <div className="flex items-start justify-between mb-5">
+                    <div>
+                        <div className="flex items-center gap-3">
+                            <h2 className="text-2xl font-black tracking-tight text-white" style={{ fontFamily: "var(--font-data)" }}>
+                                {ticker}
+                            </h2>
+                            <SignalBadge signal={position} size="md" />
+                        </div>
+                        <p className="text-xs text-gray-500 mt-0.5">{name}</p>
+                    </div>
+                    {verdictIcon(position)}
+                </div>
+
+                {/* Score Row — Opportunity + CASE + Committee */}
+                <div className="flex items-center gap-8 mb-6">
+                    <OpportunityScoreGauge score={oppScore} size={100} label="Opportunity" />
+                    <ScoreRing value={caseScore} max={100} size={64} label="CASE" color="#d4af37" />
+                    <ScoreRing value={committee?.score ?? 0} max={10} size={64} label="Committee" />
+                </div>
+
+                {/* Key Metrics Strip */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
+                    <div className="bg-[#161b22] rounded-xl p-3 border border-[#30363d]">
+                        <div className="flex items-center gap-1.5 mb-1">
+                            <Target size={10} className="text-[#d4af37]" />
+                            <span className="text-[8px] font-black uppercase tracking-wider text-gray-600">Allocation</span>
+                        </div>
+                        <p className="text-lg font-black text-white" style={{ fontFamily: "var(--font-data)" }}>
+                            {allocation.toFixed(1)}%
+                        </p>
+                    </div>
+
+                    <div className="bg-[#161b22] rounded-xl p-3 border border-[#30363d]">
+                        <div className="flex items-center gap-1.5 mb-1">
+                            <Shield size={10} className="text-blue-400" />
+                            <span className="text-[8px] font-black uppercase tracking-wider text-gray-600">Risk Level</span>
+                        </div>
+                        <p className={`text-sm font-black uppercase ${riskColor(riskLevel)}`}>
+                            {riskLevel}
+                        </p>
+                    </div>
+
+                    <div className="bg-[#161b22] rounded-xl p-3 border border-[#30363d]">
+                        <div className="flex items-center gap-1.5 mb-1">
+                            <DollarSign size={10} className="text-emerald-400" />
+                            <span className="text-[8px] font-black uppercase tracking-wider text-gray-600">Conviction</span>
+                        </div>
+                        <p className="text-sm font-black text-white capitalize">
+                            {positionSizing?.conviction_level ?? "—"}
+                        </p>
+                    </div>
+
+                    <div className="bg-[#161b22] rounded-xl p-3 border border-[#30363d]">
+                        <div className="flex items-center gap-1.5 mb-1">
+                            <span className="text-[8px] font-black uppercase tracking-wider text-gray-600">Action</span>
+                        </div>
+                        <p className="text-sm font-black text-[#d4af37]">
+                            {positionSizing?.recommended_action ?? "—"}
+                        </p>
+                    </div>
+                </div>
+
+                {/* Confidence Meter */}
+                <ConfidenceMeter value={confidence} label="System Confidence" />
+
+                {/* Investment Thesis (collapsed) */}
+                {decision.cio_memo.thesis_summary && (
+                    <div className="mt-5 pt-4 border-t border-[#30363d]">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-gray-600 mb-2">Investment Thesis</p>
+                        <p className="text-xs text-gray-300 leading-relaxed" style={{ fontFamily: "var(--font-insight)" }}>
+                            {decision.cio_memo.thesis_summary}
+                        </p>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}

@@ -15,11 +15,12 @@ import {
     Briefcase,
     Brain,
     Command,
+    Map,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type ViewId = "terminal" | "ideas" | "analysis" | "portfolio" | "system";
+export type ViewId = "terminal" | "market" | "ideas" | "analysis" | "portfolio" | "system";
 
 interface TopNavProps {
     activeView: ViewId;
@@ -49,6 +50,7 @@ interface TopNavProps {
 
 const TABS: { id: ViewId; label: string; icon: React.ReactNode }[] = [
     { id: "terminal", label: "Terminal", icon: <Monitor size={13} /> },
+    { id: "market", label: "Market", icon: <Map size={13} /> },
     { id: "ideas", label: "Ideas", icon: <Lightbulb size={13} /> },
     { id: "analysis", label: "Analysis", icon: <Microscope size={13} /> },
     { id: "portfolio", label: "Portfolio", icon: <Briefcase size={13} /> },

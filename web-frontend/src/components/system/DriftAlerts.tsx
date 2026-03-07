@@ -85,7 +85,7 @@ export default function DriftAlerts() {
 
             <div className="space-y-2">
                 {displayAlerts.map((alert, idx) => {
-                    const cfg = severityConfig[alert.severity];
+                    const cfg = severityConfig[alert.severity] ?? severityConfig.info;
                     return (
                         <div
                             key={idx}
