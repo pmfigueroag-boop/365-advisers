@@ -26,6 +26,7 @@ class MarketRegime(str, Enum):
     BEAR = "bear"
     RANGE_BOUND = "range"
     HIGH_VOL = "high_vol"
+    LOW_VOL = "low_vol"
 
 
 # ─── Configuration ───────────────────────────────────────────────────────────
@@ -40,12 +41,14 @@ class RegimeConfig:
         bb_width_threshold: float = 0.04,
         atr_period: int = 14,
         atr_expansion_mult: float = 1.8,
+        atr_contraction_mult: float = 0.6,
     ) -> None:
         self.sma_period = sma_period
         self.bb_period = bb_period
         self.bb_width_threshold = bb_width_threshold
         self.atr_period = atr_period
         self.atr_expansion_mult = atr_expansion_mult
+        self.atr_contraction_mult = atr_contraction_mult
 
 
 # ─── Detector ────────────────────────────────────────────────────────────────
@@ -56,9 +59,10 @@ class RegimeDetector:
 
     Logic hierarchy (first match wins):
         1. HIGH_VOL  — ATR(14) > median(ATR) × expansion_mult
-        2. RANGE     — BB Width(20) < threshold
-        3. BULL      — Close > SMA(200)
-        4. BEAR      — Close ≤ SMA(200)
+        2. LOW_VOL   — ATR(14) < median(ATR) × contraction_mult
+        3. RANGE     — BB Width(20) < threshold
+        4. BULL      — Close > SMA(200)
+        5. BEAR      — Close ≤ SMA(200)
     """
 
     def __init__(self, config: RegimeConfig | None = None) -> None:
@@ -97,7 +101,8 @@ class RegimeDetector:
         bb_width = self._bollinger_width(close, self.cfg.bb_period)
         atr = self._atr(high, low, close, self.cfg.atr_period)
         atr_median = float(np.nanmedian(atr[atr > 0])) if np.any(atr > 0) else 1.0
-        atr_threshold = atr_median * self.cfg.atr_expansion_mult
+        atr_hi_threshold = atr_median * self.cfg.atr_expansion_mult
+        atr_lo_threshold = atr_median * self.cfg.atr_contraction_mult
 
         regimes: dict[date, MarketRegime] = {}
         dates = benchmark_ohlcv.index
@@ -106,8 +111,10 @@ class RegimeDetector:
             dt = dates[i]
             day_key = dt.date() if hasattr(dt, "date") else dt
 
-            if atr[i] > atr_threshold:
+            if atr[i] > atr_hi_threshold:
                 regime = MarketRegime.HIGH_VOL
+            elif atr[i] < atr_lo_threshold:
+                regime = MarketRegime.LOW_VOL
             elif bb_width[i] < self.cfg.bb_width_threshold:
                 regime = MarketRegime.RANGE_BOUND
             elif close[i] > sma[i]:

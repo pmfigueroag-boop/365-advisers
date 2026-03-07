@@ -449,6 +449,297 @@ class DegradationAlertRecord(Base):
     resolved_at     = Column(DateTime)
 
 
+# ─── Walk-Forward Validation Tables ──────────────────────────────────────────
+
+class WalkForwardRunRecord(Base):
+    """Metadata for a walk-forward validation run."""
+    __tablename__ = "walk_forward_runs"
+
+    id               = Column(Integer, primary_key=True, autoincrement=True)
+    run_id           = Column(String(36), nullable=False, unique=True, index=True)
+    config_json      = Column(Text, nullable=False)
+    total_folds      = Column(Integer, nullable=False)
+    robust_signals_json  = Column(Text, default="[]")
+    overfit_signals_json = Column(Text, default="[]")
+    status           = Column(String(20), default="pending")
+    execution_time_s = Column(Float, default=0.0)
+    error_message    = Column(Text)
+    created_at       = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    # Relationship
+    folds = relationship(
+        "WalkForwardFoldRecord", back_populates="run", cascade="all, delete-orphan",
+    )
+
+
+class WalkForwardFoldRecord(Base):
+    """A single train/test temporal fold within a run."""
+    __tablename__ = "walk_forward_folds"
+    __table_args__ = (
+        Index("idx_wf_folds_run", "run_id", "fold_index"),
+    )
+
+    id               = Column(Integer, primary_key=True, autoincrement=True)
+    run_id           = Column(String(36), ForeignKey("walk_forward_runs.run_id"), nullable=False)
+    fold_index       = Column(Integer, nullable=False)
+    train_start      = Column(String(10), nullable=False)
+    train_end        = Column(String(10), nullable=False)
+    test_start       = Column(String(10), nullable=False)
+    test_end         = Column(String(10), nullable=False)
+
+    # Relationships
+    run     = relationship("WalkForwardRunRecord", back_populates="folds")
+    results = relationship(
+        "WalkForwardSignalResultRecord", back_populates="fold", cascade="all, delete-orphan",
+    )
+
+
+class WalkForwardSignalResultRecord(Base):
+    """Per-signal IS/OOS metrics for a single fold."""
+    __tablename__ = "walk_forward_signal_results"
+    __table_args__ = (
+        Index("idx_wf_results_signal", "signal_id", "fold_id"),
+        Index("idx_wf_results_fold", "fold_id"),
+    )
+
+    id               = Column(Integer, primary_key=True, autoincrement=True)
+    fold_id          = Column(Integer, ForeignKey("walk_forward_folds.id"), nullable=False)
+    signal_id        = Column(String(50), nullable=False, index=True)
+    signal_name      = Column(String(100))
+    # IS metrics
+    is_hit_rate      = Column(Float)
+    is_sharpe        = Column(Float)
+    is_alpha         = Column(Float)
+    is_firings       = Column(Integer, default=0)
+    qualified        = Column(Boolean, default=False)
+    # OOS metrics
+    oos_hit_rate     = Column(Float)
+    oos_sharpe       = Column(Float)
+    oos_alpha        = Column(Float)
+    oos_firings      = Column(Integer, default=0)
+
+    # Relationship
+    fold = relationship("WalkForwardFoldRecord", back_populates="results")
+
+
+# ─── Transaction Cost Model Tables ───────────────────────────────────────────
+
+class CostModelProfileRecord(Base):
+    """Per-signal cost analysis results from a backtest run."""
+    __tablename__ = "cost_model_profiles"
+    __table_args__ = (
+        Index("idx_cost_signal_run", "signal_id", "run_id"),
+    )
+
+    id                  = Column(Integer, primary_key=True, autoincrement=True)
+    run_id              = Column(String(36), nullable=False, index=True)
+    signal_id           = Column(String(50), nullable=False, index=True)
+    signal_name         = Column(String(100))
+    raw_sharpe_20       = Column(Float)
+    adjusted_sharpe_20  = Column(Float)
+    raw_alpha_20        = Column(Float)
+    net_alpha_20        = Column(Float)
+    avg_total_cost      = Column(Float)
+    cost_drag_bps       = Column(Float)
+    breakeven_cost_bps  = Column(Float)
+    cost_resilience     = Column(Float)
+    cost_adjusted_tier  = Column(String(2))
+    created_at          = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+# ─── Benchmark & Factor Evaluation Tables ─────────────────────────────────────
+
+class BenchmarkFactorProfileRecord(Base):
+    """Per-signal benchmark & factor evaluation results."""
+    __tablename__ = "benchmark_factor_profiles"
+    __table_args__ = (
+        Index("idx_bf_signal_run", "signal_id", "run_id"),
+    )
+
+    id                = Column(Integer, primary_key=True, autoincrement=True)
+    run_id            = Column(String(36), nullable=False, index=True)
+    signal_id         = Column(String(50), nullable=False, index=True)
+    signal_name       = Column(String(100))
+    excess_vs_market  = Column(Float)
+    ir_vs_market      = Column(Float)
+    excess_vs_sector  = Column(Float)
+    ir_vs_sector      = Column(Float)
+    factor_alpha      = Column(Float)
+    alpha_t_stat      = Column(Float)
+    alpha_significant = Column(Boolean, default=False)
+    beta_market       = Column(Float)
+    beta_size         = Column(Float)
+    beta_value        = Column(Float)
+    beta_momentum     = Column(Float)
+    r_squared         = Column(Float)
+    factor_neutrality = Column(Float)
+    alpha_source      = Column(String(20))
+    n_observations    = Column(Integer, default=0)
+    created_at        = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+# ─── Signal Redundancy Tables ────────────────────────────────────────────────
+
+class SignalRedundancyRecord(Base):
+    """Per-signal redundancy analysis results."""
+    __tablename__ = "signal_redundancy_profiles"
+    __table_args__ = (
+        Index("idx_red_signal_run", "signal_id", "run_id"),
+    )
+
+    id                 = Column(Integer, primary_key=True, autoincrement=True)
+    run_id             = Column(String(36), nullable=False, index=True)
+    signal_id          = Column(String(50), nullable=False, index=True)
+    signal_name        = Column(String(100))
+    max_correlation    = Column(Float)
+    max_corr_partner   = Column(String(50))
+    max_mi             = Column(Float)
+    incremental_alpha  = Column(Float)
+    redundancy_score   = Column(Float)
+    classification     = Column(String(20))
+    recommended_weight = Column(Float)
+    created_at         = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+# ─── Regime Weight Tables ────────────────────────────────────────────────────
+
+class RegimeWeightRecord(Base):
+    """Per-signal regime-adaptive weight profiles."""
+    __tablename__ = "regime_weight_profiles"
+    __table_args__ = (
+        Index("idx_rw_signal_run", "signal_id", "run_id"),
+    )
+
+    id                = Column(Integer, primary_key=True, autoincrement=True)
+    run_id            = Column(String(36), nullable=False, index=True)
+    signal_id         = Column(String(50), nullable=False, index=True)
+    signal_name       = Column(String(100))
+    current_regime    = Column(String(20))
+    base_weight       = Column(Float)
+    regime_multiplier = Column(Float)
+    effective_weight  = Column(Float)
+    best_regime       = Column(String(20))
+    worst_regime      = Column(String(20))
+    regime_stats_json = Column(Text)
+    created_at        = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+# ─── Signal Ensemble Tables ──────────────────────────────────────────────────
+
+class SignalEnsembleRecord(Base):
+    """Discovered signal ensemble combinations."""
+    __tablename__ = "signal_ensemble_profiles"
+
+    id              = Column(Integer, primary_key=True, autoincrement=True)
+    run_id          = Column(String(36), nullable=False, index=True)
+    signal_ids_json = Column(Text)
+    co_fire_count   = Column(Integer)
+    synergy_score   = Column(Float)
+    stability       = Column(Float)
+    ensemble_score  = Column(Float)
+    joint_sharpe    = Column(Float)
+    joint_hit_rate  = Column(Float)
+    created_at      = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+# ─── Meta-Learning Tables ────────────────────────────────────────────────────
+
+class MetaLearningRecord(Base):
+    """Meta-learning recommendations."""
+    __tablename__ = "meta_learning_recommendations"
+
+    id              = Column(Integer, primary_key=True, autoincrement=True)
+    run_id          = Column(String(36), nullable=False, index=True)
+    target_id       = Column(String(50), nullable=False, index=True)
+    target_name     = Column(String(100))
+    recommendation  = Column(String(30))
+    reason          = Column(Text)
+    current_value   = Column(Float)
+    suggested_value = Column(Float)
+    confidence      = Column(Float)
+    priority        = Column(Integer)
+    applied         = Column(Boolean, default=False)
+    created_at      = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+# ─── Concept Drift Tables ────────────────────────────────────────────────────
+
+class ConceptDriftRecord(Base):
+    """Concept drift detection alerts."""
+    __tablename__ = "concept_drift_alerts"
+
+    id                 = Column(Integer, primary_key=True, autoincrement=True)
+    run_id             = Column(String(36), nullable=False, index=True)
+    signal_id          = Column(String(50), nullable=False, index=True)
+    severity           = Column(String(20))
+    active_detectors   = Column(Integer)
+    drift_score        = Column(Float)
+    detections_json    = Column(Text)
+    recommended_action = Column(String(30))
+    created_at         = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+# ─── Online Learning Tables ──────────────────────────────────────────────────
+
+class OnlineLearningRecord(Base):
+    """Online learning weight updates."""
+    __tablename__ = "online_learning_updates"
+
+    id                 = Column(Integer, primary_key=True, autoincrement=True)
+    run_id             = Column(String(36), nullable=False, index=True)
+    signal_id          = Column(String(50), nullable=False, index=True)
+    weight_before      = Column(Float)
+    weight_after       = Column(Float)
+    delta              = Column(Float)
+    raw_delta          = Column(Float)
+    dampened           = Column(Boolean, default=False)
+    observation_return = Column(Float)
+    learning_rate_used = Column(Float)
+    created_at         = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+# ─── Signal Discovery Tables ─────────────────────────────────────────────────
+
+class SignalCandidateRecord(Base):
+    """Discovered signal candidates."""
+    __tablename__ = "signal_candidates"
+
+    id                      = Column(Integer, primary_key=True, autoincrement=True)
+    run_id                  = Column(String(36), nullable=False, index=True)
+    candidate_id            = Column(String(50), nullable=False, index=True)
+    name                    = Column(String(100))
+    feature_formula         = Column(String(200))
+    direction               = Column(String(10))
+    threshold               = Column(Float)
+    category                = Column(String(20))
+    information_coefficient = Column(Float)
+    hit_rate                = Column(Float)
+    sharpe_ratio            = Column(Float)
+    sample_size             = Column(Integer)
+    stability               = Column(Float)
+    p_value                 = Column(Float)
+    adjusted_p_value        = Column(Float)
+    status                  = Column(String(20))
+    created_at              = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+# ─── Allocation Learning Tables ──────────────────────────────────────────────
+
+class AllocationLearningRecord(Base):
+    """Allocation learning outcomes."""
+    __tablename__ = "allocation_learning_outcomes"
+
+    id              = Column(Integer, primary_key=True, autoincrement=True)
+    run_id          = Column(String(36), nullable=False, index=True)
+    ticker          = Column(String(10))
+    bucket_id       = Column(String(20), index=True)
+    allocation_pct  = Column(Float)
+    forward_return  = Column(Float)
+    reward          = Column(Float)
+    ucb_score       = Column(Float)
+    created_at      = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
 # ─── Create tables ────────────────────────────────────────────────────────────
 
 def init_db():

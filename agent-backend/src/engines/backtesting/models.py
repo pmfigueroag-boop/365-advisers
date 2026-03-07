@@ -63,6 +63,12 @@ class BacktestConfig(BaseModel):
         0.5, ge=0.0, le=1.0,
         description="Cooldown = forward_window × cooldown_factor",
     )
+    cost_model_enabled: bool = Field(
+        False, description="Apply transaction cost adjustments",
+    )
+    cost_config: dict | None = Field(
+        None, description="CostModelConfig params (if None, defaults are used)",
+    )
 
 
 # ─── Signal Event (ephemeral, per-run) ───────────────────────────────────────
@@ -87,6 +93,13 @@ class SignalEvent(BaseModel):
     excess_returns: dict[int, float] = Field(
         default_factory=dict,
         description="forward - benchmark returns",
+    )
+    adjusted_returns: dict[int, float] = Field(
+        default_factory=dict,
+        description="Forward returns net of transaction costs",
+    )
+    total_cost: float = Field(
+        0.0, description="Total round-trip cost as fraction of notional",
     )
 
 
