@@ -37,9 +37,95 @@ logger = logging.getLogger("365advisers.main")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Initialise the SQLite database on startup."""
+    """Initialise the database and EDPL on startup."""
     init_db()
-    logger.info("365 Advisers API started (v3.0 — modular architecture)")
+
+    # ── EDPL Initialisation ───────────────────────────────────────────────
+    from src.data.external.registry import ProviderRegistry
+    from src.data.external.health import HealthChecker
+    from src.data.external.fallback import FallbackRouter
+    from src.data.external.base import DataDomain
+    from src.data.external.contracts.enhanced_market import EnhancedMarketData
+    from src.data.external.contracts.etf_flows import ETFFlowData
+    from src.data.external.contracts.options import OptionsIntelligence
+    from src.data.external.contracts.institutional import InstitutionalFlowData
+    from src.data.external.contracts.sentiment import NewsSentimentData
+    from src.data.external.contracts.macro import MacroContext
+    from src.routes.providers import init_provider_routes
+
+    registry = ProviderRegistry()
+    health_checker = HealthChecker(
+        failure_threshold=settings.EDPL_CB_FAILURE_THRESHOLD,
+        recovery_timeout=settings.EDPL_CB_RECOVERY_TIMEOUT,
+    )
+    fallback_router = FallbackRouter(
+        registry=registry,
+        health_checker=health_checker,
+        null_factories={
+            DataDomain.MARKET_DATA: EnhancedMarketData.empty,
+            DataDomain.ETF_FLOWS: ETFFlowData.empty,
+            DataDomain.OPTIONS: OptionsIntelligence.empty,
+            DataDomain.INSTITUTIONAL: InstitutionalFlowData.empty,
+            DataDomain.SENTIMENT: NewsSentimentData.empty,
+            DataDomain.MACRO: MacroContext.default,
+        },
+    )
+
+    # Store on app state for access by routes / engines
+    app.state.edpl_registry = registry
+    app.state.edpl_health = health_checker
+    app.state.edpl_router = fallback_router
+
+    # Inject into provider routes
+    init_provider_routes(registry, health_checker)
+
+    # ── Register concrete adapters (conditional on API keys) ─────────────
+    if settings.POLYGON_API_KEY and settings.EDPL_ENABLE_MARKET_DATA:
+        from src.data.external.adapters.polygon import PolygonAdapter
+        polygon = PolygonAdapter()
+        registry.register(polygon)
+        health_checker.register_provider(polygon.name, polygon.domain)
+        logger.info("Polygon.io adapter registered")
+
+    if settings.EDPL_ENABLE_ETF_FLOWS:
+        from src.data.external.adapters.etf_flows import ETFFlowAdapter
+        etf = ETFFlowAdapter()
+        registry.register(etf)
+        health_checker.register_provider(etf.name, etf.domain)
+        logger.info("ETF Flow adapter registered")
+
+    if settings.EDPL_ENABLE_OPTIONS:
+        from src.data.external.adapters.options import OptionsAdapter
+        opts = OptionsAdapter()
+        registry.register(opts)
+        health_checker.register_provider(opts.name, opts.domain)
+        logger.info("Options adapter registered")
+
+    if settings.EDPL_ENABLE_INSTITUTIONAL:
+        from src.data.external.adapters.institutional import InstitutionalAdapter
+        inst = InstitutionalAdapter()
+        registry.register(inst)
+        health_checker.register_provider(inst.name, inst.domain)
+        logger.info("Institutional adapter registered")
+
+    if settings.EDPL_ENABLE_SENTIMENT:
+        from src.data.external.adapters.news_sentiment import NewsSentimentAdapter
+        sentiment = NewsSentimentAdapter()
+        registry.register(sentiment)
+        health_checker.register_provider(sentiment.name, sentiment.domain)
+        logger.info("News/Sentiment adapter registered")
+
+    if settings.EDPL_ENABLE_MACRO:
+        from src.data.external.adapters.macro import MacroAdapter
+        macro = MacroAdapter()
+        registry.register(macro)
+        health_checker.register_provider(macro.name, macro.domain)
+        logger.info("Macro adapter registered")
+
+    logger.info("EDPL initialised — %d adapters registered across %d domains", sum(
+        len(registry.get_all(d)) for d in registry.list_domains()
+    ), len(registry.list_domains()))
+    logger.info("365 Advisers API started (v3.2 — full EDPL)")
     yield
 
 
@@ -79,6 +165,7 @@ from src.routes.scorecard import router as scorecard_router
 from src.routes.shadow import router as shadow_router
 from src.routes.strategy import router as strategy_router
 from src.routes.liquidity import router as liquidity_router
+from src.routes.providers import router as providers_router
 
 app.include_router(health_router)
 app.include_router(analysis_router)
@@ -96,8 +183,9 @@ app.include_router(scorecard_router)
 app.include_router(shadow_router)
 app.include_router(strategy_router)
 app.include_router(liquidity_router)
+app.include_router(providers_router)
 
-logger.info(f"Mounted {len(app.routes)} routes across 16 routers")
+logger.info(f"Mounted {len(app.routes)} routes across 17 routers")
 
 
 # ── Dev Server ───────────────────────────────────────────────────────────────

@@ -4,13 +4,14 @@
  * SystemView.tsx
  * ──────────────────────────────────────────────────────────────────────────
  * System Intelligence — comprehensive view combining QVF ValidationDashboard
- * with Concept Drift Alerts and Recalibration History.
+ * with Concept Drift Alerts, Recalibration History, and Provider Health.
  */
 
 import { Brain } from "lucide-react";
 import ValidationDashboard from "@/components/validation/ValidationDashboard";
 import DriftAlerts from "@/components/system/DriftAlerts";
 import RecalibrationLog from "@/components/system/RecalibrationLog";
+import ProviderHealthDashboard from "@/components/system/ProviderHealthDashboard";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 export default function SystemView() {
@@ -25,7 +26,7 @@ export default function SystemView() {
                     </h2>
                 </div>
                 <p className="text-xs text-gray-600">
-                    Monitor signal health, concept drift, detector accuracy, and model calibration.
+                    Monitor signal health, concept drift, detector accuracy, external providers, and model calibration.
                 </p>
             </div>
 
@@ -40,6 +41,11 @@ export default function SystemView() {
                     <RecalibrationLog />
                 </ErrorBoundary>
             </div>
+
+            {/* External Data Provider Health */}
+            <ErrorBoundary>
+                <ProviderHealthDashboard />
+            </ErrorBoundary>
 
             {/* Full QVF Dashboard */}
             <ErrorBoundary>
