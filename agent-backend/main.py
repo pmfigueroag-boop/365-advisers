@@ -168,6 +168,7 @@ from src.routes.liquidity import router as liquidity_router
 from src.routes.providers import router as providers_router
 from src.routes.research import router as research_router
 from src.routes.signal_lab import router as signal_lab_router
+from src.routes.strategy_lab import router as strategy_lab_router
 
 app.include_router(health_router)
 app.include_router(analysis_router)
@@ -188,8 +189,9 @@ app.include_router(liquidity_router)
 app.include_router(providers_router)
 app.include_router(research_router)
 app.include_router(signal_lab_router)
+app.include_router(strategy_lab_router)
 
-logger.info(f"Mounted {len(app.routes)} routes across 19 routers")
+logger.info(f"Mounted {len(app.routes)} routes across 20 routers")
 
 
 # ── Dev Server ───────────────────────────────────────────────────────────────

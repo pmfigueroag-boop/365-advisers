@@ -18,8 +18,53 @@ from src.data.database import SessionLocal
 logger = logging.getLogger("365advisers.strategy.definition")
 
 
+class EntryRule(BaseModel):
+    """Declarative entry condition beyond signal filters."""
+    field: str              # Field to evaluate: "case_score", "crowding", "uos"
+    operator: str           # "gt", "lt", "gte", "lte", "eq", "in", "not_in"
+    value: float | str | list = 0
+    priority: int = 0       # Evaluation order (lower = first)
+    label: str = ""         # Human-readable description
+
+
+class ExitRule(BaseModel):
+    """Declarative exit condition."""
+    rule_type: str           # "trailing_stop", "time_stop", "signal_reversal", "target_reached"
+    params: dict[str, Any] = Field(default_factory=dict)
+    # Examples:
+    #   trailing_stop: {"pct": 0.15}
+    #   time_stop: {"days": 60}
+    #   signal_reversal: {"signal_categories": ["momentum"]}
+    #   target_reached: {"return_pct": 0.30}
+
+
+class RegimeAction(BaseModel):
+    """Action to take for a specific market regime."""
+    regime: str              # "bull", "bear", "high_vol", "low_vol", "range"
+    action: str              # "full_exposure", "reduce_50", "no_new_entries", "exit_all"
+    sizing_override: float | None = None  # Override max_single_position
+
+
+class UniverseConfig(BaseModel):
+    """Asset universe definition."""
+    source: str = "all"              # "all", "sp500", "nasdaq100", "custom"
+    custom_tickers: list[str] = Field(default_factory=list)
+    sector_filter: list[str] = Field(default_factory=list)
+    min_market_cap: float | None = None
+    min_adv: float | None = None     # Minimum average daily volume USD
+
+
+class StrategyMetadata(BaseModel):
+    """Descriptive metadata for strategy classification."""
+    strategy_type: str = "systematic"    # systematic | discretionary | hybrid
+    horizon: str = "medium"              # short | medium | long
+    expected_turnover: str = "medium"    # low | medium | high
+    tags: list[str] = Field(default_factory=list)
+
+
 class StrategyConfig(BaseModel):
     """Declarative strategy configuration."""
+    # ── Original fields (backward-compatible) ──
     signal_filters: dict[str, Any] = Field(default_factory=lambda: {
         "required_categories": [],
         "min_signal_strength": 0.0,
@@ -37,6 +82,13 @@ class StrategyConfig(BaseModel):
         "max_single_position": 0.10,
         "max_sector_exposure": 0.25,
     })
+
+    # ── Strategy Research Lab extensions ──
+    entry_rules: list[EntryRule] = Field(default_factory=list)
+    exit_rules: list[ExitRule] = Field(default_factory=list)
+    regime_rules: list[RegimeAction] = Field(default_factory=list)
+    universe: UniverseConfig = Field(default_factory=UniverseConfig)
+    metadata: StrategyMetadata = Field(default_factory=StrategyMetadata)
 
 
 class StrategyCreate(BaseModel):
