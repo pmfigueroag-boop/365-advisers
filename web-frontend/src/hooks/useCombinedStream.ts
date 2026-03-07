@@ -12,6 +12,21 @@ export interface CIOMemo {
     technical_context: string;
     key_catalysts: string[];
     key_risks: string[];
+    // Optional enrichment sections
+    filing_context?: string;
+    geopolitical_context?: string;
+    macro_environment?: string;
+    sentiment_context?: string;
+}
+
+export interface SourceCoverage {
+    sources: Record<string, string>;
+    analysis_completeness: number;
+    completeness_label: string;
+    freshness_scores: Record<string, string>;
+    messages: string[];
+    unavailable: string[];
+    partial: string[];
 }
 
 export interface DecisionReady {
@@ -19,6 +34,7 @@ export interface DecisionReady {
     confidence_score: number;
     cio_memo: CIOMemo;
     elapsed_ms?: number;
+    source_coverage?: SourceCoverage;
 }
 
 export interface OpportunityScore {
@@ -49,6 +65,8 @@ export interface CombinedState {
     researchMemo: string | null;
     // Technical track
     technical: TechnicalAnalysisResult | null;
+    // Coverage track
+    sourceCoverage: SourceCoverage | null;
     // Portfolio track
     opportunity: OpportunityScore | null;
     positionSizing: PositionSizing | null;
@@ -72,6 +90,7 @@ const INITIAL: CombinedState = {
     committee: null,
     researchMemo: null,
     technical: null,
+    sourceCoverage: null,
     opportunity: null,
     positionSizing: null,
     decision: null,
@@ -132,6 +151,12 @@ export function useCombinedStream() {
         es.addEventListener("technical_ready", (e) => {
             const tech: TechnicalAnalysisResult = JSON.parse((e as MessageEvent).data);
             setState((prev) => ({ ...prev, technical: tech, status: "decision" }));
+        });
+
+        // source_coverage — EDPL coverage report
+        es.addEventListener("source_coverage", (e) => {
+            const cov: SourceCoverage = JSON.parse((e as MessageEvent).data);
+            setState((prev) => ({ ...prev, sourceCoverage: cov }));
         });
 
         // opportunity_score

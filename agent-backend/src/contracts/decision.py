@@ -18,6 +18,11 @@ class CIOMemo(BaseModel):
     technical_context: str = ""
     key_catalysts: list[str] = Field(default_factory=list)
     key_risks: list[str] = Field(default_factory=list)
+    # Optional enrichment sections (only present when data available)
+    filing_context: str | None = None
+    geopolitical_context: str | None = None
+    macro_environment: str | None = None
+    sentiment_context: str | None = None
 
 
 class InvestmentDecision(BaseModel):

@@ -46,6 +46,7 @@ class ETFFlowData(BaseModel):
     thematic_flows: dict[str, float] = Field(default_factory=dict)
     raw_entries: list[ETFFlowEntry] = Field(default_factory=list)
     source: str = "unknown"
+    sources_used: list[str] = Field(default_factory=list)
 
     @classmethod
     def empty(cls) -> ETFFlowData:

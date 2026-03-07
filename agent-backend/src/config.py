@@ -31,12 +31,25 @@ class Settings(BaseSettings):
     POLYGON_API_KEY: str = ""
     NEWS_API_KEY: str = ""
     FRED_API_KEY: str = ""
+    FINNHUB_API_KEY: str = ""
+    QUIVER_API_KEY: str = ""
+    # SEC EDGAR requires no API key — only a User-Agent email
+    SEC_EDGAR_EMAIL: str = ""
+    # GDELT is fully open — no key needed
 
     # Provider timeouts (seconds)
     EDPL_DEFAULT_TIMEOUT: int = 10
     EDPL_POLYGON_TIMEOUT: int = 10
     EDPL_NEWS_TIMEOUT: int = 8
     EDPL_FRED_TIMEOUT: int = 8
+    EDPL_FINNHUB_TIMEOUT: int = 10
+    EDPL_QUIVER_TIMEOUT: int = 12
+    EDPL_EDGAR_TIMEOUT: int = 15
+    EDPL_GDELT_TIMEOUT: int = 20
+
+    # Retry policy
+    EDPL_DEFAULT_MAX_RETRIES: int = 2
+    EDPL_DEFAULT_RETRY_DELAY: float = 1.0  # seconds (base for exponential backoff)
 
     # Circuit breaker
     EDPL_CB_FAILURE_THRESHOLD: int = 3     # failures before opening
@@ -49,6 +62,8 @@ class Settings(BaseSettings):
     EDPL_CACHE_TTL_INSTITUTIONAL: int = 86400  # 24 hours
     EDPL_CACHE_TTL_SENTIMENT: int = 1800   # 30 min
     EDPL_CACHE_TTL_MACRO: int = 21600      # 6 hours
+    EDPL_CACHE_TTL_FILING_EVENTS: int = 86400  # 24 hours
+    EDPL_CACHE_TTL_GEOPOLITICAL: int = 43200   # 12 hours
 
     # Feature flags — enable/disable entire data domains
     EDPL_ENABLE_MARKET_DATA: bool = True
@@ -57,6 +72,8 @@ class Settings(BaseSettings):
     EDPL_ENABLE_INSTITUTIONAL: bool = True
     EDPL_ENABLE_SENTIMENT: bool = True
     EDPL_ENABLE_MACRO: bool = True
+    EDPL_ENABLE_FILING_EVENTS: bool = True
+    EDPL_ENABLE_GEOPOLITICAL: bool = True
 
     # ── Database
     DATABASE_URL: str = "sqlite:///advisers.db"  # Override with postgresql+psycopg://... in .env

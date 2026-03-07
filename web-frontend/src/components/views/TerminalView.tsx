@@ -26,6 +26,7 @@ import RiskSnapshotPanel from "@/components/terminal/RiskSnapshotPanel";
 import QuickActionBar from "@/components/decision/QuickActionBar";
 import TopSignalsList from "@/components/insight/TopSignalsList";
 import SignalBadge from "@/components/shared/SignalBadge";
+import CoverageBadge from "@/components/coverage/CoverageBadge";
 import type { CombinedState } from "@/hooks/useCombinedStream";
 import type { SignalProfileResponse } from "@/hooks/useAlphaSignals";
 import type { WatchlistItem } from "@/hooks/useWatchlist";
@@ -186,8 +187,16 @@ export default function TerminalView({
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
                 {/* Left: Decision Column (2/3) */}
                 <div className="lg:col-span-2 space-y-4">
-                    {/* Opportunity Verdict */}
+                    {/* Opportunity Verdict + Coverage Badge */}
                     <OpportunityVerdict combined={combined} alphaProfile={alphaProfile} />
+                    {combined.sourceCoverage && (
+                        <div style={{ marginTop: -8, display: "flex", justifyContent: "flex-end" }}>
+                            <CoverageBadge
+                                completeness={combined.sourceCoverage.analysis_completeness}
+                                label={combined.sourceCoverage.completeness_label}
+                            />
+                        </div>
+                    )}
 
                     {/* Quick Actions */}
                     {isComplete && (

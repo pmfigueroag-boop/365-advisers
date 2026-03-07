@@ -31,6 +31,8 @@ class DataDomain(str, Enum):
     INSTITUTIONAL = "institutional"
     SENTIMENT = "sentiment"
     MACRO = "macro"
+    FILING_EVENTS = "filing_events"
+    GEOPOLITICAL = "geopolitical"
 
 
 class ProviderStatus(str, Enum):
@@ -39,6 +41,7 @@ class ProviderStatus(str, Enum):
     DEGRADED = "degraded"
     DISABLED = "disabled"
     UNKNOWN = "unknown"
+    STALE = "stale"
 
 
 class ProviderCapability(str, Enum):
@@ -73,6 +76,22 @@ class ProviderCapability(str, Enum):
     YIELD_CURVE = "yield_curve"
     ECONOMIC_INDICATORS = "economic_indicators"
     FINANCIAL_CONDITIONS = "financial_conditions"
+
+    # Institutional Intelligence (Quiver / Finnhub)
+    CONGRESSIONAL_TRADES = "congressional_trades"
+    LOBBYING_DATA = "lobbying_data"
+    GOV_CONTRACTS = "gov_contracts"
+    EARNINGS_SURPRISES = "earnings_surprises"
+
+    # Filing Events (SEC EDGAR)
+    SEC_FILINGS = "sec_filings"
+    MATERIAL_EVENTS = "material_events"
+    OWNERSHIP_FILINGS = "ownership_filings"
+
+    # Geopolitical (GDELT)
+    GEOPOLITICAL_EVENTS = "geopolitical_events"
+    GEOPOLITICAL_TONE = "geopolitical_tone"
+    COUNTRY_RISK = "country_risk"
 
 
 # ─── Request / Response Models ────────────────────────────────────────────────

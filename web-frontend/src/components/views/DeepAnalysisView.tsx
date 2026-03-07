@@ -32,6 +32,8 @@ import ScoreHistoryChart from "@/components/ScoreHistoryChart";
 import BacktestEvidenceTab from "@/components/analysis/BacktestEvidenceTab";
 import SignalEvidenceTab from "@/components/analysis/SignalEvidenceTab";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import SourceStatusStrip from "@/components/coverage/SourceStatusStrip";
+import WarningBanner from "@/components/coverage/WarningBanner";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -120,6 +122,17 @@ export default function DeepAnalysisView({
                     </div>
                 </div>
             </div>
+
+            {/* Source Coverage Strip + Warning */}
+            {combined.sourceCoverage && (
+                <>
+                    <SourceStatusStrip sources={combined.sourceCoverage.sources} />
+                    <WarningBanner
+                        messages={combined.sourceCoverage.messages}
+                        unavailable={combined.sourceCoverage.unavailable}
+                    />
+                </>
+            )}
 
             {/* Section Tabs */}
             <div className="flex gap-1 p-1 glass-card border-[#30363d] rounded-xl overflow-x-auto">

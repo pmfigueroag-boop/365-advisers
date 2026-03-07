@@ -53,7 +53,15 @@ class NewsSentimentData(BaseModel):
     ticker: str
     summary: SentimentSummary | None = None
     recent_articles: list[NewsItem] = Field(default_factory=list)
+
+    # GDELT enrichment (optional)
+    geopolitical_tone: float | None = None       # GDELT avg tone for ticker-related events
+    event_count_48h: int | None = None           # GDELT event count
+    dominant_geopolitical_theme: str | None = None
+
+    # Provenance
     source: str = "unknown"
+    sources_used: list[str] = Field(default_factory=list)
     fetched_at: datetime | None = None
 
     @classmethod

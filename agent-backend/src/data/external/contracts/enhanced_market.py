@@ -50,6 +50,7 @@ class EnhancedMarketData(BaseModel):
     liquidity: LiquiditySnapshot | None = None
     last_trade_price: float | None = None
     source: str = "unknown"
+    sources_used: list[str] = Field(default_factory=list)
     fetched_at: datetime | None = None
 
     @classmethod

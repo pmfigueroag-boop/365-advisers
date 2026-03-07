@@ -10,6 +10,7 @@ accumulation signals for the Crowding Engine and Scoring Engine.
 from __future__ import annotations
 
 from pydantic import BaseModel, Field
+from datetime import datetime
 
 
 class InsiderTransaction(BaseModel):
@@ -34,6 +35,17 @@ class OwnershipChange(BaseModel):
     filing_date: str
 
 
+class CongressionalTrade(BaseModel):
+    """Single congressional trading disclosure (Quiver Quantitative)."""
+    congress_member: str
+    ticker: str
+    tx_type: str                    # BUY / SELL
+    amount_range: str               # "$15,001 - $50,000"
+    date: str
+    party: str                      # R / D / I
+    chamber: str = ""               # House / Senate
+
+
 class InstitutionalFlowData(BaseModel):
     """
     Institutional flow snapshot for a ticker.
@@ -49,7 +61,17 @@ class InstitutionalFlowData(BaseModel):
     net_insider_buy_ratio: float | None = None
     inst_ownership_pct: float | None = None
     inst_ownership_change_qoq: float | None = None
+
+    # Quiver Quantitative enrichment (optional)
+    congressional_trades: list[CongressionalTrade] = Field(default_factory=list)
+    lobbying_spend_total: float | None = None
+    gov_contract_value: float | None = None
+    quiver_smart_money_score: float | None = None   # 0–100 composite
+
+    # Provenance
     source: str = "unknown"
+    sources_used: list[str] = Field(default_factory=list)
+    fetched_at: datetime | None = None
 
     @classmethod
     def empty(cls, ticker: str = "") -> InstitutionalFlowData:

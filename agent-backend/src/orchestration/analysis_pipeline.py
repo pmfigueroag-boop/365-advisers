@@ -4,7 +4,7 @@ src/orchestration/analysis_pipeline.py
 AnalysisPipeline — the full analysis flow extracted from
 main.py's combined_analysis_stream().
 
-Orchestrates: Data → Features → Engines → Scoring → Sizing → Decision
+Orchestrates: Data → Features → Engines → Coverage → Scoring → Sizing → Decision
 while emitting SSE events at each step.
 """
 
@@ -53,10 +53,11 @@ class AnalysisPipeline:
           3. committee_verdict   → score + narrative
           4. research_memo       → 1-pager markdown
           5. technical_ready     → TechnicalSummary JSON
-          6. opportunity_score   → 12-factor score
-          7. position_sizing     → allocation recommendation
-          8. decision_ready      → CIO Investment Memo
-          9. done
+          6. source_coverage     → EDPL coverage report  ⭐ NEW
+          7. opportunity_score   → 12-factor score
+          8. position_sizing     → allocation recommendation
+          9. decision_ready      → CIO Investment Memo (enriched)
+         10. done
         """
         symbol = ticker.upper().strip()
         fund_events: list[dict] = []
@@ -112,6 +113,64 @@ class AnalysisPipeline:
                 return
 
         yield sse("technical_ready", tech_data)
+        await asyncio.sleep(0)
+
+        # ── Part 2.5: EDPL Source Coverage ──────────────────────────────
+        filing_data = None
+        geopolitical_data = None
+        macro_ext_data = None
+        sentiment_ext_data = None
+        coverage_summary = None
+
+        try:
+            from src.data.external.coverage.tracker import CoverageTracker
+            from src.data.external.base import DataDomain, ProviderRequest
+
+            tracker = CoverageTracker(ticker=symbol)
+
+            # Try to fetch enrichment data from EDPL (non-blocking)
+            edpl_results = await self._fetch_edpl_enrichment(symbol)
+
+            filing_data = edpl_results.get("filing_events")
+            geopolitical_data = edpl_results.get("geopolitical")
+            macro_ext_data = edpl_results.get("macro_extended")
+            sentiment_ext_data = edpl_results.get("sentiment_extended")
+
+            # Record coverage for each domain
+            for domain_key, response in edpl_results.get("_responses", {}).items():
+                try:
+                    domain = DataDomain(domain_key)
+                    tracker.record(domain, response, response.data)
+                except Exception:
+                    pass
+
+            report = tracker.build_report()
+            coverage_summary = {
+                "sources": {
+                    s.domain.value: s.status
+                    for s in report.sources
+                },
+                "analysis_completeness": report.completeness_score,
+                "completeness_label": report.completeness_label,
+                "freshness_scores": {
+                    s.domain.value: s.freshness.freshness.value
+                    for s in report.sources
+                    if s.freshness
+                },
+                "messages": report.messages,
+                "unavailable": report.unavailable_domains,
+                "partial": report.partial_domains,
+            }
+
+            yield sse("source_coverage", coverage_summary)
+            logger.info(
+                f"PIPELINE: Source coverage for {symbol}: "
+                f"{report.completeness_score:.0f}/100 ({report.completeness_label})"
+            )
+        except Exception as exc:
+            logger.debug(f"PIPELINE: EDPL coverage not available: {exc}")
+            # Non-critical — continue pipeline without enrichment
+
         await asyncio.sleep(0)
 
         # ── Part 3: Institutional Opportunity Score ─────────────────────
@@ -185,7 +244,7 @@ class AnalysisPipeline:
                 logger.warning(f"PIPELINE: Position Sizing error: {p_exc}")
         await asyncio.sleep(0)
 
-        # ── Part 5: Decision Engine (CIO Memo) ─────────────────────────
+        # ── Part 5: Decision Engine (CIO Memo — Enriched) ──────────────
         decision_data = self.decision_cache.get(symbol) if not force else None
         if decision_data and is_from_cache:
             logger.info(f"PIPELINE: Decision HIT for {symbol}")
@@ -201,6 +260,28 @@ class AnalysisPipeline:
 
                 metrics = DecisionMatrix.analyze(fund_score, tech_score, fund_confidence)
 
+                # Prepare enrichment dicts for CIO Memo
+                filing_dict = (
+                    filing_data.model_dump(mode="json")
+                    if filing_data and hasattr(filing_data, "model_dump")
+                    else filing_data
+                )
+                geo_dict = (
+                    geopolitical_data.model_dump(mode="json")
+                    if geopolitical_data and hasattr(geopolitical_data, "model_dump")
+                    else geopolitical_data
+                )
+                macro_dict = (
+                    macro_ext_data.model_dump(mode="json")
+                    if macro_ext_data and hasattr(macro_ext_data, "model_dump")
+                    else macro_ext_data
+                )
+                sentiment_dict = (
+                    sentiment_ext_data.model_dump(mode="json")
+                    if sentiment_ext_data and hasattr(sentiment_ext_data, "model_dump")
+                    else sentiment_ext_data
+                )
+
                 memo = await asyncio.to_thread(
                     synthesize_investment_memo,
                     ticker=symbol,
@@ -209,6 +290,10 @@ class AnalysisPipeline:
                     technical_summary=tech_data or {},
                     opportunity_data=opportunity_data or {},
                     position_data=position_data or {},
+                    filing_context=filing_dict,
+                    geopolitical_context=geo_dict,
+                    macro_extended=macro_dict,
+                    sentiment_context=sentiment_dict,
                 )
 
                 d_elapsed = (_time.monotonic_ns() / 1e6) - d_start
@@ -218,6 +303,7 @@ class AnalysisPipeline:
                     "cio_memo": memo,
                     "position_sizing": position_data,
                     "elapsed_ms": round(d_elapsed),
+                    "source_coverage": coverage_summary,
                 }
                 self.decision_cache.set(symbol, decision_data)
             except Exception as exc:
@@ -228,3 +314,61 @@ class AnalysisPipeline:
             yield sse("decision_ready", decision_data)
 
         yield sse("done", {"from_cache": is_from_cache})
+
+    # ── EDPL Enrichment Helper ────────────────────────────────────────────
+
+    @staticmethod
+    async def _fetch_edpl_enrichment(ticker: str) -> dict:
+        """
+        Non-blocking EDPL fetch for enrichment data.
+
+        Returns a dict with domain keys → contract objects.
+        Falls back gracefully if EDPL is not configured.
+        """
+        results: dict = {"_responses": {}}
+
+        try:
+            from src.data.external.base import DataDomain, ProviderRequest
+            from src.data.external.registry import ProviderRegistry
+            from src.data.external.health import HealthChecker
+            from src.data.external.fallback import FallbackRouter
+
+            registry = ProviderRegistry()
+            health = HealthChecker()
+            router = FallbackRouter(registry, health)
+
+            # Fetch domains concurrently (timeout 5s each)
+            async def _safe_fetch(domain: DataDomain) -> tuple:
+                try:
+                    req = ProviderRequest(domain=domain, ticker=ticker)
+                    resp = await asyncio.wait_for(router.fetch(domain, req), timeout=5.0)
+                    return domain.value, resp
+                except asyncio.TimeoutError:
+                    logger.debug(f"EDPL {domain.value} timed out for {ticker}")
+                    return domain.value, None
+                except Exception as exc:
+                    logger.debug(f"EDPL {domain.value} error: {exc}")
+                    return domain.value, None
+
+            domain_tasks = [
+                _safe_fetch(DataDomain.FILING_EVENTS),
+                _safe_fetch(DataDomain.GEOPOLITICAL),
+            ]
+
+            fetched = await asyncio.gather(*domain_tasks)
+
+            for domain_key, resp in fetched:
+                if resp and resp.ok:
+                    results["_responses"][domain_key] = resp
+                    if domain_key == "filing_events":
+                        results["filing_events"] = resp.data
+                    elif domain_key == "geopolitical":
+                        results["geopolitical"] = resp.data
+
+        except ImportError:
+            logger.debug("EDPL not fully configured — skipping enrichment")
+        except Exception as exc:
+            logger.debug(f"EDPL enrichment failed: {exc}")
+
+        return results
+

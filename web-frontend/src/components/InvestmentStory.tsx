@@ -20,6 +20,8 @@ import {
     Globe,
     ChevronDown,
     ChevronUp,
+    FileText,
+    Newspaper,
 } from "lucide-react";
 import type { CombinedState } from "@/hooks/useCombinedStream";
 
@@ -117,6 +119,38 @@ export default function InvestmentStory({ combined }: InvestmentStoryProps) {
                                     <div className="pl-3 border-l-2 border-[#d4af37]/30">
                                         <span className="text-[9px] font-black uppercase tracking-widest text-gray-600 block mb-1">Valuation View</span>
                                         <p className="text-xs text-gray-400 leading-relaxed">{cio.valuation_view}</p>
+                                    </div>
+                                )}
+                                {cio?.filing_context && (
+                                    <div className="pl-3 border-l-2 border-blue-500/30">
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-600 flex items-center gap-1 mb-1">
+                                            <FileText size={9} /> Contexto de Filings
+                                        </span>
+                                        <p className="text-xs text-gray-400 leading-relaxed">{cio.filing_context}</p>
+                                    </div>
+                                )}
+                                {cio?.geopolitical_context && (
+                                    <div className="pl-3 border-l-2 border-purple-500/30">
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-600 flex items-center gap-1 mb-1">
+                                            <Globe size={9} /> Contexto Geopolítico
+                                        </span>
+                                        <p className="text-xs text-gray-400 leading-relaxed">{cio.geopolitical_context}</p>
+                                    </div>
+                                )}
+                                {cio?.macro_environment && (
+                                    <div className="pl-3 border-l-2 border-teal-500/30">
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-600 flex items-center gap-1 mb-1">
+                                            <BarChart3 size={9} /> Entorno Macro
+                                        </span>
+                                        <p className="text-xs text-gray-400 leading-relaxed">{cio.macro_environment}</p>
+                                    </div>
+                                )}
+                                {cio?.sentiment_context && (
+                                    <div className="pl-3 border-l-2 border-pink-500/30">
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-600 flex items-center gap-1 mb-1">
+                                            <Newspaper size={9} /> Contexto de Sentimiento
+                                        </span>
+                                        <p className="text-xs text-gray-400 leading-relaxed">{cio.sentiment_context}</p>
                                     </div>
                                 )}
                             </div>

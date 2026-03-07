@@ -55,7 +55,18 @@ class MacroContext(BaseModel):
     financial_conditions_index: float | None = None
     indicators: list[MacroIndicator] = Field(default_factory=list)
     regime_classification: str = "unknown"  # risk_on / risk_off / transition
+
+    # Extended FRED series (Phase 2)
+    gdp_growth_annualized: float | None = None
+    nonfarm_payrolls_change: float | None = None
+    retail_sales_mom: float | None = None
+    housing_starts: float | None = None
+    consumer_confidence: float | None = None
+    leading_indicators_index: float | None = None
+
+    # Provenance
     source: str = "unknown"
+    sources_used: list[str] = Field(default_factory=list)
 
     @classmethod
     def default(cls) -> MacroContext:

@@ -12,6 +12,7 @@ import ValidationDashboard from "@/components/validation/ValidationDashboard";
 import DriftAlerts from "@/components/system/DriftAlerts";
 import RecalibrationLog from "@/components/system/RecalibrationLog";
 import ProviderHealthDashboard from "@/components/system/ProviderHealthDashboard";
+import HealthDashboardPanel from "@/components/coverage/HealthDashboardPanel";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 export default function SystemView() {
@@ -42,7 +43,12 @@ export default function SystemView() {
                 </ErrorBoundary>
             </div>
 
-            {/* External Data Provider Health */}
+            {/* Provider Health Monitor (enhanced with sparklines) */}
+            <ErrorBoundary>
+                <HealthDashboardPanel />
+            </ErrorBoundary>
+
+            {/* External Data Providers (detailed) */}
             <ErrorBoundary>
                 <ProviderHealthDashboard />
             </ErrorBoundary>

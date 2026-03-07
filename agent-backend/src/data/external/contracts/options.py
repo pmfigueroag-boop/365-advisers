@@ -57,6 +57,7 @@ class OptionsIntelligence(BaseModel):
     snapshot: OptionsSnapshot | None = None
     unusual_activity: list[UnusualActivity] = Field(default_factory=list)
     source: str = "unknown"
+    sources_used: list[str] = Field(default_factory=list)
     fetched_at: datetime | None = None
 
     @classmethod
