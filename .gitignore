@@ -21,3 +21,5 @@ Thumbs.db
 # SQLite DB
 *.db
 advisers.db
+
+*.db
