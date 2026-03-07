@@ -88,8 +88,18 @@ export default function BacktestEvidenceTab({ ticker }: BacktestEvidenceTabProps
 function BacktestResultCard({ result }: { result: BacktestResult }) {
     const [showTrades, setShowTrades] = useState(false);
 
-    const winColor = result.win_rate >= 60 ? "text-green-400" : result.win_rate >= 40 ? "text-yellow-400" : "text-red-400";
-    const returnColor = result.avg_return >= 0 ? "text-green-400" : "text-red-400";
+    // Safe number coercion — backend may return null/undefined/object
+    const n = (v: unknown): number => (typeof v === "number" && !isNaN(v) ? v : 0);
+
+    const wr = n(result.win_rate);
+    const ar = n(result.avg_return);
+    const sr = n(result.sharpe_ratio);
+    const pf = n(result.profit_factor);
+    const mx = n(result.max_return);
+    const mn = n(result.min_return);
+
+    const winColor = wr >= 60 ? "text-green-400" : wr >= 40 ? "text-yellow-400" : "text-red-400";
+    const returnColor = ar >= 0 ? "text-green-400" : "text-red-400";
 
     return (
         <div className="glass-card border-[#30363d] overflow-hidden">
@@ -101,40 +111,40 @@ function BacktestResultCard({ result }: { result: BacktestResult }) {
                             <span className="text-[8px] font-mono text-gray-600 bg-[#161b22] px-1.5 py-0.5 rounded">{result.signal_id}</span>
                         )}
                     </div>
-                    <span className="text-[8px] font-mono text-gray-600">{result.period} · {result.total_signals} signals</span>
+                    <span className="text-[8px] font-mono text-gray-600">{result.period} · {n(result.total_signals)} signals</span>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
                     <div className="bg-[#161b22] rounded-xl p-3 border border-[#30363d]">
                         <p className="text-[8px] font-black uppercase tracking-wider text-gray-600 mb-1">Win Rate</p>
                         <p className={`text-lg font-black ${winColor}`} style={{ fontFamily: "var(--font-data)" }}>
-                            {result.win_rate.toFixed(1)}%
+                            {wr.toFixed(1)}%
                         </p>
                     </div>
                     <div className="bg-[#161b22] rounded-xl p-3 border border-[#30363d]">
                         <p className="text-[8px] font-black uppercase tracking-wider text-gray-600 mb-1">Avg Return</p>
                         <p className={`text-lg font-black ${returnColor}`} style={{ fontFamily: "var(--font-data)" }}>
-                            {result.avg_return >= 0 ? "+" : ""}{result.avg_return.toFixed(2)}%
+                            {ar >= 0 ? "+" : ""}{ar.toFixed(2)}%
                         </p>
                     </div>
                     <div className="bg-[#161b22] rounded-xl p-3 border border-[#30363d]">
                         <p className="text-[8px] font-black uppercase tracking-wider text-gray-600 mb-1">Sharpe</p>
                         <p className="text-lg font-black text-blue-400" style={{ fontFamily: "var(--font-data)" }}>
-                            {result.sharpe_ratio.toFixed(2)}
+                            {sr.toFixed(2)}
                         </p>
                     </div>
                     <div className="bg-[#161b22] rounded-xl p-3 border border-[#30363d]">
                         <p className="text-[8px] font-black uppercase tracking-wider text-gray-600 mb-1">Profit Factor</p>
                         <p className="text-lg font-black text-[#d4af37]" style={{ fontFamily: "var(--font-data)" }}>
-                            {result.profit_factor.toFixed(2)}
+                            {pf.toFixed(2)}
                         </p>
                     </div>
                 </div>
 
                 {/* Range */}
                 <div className="flex items-center justify-between text-[10px] text-gray-500 mb-4">
-                    <span>Best: <span className="text-green-400 font-mono font-bold">+{result.max_return.toFixed(2)}%</span></span>
-                    <span>Worst: <span className="text-red-400 font-mono font-bold">{result.min_return.toFixed(2)}%</span></span>
+                    <span>Best: <span className="text-green-400 font-mono font-bold">+{mx.toFixed(2)}%</span></span>
+                    <span>Worst: <span className="text-red-400 font-mono font-bold">{mn.toFixed(2)}%</span></span>
                 </div>
 
                 {/* Toggle trades */}

@@ -57,7 +57,7 @@ export default function AllocationChart({ entries, className = "" }: AllocationC
             <div className="w-full h-6 rounded-full bg-[#161b22] overflow-hidden flex mb-4">
                 {entries.map((e, i) => (
                     <div
-                        key={e.ticker}
+                        key={`${e.ticker}-${i}`}
                         className={`h-full ${allocationColor(e.type, i)} transition-all duration-500`}
                         style={{ width: `${e.allocation}%` }}
                         title={`${e.ticker}: ${e.allocation.toFixed(1)}%`}
@@ -85,7 +85,7 @@ export default function AllocationChart({ entries, className = "" }: AllocationC
                     </div>
                     <div className="space-y-1.5">
                         {coreEntries.map((e, i) => (
-                            <div key={e.ticker} className="flex items-center gap-2">
+                            <div key={`core-${e.ticker}-${i}`} className="flex items-center gap-2">
                                 <span className={`w-2 h-2 rounded-full ${allocationColor("core", i)}`} />
                                 <span className="text-[10px] font-bold text-gray-300">{e.ticker}</span>
                                 <span className="text-[9px] font-mono text-gray-500 ml-auto">{e.allocation.toFixed(1)}%</span>
@@ -105,7 +105,7 @@ export default function AllocationChart({ entries, className = "" }: AllocationC
                     </div>
                     <div className="space-y-1.5">
                         {satEntries.map((e, i) => (
-                            <div key={e.ticker} className="flex items-center gap-2">
+                            <div key={`sat-${e.ticker}-${i}`} className="flex items-center gap-2">
                                 <span className={`w-2 h-2 rounded-full ${allocationColor("satellite", i)}`} />
                                 <span className="text-[10px] font-bold text-gray-300">{e.ticker}</span>
                                 <span className="text-[9px] font-mono text-gray-500 ml-auto">{e.allocation.toFixed(1)}%</span>

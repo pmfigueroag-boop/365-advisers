@@ -55,7 +55,10 @@ export default function PortfolioView({ historyEntries }: PortfolioViewProps) {
                             ? "core"
                             : "satellite";
 
-                allocEntries.push({ ticker: entry.ticker, allocation, type });
+                // Deduplicate: keep only the first (newest) entry per ticker
+                if (!allocEntries.some((a) => a.ticker === entry.ticker)) {
+                    allocEntries.push({ ticker: entry.ticker, allocation, type });
+                }
             }
 
             if (entry.volatility_atr != null) {
