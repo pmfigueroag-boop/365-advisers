@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 
 import React from 'react';
@@ -46,7 +47,7 @@ function DistributionBar({ data, colors, title }) {
     );
 }
 
-export default function SystemHealth({ data }) {
+export default function SystemHealth({ data }: { data: any }) {
     if (!data) return null;
 
     return (

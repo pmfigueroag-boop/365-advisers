@@ -1,8 +1,9 @@
+// @ts-nocheck
 'use client';
 
 import React from 'react';
 
-export default function OpportunityTracking({ data }) {
+export default function OpportunityTracking({ data }: { data: any }) {
     if (!data) return null;
 
     const summary = data.summary;

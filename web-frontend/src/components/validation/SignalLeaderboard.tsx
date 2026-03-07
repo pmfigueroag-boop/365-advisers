@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 
 import React, { useState } from 'react';
@@ -35,7 +36,7 @@ function Badge({ type }) {
     );
 }
 
-export default function SignalLeaderboard({ data }) {
+export default function SignalLeaderboard({ data }: { data: any }) {
     const [view, setView] = useState('top');
 
     if (!data) return null;

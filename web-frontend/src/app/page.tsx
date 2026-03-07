@@ -4,6 +4,9 @@ import { useState, useEffect } from "react";
 import { CashFlowChart } from "@/components/Charts";
 import TradingViewChart from "@/components/TradingViewChart";
 import TradingViewTechnicalWidget from "@/components/TradingViewTechnicalWidget";
+import VerdictHero from "@/components/VerdictHero";
+import InvestmentStory from "@/components/InvestmentStory";
+import AnalyticsAccordion from "@/components/AnalyticsAccordion";
 import {
   TrendingUp,
   AlertCircle,
@@ -235,7 +238,7 @@ export default function Home() {
   const { showOnboarding, dismiss: dismissOnboarding } = useOnboarding();
 
   // Main analysis tab
-  const [mainTab, setMainTab] = useState<"fundamental" | "technical" | "combined" | "portfolio" | "signals">("combined");
+  const [mainTab, setMainTab] = useState<"analysis" | "portfolio">("analysis");
 
   // Compare mode state
   const [compareMode, setCompareMode] = useState(false);
@@ -351,7 +354,7 @@ export default function Home() {
     if (!t.trim()) return;
     if (!symbol) setTicker(t);
     if (compareMode) setCompareMode(false);
-    setMainTab("combined");
+    setMainTab("analysis");
     analyze(t);
     // Kick off technical, fundamental, and combined engines in parallel
     technical.analyze(t);
@@ -703,79 +706,36 @@ export default function Home() {
             <CompareView state={compareState} />
           )}
 
-          {/* ── Analysis Mode Tab Bar ── */}
-          {!compareMode && (status !== "idle" || technical.state.status !== "idle") && (
+          {/* ── Analysis Mode Tab Bar (2 tabs) ── */}
+          {!compareMode && (combined.state.status !== "idle" || status !== "idle") && (
             <div className="flex gap-1 p-1.5 glass-card border-[#30363d] rounded-2xl w-full md:w-fit overflow-x-auto">
               <button
-                onClick={() => setMainTab("fundamental")}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mainTab === "fundamental"
-                  ? "tab-active"
-                  : "text-gray-500 tab-inactive"
-                  }`}
-              >
-                <ShieldCheck size={13} />
-                Fundamental
-              </button>
-              <button
-                onClick={() => setMainTab("technical")}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mainTab === "technical"
-                  ? "tab-active"
-                  : "text-gray-500 tab-inactive"
-                  }`}
-              >
-                <LineChart size={13} />
-                Technical
-                {technical.state.status === "loading" && (
-                  <Loader2 size={10} className="animate-spin" />
-                )}
-                {technical.state.status === "done" && (
-                  <span className="bg-black/20 text-black rounded-md px-1.5 text-[8px] font-mono">
-                    {technical.state.data?.summary.technical_score.toFixed(1)}
-                  </span>
-                )}
-              </button>
-              <button
-                onClick={() => setMainTab("combined")}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mainTab === "combined"
+                onClick={() => setMainTab("analysis")}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mainTab === "analysis"
                   ? "tab-active"
                   : "text-gray-500 tab-inactive"
                   }`}
               >
                 <Zap size={13} />
-                Combined
+                Analysis
                 {(combined.state.status === "fetching_data" || combined.state.status === "fundamental" || combined.state.status === "technical") && (
                   <Loader2 size={10} className="animate-spin" />
                 )}
                 {combined.state.status === "complete" && combined.state.committee && (
                   <span className="bg-black/20 text-black rounded-md px-1.5 text-[8px] font-mono">
-                    {(((combined.state.committee.score ?? 0) + (combined.state.technical?.summary?.technical_score ?? 0)) / 2).toFixed(1)}
+                    {(combined.state.opportunity?.opportunity_score ?? combined.state.committee.score ?? 0).toFixed(1)}
                   </span>
                 )}
               </button>
               <button
                 onClick={() => setMainTab("portfolio")}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mainTab === "portfolio"
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mainTab === "portfolio"
                   ? "tab-active"
                   : "text-gray-500 tab-inactive"
                   }`}
               >
                 <Briefcase size={13} />
                 Portfolio
-              </button>
-              <button
-                onClick={() => setMainTab("signals")}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mainTab === "signals"
-                  ? "tab-active"
-                  : "text-gray-500 tab-inactive"
-                  }`}
-              >
-                <Radio size={13} />
-                Signals
-                {alphaSignals.profile && alphaSignals.profile.fired_signals > 0 && (
-                  <span className={`rounded-md px-1.5 text-[8px] font-mono ${mainTab === "signals" ? "bg-black/20 text-black" : "bg-[#d4af37]/20 text-[#d4af37]"}`}>
-                    {alphaSignals.profile.fired_signals}
-                  </span>
-                )}
               </button>
             </div>
           )}
@@ -924,292 +884,21 @@ export default function Home() {
             </div>
           )}
 
-          {/* ── Live Dashboard (Fundamental tab) ── */}
-          {mainTab === "fundamental" && (status === "analyzing" || status === "complete") && dataReady && (
-            <div className="space-y-6">
-              <ProgressBar completed={agentCount} total={TOTAL_AGENTS} status={status} />
-
-              {/* New: Research Memo (Phase 3 Fundamental Engine) */}
-              {(fundamental.state.status === "analyzing" ||
-                fundamental.state.status === "complete" ||
-                fundamental.state.dataReady) && (
-                  <ResearchMemoCard
-                    dataReady={fundamental.state.dataReady}
-                    agentMemos={fundamental.state.agentMemos}
-                    committee={fundamental.state.committee}
-                    researchMemo={fundamental.state.researchMemo}
-                    agentCount={fundamental.state.agentMemos.length}
-                    totalAgents={4}
-                    status={fundamental.state.status}
-                  />
-                )}
-
-              {/* Charts ─ collapsible accordion */}
-              <div className="border border-[#30363d]/60 rounded-xl overflow-hidden">
-                <button
-                  onClick={() => setChartsOpen(v => !v)}
-                  className="w-full flex items-center gap-2 px-4 py-3 text-left hover:bg-white/5 transition-colors"
-                >
-                  <ChevronRight size={13} className={`text-gray-600 transition-transform duration-200 ${chartsOpen ? "rotate-90" : ""}`} />
-                  <LineChart size={13} className="text-gray-600" />
-                  <span className="text-xs font-black uppercase tracking-widest text-gray-600">Charts</span>
-                  <span className="ml-1 text-[9px] font-mono bg-[#30363d]/80 text-gray-500 rounded px-1.5 py-0.5">TradingView · Cash Flow</span>
-                  <ChevronRight size={10} className={`ml-auto text-gray-700 transition-transform duration-200 ${chartsOpen ? "rotate-90" : ""}`} />
-                </button>
-                {chartsOpen && (
-                  <div className="px-4 pb-4 pt-1 border-t border-[#30363d]/40 space-y-4">
-
-                    {/* 1 — TradingView Chart — full width */}
-                    <section className="glass-card p-6 border-[#30363d]">
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400">Advanced TradingView Chart</h3>
-                        <span className="text-xs text-[#d4af37] font-mono">{dataReady.ticker} | Real-Time</span>
-                      </div>
-                      <TradingViewChart symbol={dataReady.ticker} />
-                    </section>
-
-                    {/* 2 — Dalio Synthesis — full width */}
-                    <section className="glass-card p-6 border-[#d4af37]/30 bg-[#d4af37]/5">
-                      <div className="flex items-center gap-2 mb-4 text-[#d4af37]">
-                        <ShieldCheck size={18} />
-                        <h2 className="text-sm uppercase tracking-[0.2em] font-black">Veredicto Dalio</h2>
-                      </div>
-                      {dalio ? (
-                        <div>
-                          <p className="text-lg leading-relaxed font-black gold-gradient italic mb-4" style={{ animation: "fadeSlideIn 0.5s ease both" }}>
-                            "{dalio.final_verdict}"
-                          </p>
-                          {dalio.dalio_response?.summary_table && (
-                            <div className="prose prose-invert prose-xs max-w-none bg-black/20 p-4 rounded-lg">
-                              <div dangerouslySetInnerHTML={{ __html: dalio.dalio_response.summary_table.replace(/\n/g, "<br/>") }} />
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center py-8 gap-3 opacity-40">
-                          <Loader2 size={24} className="text-[#d4af37] animate-spin" />
-                          <span className="text-xs text-gray-500 uppercase tracking-widest text-center">Awaiting committee consensus...</span>
-                        </div>
-                      )}
-                      <div className="mt-4 pt-4 border-t border-[#d4af37]/20 flex justify-between items-center">
-                        <span className="text-xs text-gray-500 uppercase">Decision Orchestrator</span>
-                        <span className="text-[#d4af37] font-mono text-sm">Gemini 2.5 Pro</span>
-                      </div>
-                    </section>
-
-                    {/* 3 — Flujo de Caja vs Ingresos — full width */}
-                    {(() => {
-                      const cashflowData = fundamental.state.dataReady?.cashflow_series ?? [];
-                      return cashflowData.length > 0 ? (
-                        <section className="glass-card p-5 border-[#30363d]">
-                          <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-2">
-                              <BarChart3 size={14} className="text-[#d4af37]" />
-                              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Flujo de Caja vs Ingresos</h3>
-                            </div>
-                            <span className="text-[9px] font-mono text-gray-700 uppercase tracking-widest">
-                              {cashflowData.length} años · Yahoo Finance
-                            </span>
-                          </div>
-                          <CashFlowChart data={cashflowData as { year: string; fcf: number; revenue: number }[]} />
-                        </section>
-                      ) : null;
-                    })()}
-
-                    {/* 4 — TV Validation — full width */}
-                    <section className="glass-card border-[#30363d] overflow-hidden">
-                      <div className="flex items-center gap-2 px-5 py-3.5 border-b border-[#30363d]/60">
-                        <TrendingUp size={14} className="text-[#d4af37]" />
-                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">TV Validation</h3>
-                        <span className="ml-auto text-[9px] font-mono text-[#d4af37]/60">{dataReady.ticker} · Technical</span>
-                      </div>
-                      <div className="p-5">
-                        <TradingViewTechnicalWidget symbol={dataReady.ticker} />
-                      </div>
-                    </section>
-
-                  </div>
-                )}
-              </div>
-
-              {/* Fundamental Engine Raw Metrics — collapsible */}
-              <details className="border border-[#30363d]/60 rounded-xl overflow-hidden group mb-4">
-                <summary className="w-full flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-white/5 transition-colors list-none">
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck size={14} className="text-[#d4af37]" />
-                    <span className="text-xs font-black uppercase tracking-widest text-gray-600">Raw Fundamental Metrics</span>
-                  </div>
-                  <ChevronDown size={14} className="text-gray-600 transition-transform duration-200 group-open:rotate-180" />
-                </summary>
-                <FundamentalTable engine={dataReady.fundamental_metrics as Record<string, Record<string, unknown>>} />
-              </details>
-
-              {/* 8-Agent Legacy Grid — collapsible, hidden by default */}
-              <div className="border border-[#30363d]/60 rounded-xl overflow-hidden">
-                <button
-                  onClick={() => setLegacyGridOpen((v) => !v)}
-                  className="w-full flex items-center gap-2 px-4 py-3 text-left hover:bg-white/5 transition-colors"
-                >
-                  <ChevronRight
-                    size={14}
-                    className={`text-gray-600 transition-transform duration-200 ${legacyGridOpen ? "rotate-90" : ""}`}
-                  />
-                  <Activity size={13} className="text-gray-600" />
-                  <span className="text-xs font-black uppercase tracking-widest text-gray-600">Raw Agent Output</span>
-                  <span className="ml-1 text-[9px] font-mono bg-[#30363d]/80 text-gray-500 rounded px-1.5 py-0.5">LEGACY · {agentCount}/{TOTAL_AGENTS}</span>
-                  <ChevronRight
-                    size={12}
-                    className={`ml-auto text-gray-700 transition-transform duration-200 ${legacyGridOpen ? "rotate-90" : ""}`}
-                  />
-                </button>
-                {legacyGridOpen && (
-                  <div className="px-4 pb-4 pt-1 border-t border-[#30363d]/40">
-                    <p className="text-[10px] text-gray-600 mb-4 italic">
-                      Individual agent outputs from the v1 pipeline. The Committee Verdict above synthesizes these into an actionable signal.
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      {agents.map((agent, i) => <AgentCard key={agent.agent_name} agent={agent} index={i} />)}
-                      {showSkeletons && pendingSlots.map((name) => <AgentSkeletonCard key={name} label={name} />)}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* ── Technical Dashboard ── */}
-          {mainTab === "technical" && (
-            <div style={{ animation: "fadeSlideIn 0.3s ease both" }}>
-              {/* Loading */}
-              {technical.state.status === "loading" && (
-                <div className="flex flex-col items-center justify-center py-24">
-                  <div className="orbital-spinner mb-6">
-                    <div className="orbital-ring orbital-ring-1" />
-                    <div className="orbital-ring orbital-ring-2" />
-                    <div className="orbital-ring orbital-ring-3" />
-                    <LineChart className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[#d4af37] breathe" size={22} />
-                  </div>
-                  <p className="text-[#d4af37] font-bold tracking-widest text-sm uppercase">
-                    Running Technical Engine...
-                  </p>
-                  <p className="text-gray-600 text-xs mt-2">RSI · MACD · Bollinger Bands · ATR · OBV · Support/Resistance</p>
-                </div>
-              )}
-
-              {/* Error */}
-              {technical.state.status === "error" && (
-                <div className="flex flex-col items-center justify-center py-20">
-                  <AlertCircle size={36} className="text-red-500 mb-3" />
-                  <p className="text-red-400 font-mono text-sm">{technical.state.error}</p>
-                  <button
-                    onClick={() => technical.forceRefresh(state.ticker ?? "")}
-                    className="mt-4 text-xs text-gray-500 hover:text-[#d4af37] flex items-center gap-1 transition-colors"
-                  >
-                    <RefreshCw size={11} /> Retry
-                  </button>
-                </div>
-              )}
-
-              {/* Result */}
-              {technical.state.status === "done" && technical.state.data && (
-                <div className="space-y-5">
-                  {/* ── Technical Digest (Natural Language Narrative) ── */}
-                  {(() => {
-                    const s = technical.state.data.summary;
-                    const ind = technical.state.data.indicators;
-                    const score = s.technical_score;
-                    const scoreLabel = score >= 7 ? "bullish" : score >= 5 ? "neutral" : "bearish";
-                    const rsi = ind.momentum.rsi.toFixed(0);
-                    const rsiNote = ind.momentum.rsi_zone === "OVERBOUGHT"
-                      ? `RSI at ${rsi} signals overbought conditions — upside momentum may be exhausting`
-                      : ind.momentum.rsi_zone === "OVERSOLD"
-                        ? `RSI at ${rsi} is in oversold territory — a mean-reversion bounce is possible`
-                        : `RSI at ${rsi} is in neutral territory`;
-                    const macdNote = ind.trend.macd_crossover === "BULLISH"
-                      ? "MACD is showing a bullish crossover" : ind.trend.macd_crossover === "BEARISH"
-                        ? "MACD has turned bearish" : "MACD is flat";
-                    const trendNote = ind.trend.price_vs_sma50 === "ABOVE"
-                      ? "price is trading above the 50-day SMA"
-                      : ind.trend.price_vs_sma50 === "BELOW"
-                        ? "price has slipped below the 50-day SMA"
-                        : "price is testing the 50-day SMA";
-                    const volumeNote = ind.volume.obv_trend === "RISING"
-                      ? "Volume is confirming the move (OBV rising)"
-                      : ind.volume.obv_trend === "FALLING"
-                        ? "Volume is diverging bearishly (OBV declining)"
-                        : "Volume is neutral";
-                    const signalColor = s.signal === "STRONG_BUY" || s.signal === "BUY" ? "text-green-400"
-                      : s.signal === "STRONG_SELL" || s.signal === "SELL" ? "text-red-400"
-                        : "text-yellow-400";
-                    const signalLabel = s.signal.replace("_", " ");
-
-                    return (
-                      <div className="glass-card p-5 border-[#30363d]" style={{ animation: "fadeSlideIn 0.4s ease both" }}>
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-2">
-                            <LineChart size={14} className="text-[#d4af37]" />
-                            <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-500">Technical Digest</h3>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className={`text-[9px] font-black uppercase tracking-widest ${signalColor}`}>{signalLabel}</span>
-                            <span className="text-[8px] font-mono bg-[#161b22] border border-[#30363d] rounded px-1.5 py-0.5 text-gray-500">{score.toFixed(1)}/10</span>
-                          </div>
-                        </div>
-                        <p className="text-[11px] text-gray-300 leading-relaxed">
-                          The technical picture for this asset is <span className={`font-bold ${signalColor}`}>{scoreLabel}</span>. {rsiNote}; {macdNote}, and {trendNote}. {volumeNote}.
-                          {ind.structure.breakout_probability > 0.5 && (
-                            <> A <span className={ind.structure.breakout_direction === "BULLISH" ? "text-green-400" : "text-red-400"}>potential {ind.structure.breakout_direction.toLowerCase()} breakout</span> is developing with {(ind.structure.breakout_probability * 100).toFixed(0)}% probability.</>)
-                          }
-                        </p>
-                        <div className="mt-3 pt-3 border-t border-[#30363d]/40 flex gap-4 flex-wrap">
-                          {([
-                            ["Trend", s.subscores.trend],
-                            ["Momentum", s.subscores.momentum],
-                            ["Volatility", s.subscores.volatility],
-                            ["Volume", s.subscores.volume],
-                            ["Structure", s.subscores.structure],
-                          ] as [string, number][]).map(([label, val]) => (
-                            <div key={label} className="flex flex-col items-center gap-0.5">
-                              <span className="text-[7px] text-gray-600 uppercase tracking-widest">{label}</span>
-                              <span className={`text-[10px] font-black ${val >= 7 ? "text-green-400" : val >= 5 ? "text-[#d4af37]" : "text-red-400"
-                                }`}>{val.toFixed(1)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  <IndicatorGrid data={technical.state.data} />
-                </div>
-              )}
-
-              {/* Prompt to analyze first */}
-              {technical.state.status === "idle" && (
-                <div className="flex flex-col items-center justify-center py-20 text-center">
-                  <div className="w-16 h-16 bg-[#161b22] rounded-3xl flex items-center justify-center mb-4 border border-[#30363d]">
-                    <LineChart size={28} className="text-[#d4af37]/30" />
-                  </div>
-                  <p className="text-gray-500 text-sm font-bold">Select an asset to run the Technical Engine</p>
-                  <p className="text-gray-700 text-[10px] mt-1">RSI · MACD · Bollinger Bands · ATR · OBV · Support/Resistance</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ── Combined Dashboard (Phase 5) ── */}
-          {mainTab === "combined" && (
-            <div style={{ animation: "fadeSlideIn 0.3s ease both" }}>
-              {combined.state.status === "idle" && (
+          {/* ── Analysis View (3-Level Progressive Disclosure) ── */}
+          {mainTab === "analysis" && (
+            <div className="space-y-6" style={{ animation: "fadeSlideIn 0.3s ease both" }}>
+              {/* Idle state */}
+              {combined.state.status === "idle" && status === "idle" && (
                 <div className="flex flex-col items-center justify-center py-20 text-center">
                   <div className="w-16 h-16 bg-[#161b22] rounded-3xl flex items-center justify-center mb-4 border border-[#30363d]">
                     <Zap size={28} className="text-[#d4af37]/30" />
                   </div>
-                  <p className="text-gray-600 text-sm">Enter a ticker to activate the Combined Engine.</p>
-                  <p className="text-gray-700 text-xs mt-1">Runs Fundamental + Technical simultaneously.</p>
+                  <p className="text-gray-600 text-sm">Enter a ticker to start the Investment Committee.</p>
+                  <p className="text-gray-700 text-xs mt-1">Fundamental + Technical + Decision — all in one flow.</p>
                 </div>
               )}
 
+              {/* Error state */}
               {combined.state.status === "error" && (
                 <div className="flex flex-col items-center justify-center py-20 text-center">
                   <AlertCircle size={36} className="text-red-500 mb-3" />
@@ -1223,40 +912,37 @@ export default function Home() {
                 </div>
               )}
 
+              {/* Active analysis — 3 levels */}
               {combined.state.status !== "idle" && combined.state.status !== "error" && (
-                <CombinedDashboard
-                  state={combined.state}
-                  onForceRefresh={() => {
-                    const sym = state.ticker ?? ticker;
-                    if (!sym) return;
-                    combined.forceRefresh(sym);
-                    fundamental.forceRefresh(sym);
-                    technical.forceRefresh(sym);
-                  }}
-                />
+                <>
+                  {/* Level 1 — Investment Verdict */}
+                  <VerdictHero combined={combined.state} alphaProfile={alphaSignals.profile} />
+
+                  {/* Level 2 — Investment Story */}
+                  <InvestmentStory combined={combined.state} />
+
+                  {/* Level 3 — Advanced Analytics (collapsed) */}
+                  {combined.state.status === "complete" && (
+                    <AnalyticsAccordion
+                      combined={combined.state}
+                      alphaProfile={alphaSignals.profile}
+                      alphaStatus={alphaSignals.status}
+                      alphaError={alphaSignals.error}
+                      onEvaluateSignals={() => {
+                        const t = combined.state.ticker || ticker;
+                        if (t) alphaSignals.evaluate(t);
+                      }}
+                    />
+                  )}
+                </>
               )}
             </div>
           )}
 
-          {/* ── Portfolio Dashboard (Core/Satellite Construction) ── */}
+          {/* ── Portfolio Dashboard ── */}
           {mainTab === "portfolio" && (
             <div style={{ animation: "fadeSlideIn 0.3s ease both" }}>
               <PortfolioDashboard historyEntries={history.entries} />
-            </div>
-          )}
-
-          {/* ── Alpha Signals (Full-Width) ── */}
-          {mainTab === "signals" && (
-            <div style={{ animation: "fadeSlideIn 0.3s ease both" }}>
-              <AlphaSignalsView
-                profile={alphaSignals.profile}
-                status={alphaSignals.status}
-                error={alphaSignals.error}
-                onEvaluate={() => {
-                  const t = combined.state.ticker || ticker;
-                  if (t) alphaSignals.evaluate(t);
-                }}
-              />
             </div>
           )}
         </main >

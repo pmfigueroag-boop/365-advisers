@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-export default function DetectorPerformance({ data }) {
+export default function DetectorPerformance({ data }: { data: any }) {
     if (!data) return null;
 
     const detectors = data.detectors || [];
@@ -54,7 +54,7 @@ export default function DetectorPerformance({ data }) {
                         </tr>
                     </thead>
                     <tbody>
-                        {detectors.map((d, i) => (
+                        {detectors.map((d: any, i: number) => (
                             <tr key={i}>
                                 <td style={styles.td}>
                                     <span style={styles.detectorName}>{d.label}</span>
@@ -99,7 +99,7 @@ export default function DetectorPerformance({ data }) {
             {Object.keys(byConfidence).length > 0 && (
                 <div style={styles.confSection}>
                     <div style={styles.confTitle}>Confidence Distribution</div>
-                    {Object.entries(byConfidence).map(([level, acc]) => (
+                    {Object.entries(byConfidence).map(([level, acc]: [string, any]) => (
                         <div key={level} style={styles.confRow}>
                             <span style={styles.confLabel}>
                                 {level.toUpperCase()}
@@ -124,7 +124,7 @@ export default function DetectorPerformance({ data }) {
 
 const styles = {
     sectionHeader: {
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        display: 'flex' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const,
         marginBottom: '16px',
     },
     sectionTitle: {
@@ -152,15 +152,15 @@ const styles = {
     highlightValue: {
         fontSize: '13px', color: '#4ade80', fontWeight: '600', fontFamily: 'monospace',
     },
-    tableWrap: { overflowX: 'auto', marginBottom: '16px' },
+    tableWrap: { overflowX: 'auto' as const, marginBottom: '16px' },
     table: {
-        width: '100%', borderCollapse: 'collapse', fontSize: '12px',
+        width: '100%', borderCollapse: 'collapse' as const, fontSize: '12px',
     },
     th: {
         padding: '8px 6px', color: '#64748b', fontSize: '10px',
-        textTransform: 'uppercase', letterSpacing: '0.05em',
+        textTransform: 'uppercase' as const, letterSpacing: '0.05em',
         borderBottom: '1px solid rgba(255,255,255,0.06)',
-        textAlign: 'left', fontWeight: '600',
+        textAlign: 'left' as const, fontWeight: '600',
     },
     td: {
         padding: '7px 6px', borderBottom: '1px solid rgba(255,255,255,0.03)',
@@ -179,7 +179,7 @@ const styles = {
     },
     barLabel: {
         fontSize: '11px', fontFamily: 'monospace', minWidth: '32px',
-        textAlign: 'right',
+        textAlign: 'right' as const,
     },
     confSection: {
         background: 'rgba(255,255,255,0.02)',
@@ -187,7 +187,7 @@ const styles = {
     },
     confTitle: {
         fontSize: '11px', color: '#64748b', fontWeight: '600',
-        textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px',
+        textTransform: 'uppercase' as const, letterSpacing: '0.05em', marginBottom: '10px',
     },
     confRow: {
         display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px',
