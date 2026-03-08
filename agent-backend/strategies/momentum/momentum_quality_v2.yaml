@@ -1,0 +1,103 @@
+name: "Momentum Quality v2"
+description: >
+  Systematic long-only strategy combining strong momentum signals
+  with quality filters. Targets trend-following alpha with
+  downside protection via quality tilt and regime awareness.
+
+version: "2.0.0"
+
+metadata:
+  category: "momentum"
+  strategy_type: "systematic"
+  horizon: "medium"
+  expected_turnover: "medium"
+  benchmark: "SPY"
+  tags: ["momentum", "quality", "regime-aware", "core"]
+
+universe:
+  source: "sp500"
+  sector_exclude: ["utilities"]
+  min_market_cap: 10000000000
+  min_adv: 5000000
+
+signals:
+  required_categories: ["momentum", "quality"]
+  preferred_signals:
+    - "golden_cross"
+    - "macd_bullish_crossover"
+    - "rsi_oversold_recovery"
+    - "roic_expansion"
+    - "earnings_quality_beat"
+  composition_logic: "all_required"
+  min_signal_strength: 2.0
+  min_confidence: "medium"
+  min_active_signals: 3
+
+thresholds:
+  min_case_score: 65
+  min_opportunity_score: 6.0
+  min_business_quality: 6.5
+  min_uos: 5.5
+  max_freshness_class: "stale"
+
+entry_rules:
+  - field: "case_score"
+    operator: "gte"
+    value: 75
+    label: "Composite Alpha above 75"
+    priority: 1
+  - field: "opportunity_score"
+    operator: "gte"
+    value: 7.0
+    label: "Institutional opportunity above 7"
+    priority: 2
+  - field: "regime"
+    operator: "in"
+    value: ["bull", "range"]
+    label: "Only enter in bull or range regimes"
+    priority: 3
+  - field: "crowding_penalty"
+    operator: "lt"
+    value: 0.20
+    label: "Avoid crowded trades"
+    priority: 4
+
+exit_rules:
+  - rule_type: "trailing_stop"
+    params:
+      pct: 0.12
+  - rule_type: "signal_reversal"
+    params:
+      signal_categories: ["momentum"]
+      reversal_threshold: 0.6
+  - rule_type: "time_stop"
+    params:
+      days: 120
+  - rule_type: "target_reached"
+    params:
+      return_pct: 0.35
+
+regime_rules:
+  - regime: "bull"
+    action: "full_exposure"
+  - regime: "range"
+    action: "reduce_50"
+    sizing_override: 0.05
+  - regime: "bear"
+    action: "no_new_entries"
+  - regime: "high_vol"
+    action: "reduce_50"
+    sizing_override: 0.04
+
+portfolio:
+  max_positions: 15
+  max_single_position: 0.08
+  max_sector_exposure: 0.25
+  sizing_method: "vol_parity"
+  max_turnover: 0.30
+  risk_budget_pct: 25.0
+
+rebalance:
+  frequency: "biweekly"
+  trigger_type: "calendar"
+  drift_threshold: 0.05

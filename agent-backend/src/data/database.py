@@ -915,15 +915,17 @@ class StrategyRecord(Base):
     """Named investment strategies combining signals + rules."""
     __tablename__ = "strategies"
 
-    id            = Column(Integer, primary_key=True, autoincrement=True)
-    strategy_id   = Column(String(36), nullable=False, unique=True, index=True)
-    name          = Column(String(200), nullable=False)
-    description   = Column(Text)
-    config_json   = Column(Text, nullable=False)              # Signal filters + score filters + portfolio rules
-    is_active     = Column(Boolean, default=True)
-    created_at    = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at    = Column(DateTime)
-    created_by    = Column(String(30), default="manual")
+    id              = Column(Integer, primary_key=True, autoincrement=True)
+    strategy_id     = Column(String(36), nullable=False, unique=True, index=True)
+    name            = Column(String(200), nullable=False)
+    description     = Column(Text)
+    config_json     = Column(Text, nullable=False)              # Full StrategyConfig JSON
+    version         = Column(String(20), default="1.0.0")       # Semver
+    lifecycle_state = Column(String(20), default="draft")       # draft|research|backtested|validated|paper|live|paused|retired
+    is_active       = Column(Boolean, default=True)
+    created_at      = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at      = Column(DateTime)
+    created_by      = Column(String(30), default="manual")
 
 
 # ─── Liquidity & Capacity Tables ─────────────────────────────────────────────

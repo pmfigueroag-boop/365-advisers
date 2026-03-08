@@ -10,6 +10,7 @@ import IdeaExplorerView from "@/components/views/IdeaExplorerView";
 import DeepAnalysisView from "@/components/views/DeepAnalysisView";
 import PortfolioView from "@/components/views/PortfolioView";
 import SystemView from "@/components/views/SystemView";
+import StrategyLabView from "@/components/views/StrategyLabView";
 import HelpPanel from "@/components/HelpPanel";
 import OnboardingOverlay, { useOnboarding } from "@/components/OnboardingOverlay";
 import ReportHeader from "@/components/ReportHeader";
@@ -264,6 +265,10 @@ export default function Home() {
 
             {activeView === "system" && (
               <SystemView />
+            )}
+
+            {activeView === "strategy-lab" && (
+              <StrategyLabView />
             )}
           </ErrorBoundary>
         </main>

@@ -1,0 +1,73 @@
+name: "AI Infrastructure"
+description: >
+  Focused on AI/tech infrastructure companies with growth momentum
+  and strong competitive positioning. Concentrated thematic exposure
+  targeting the AI infrastructure buildout cycle.
+
+version: "1.0.0"
+
+metadata:
+  category: "thematic"
+  strategy_type: "systematic"
+  horizon: "medium"
+  expected_turnover: "medium"
+  benchmark: "QQQ"
+  tags: ["AI", "tech", "infrastructure", "growth", "thematic"]
+
+universe:
+  source: "custom"
+  sector_filter: ["technology", "communication_services"]
+  min_market_cap: 10000000000
+  min_adv: 10000000
+
+signals:
+  required_categories: ["momentum"]
+  preferred_signals:
+    - "golden_cross"
+    - "macd_bullish_crossover"
+    - "obv_divergence"
+  composition_logic: "all_required"
+  min_signal_strength: 2.0
+  min_confidence: "medium"
+
+thresholds:
+  min_case_score: 60
+  min_opportunity_score: 5.0
+  min_business_quality: 7.0
+  min_uos: 5.0
+
+entry_rules:
+  - field: "case_score"
+    operator: "gte"
+    value: 65
+    label: "Strong alpha signal"
+  - field: "regime"
+    operator: "in"
+    value: ["bull", "range"]
+    label: "Favorable regime"
+
+exit_rules:
+  - rule_type: "trailing_stop"
+    params:
+      pct: 0.15
+  - rule_type: "signal_reversal"
+    params:
+      signal_categories: ["momentum"]
+
+regime_rules:
+  - regime: "bull"
+    action: "full_exposure"
+  - regime: "bear"
+    action: "no_new_entries"
+  - regime: "high_vol"
+    action: "reduce_50"
+
+portfolio:
+  max_positions: 12
+  max_single_position: 0.10
+  max_sector_exposure: 0.40
+  sizing_method: "rank_weighted"
+
+rebalance:
+  frequency: "monthly"
+  trigger_type: "calendar"

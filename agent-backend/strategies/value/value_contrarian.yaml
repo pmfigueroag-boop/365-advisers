@@ -1,0 +1,59 @@
+name: "Value Contrarian"
+description: >
+  Deep value with mean reversion signals.
+  Patient, concentrated portfolio targeting undervalued companies
+  with strong fundamentals and margin of safety.
+
+version: "1.0.0"
+
+metadata:
+  category: "value"
+  strategy_type: "systematic"
+  horizon: "long"
+  expected_turnover: "low"
+  benchmark: "IWD"
+  tags: ["value", "contrarian", "concentrated"]
+
+universe:
+  source: "sp500"
+  min_market_cap: 5000000000
+
+signals:
+  required_categories: ["value"]
+  preferred_signals:
+    - "pe_below_historical"
+    - "pb_discount"
+    - "fcf_yield_high"
+  composition_logic: "any_required"
+  min_signal_strength: 1.0
+  min_confidence: "low"
+
+thresholds:
+  min_case_score: 50
+  min_opportunity_score: 4.0
+  min_business_quality: 5.0
+  min_uos: 4.0
+
+entry_rules:
+  - field: "case_score"
+    operator: "gte"
+    value: 55
+    label: "CASE above 55"
+
+exit_rules:
+  - rule_type: "time_stop"
+    params:
+      days: 180
+  - rule_type: "target_reached"
+    params:
+      return_pct: 0.40
+
+portfolio:
+  max_positions: 10
+  max_single_position: 0.12
+  max_sector_exposure: 0.30
+  sizing_method: "equal"
+
+rebalance:
+  frequency: "monthly"
+  trigger_type: "calendar"

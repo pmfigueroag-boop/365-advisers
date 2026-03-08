@@ -16,11 +16,12 @@ import {
     Brain,
     Command,
     Map,
+    FlaskConical,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type ViewId = "terminal" | "market" | "ideas" | "analysis" | "portfolio" | "system";
+export type ViewId = "terminal" | "market" | "ideas" | "analysis" | "portfolio" | "system" | "strategy-lab";
 
 interface TopNavProps {
     activeView: ViewId;
@@ -55,6 +56,7 @@ const TABS: { id: ViewId; label: string; icon: React.ReactNode }[] = [
     { id: "analysis", label: "Analysis", icon: <Microscope size={13} /> },
     { id: "portfolio", label: "Portfolio", icon: <Briefcase size={13} /> },
     { id: "system", label: "System", icon: <Brain size={13} /> },
+    { id: "strategy-lab", label: "Strategy Lab", icon: <FlaskConical size={13} /> },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
