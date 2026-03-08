@@ -15,7 +15,6 @@ import {
     Plus,
     Copy,
     Trash2,
-    Play,
     RefreshCw,
     Loader2,
     ChevronRight,
@@ -27,17 +26,13 @@ import {
     BarChart3,
     Layers,
     Sparkles,
-    Home,
-    Wrench,
-    LineChart,
-    GitCompare,
-    Briefcase,
 } from "lucide-react";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import StrategyBuilder from "@/components/strategy-lab/StrategyBuilder";
 import BacktestReport from "@/components/strategy-lab/BacktestReport";
 import StrategyCompare from "@/components/strategy-lab/StrategyCompare";
 import PortfolioBuilder from "@/components/strategy-lab/PortfolioBuilder";
+import LabShell from "@/components/strategy-lab/LabShell";
 import { useStrategyLab, LabSubView, StrategyItem, TemplateItem } from "@/hooks/useStrategyLab";
 
 // ── Lifecycle badge colors ────────────────────────────────────────────────
@@ -63,15 +58,7 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
     low_vol: <BarChart3 size={14} />,
 };
 
-// ── Sub-navigation config ─────────────────────────────────────────────────
-
-const SUB_TABS: { id: LabSubView; label: string; icon: React.ReactNode }[] = [
-    { id: "home", label: "Lab Home", icon: <Home size={12} /> },
-    { id: "builder", label: "Builder", icon: <Wrench size={12} /> },
-    { id: "backtest", label: "Backtest", icon: <LineChart size={12} /> },
-    { id: "compare", label: "Compare", icon: <GitCompare size={12} /> },
-    { id: "portfolio", label: "Portfolio", icon: <Briefcase size={12} /> },
-];
+// SUB_TABS moved to LabNavPanel — vertical sidebar navigation
 
 // ── Strategy Card ─────────────────────────────────────────────────────────
 
@@ -352,43 +339,24 @@ export default function StrategyLabView() {
         lab.cloneStrategy(strategyId, cloneName);
     }, [lab]);
 
+    // Derive active strategy name for LabShell context
+    const activeStrategyName = lab.selectedStrategyId
+        ? lab.strategies.find((s) => s.strategy_id === lab.selectedStrategyId)?.name
+        : undefined;
+
     return (
-        <div className="space-y-4" style={{ animation: "fadeSlideIn 0.3s ease both" }}>
-            {/* ── Header ── */}
-            <div>
-                <div className="flex items-center gap-2 mb-1">
-                    <FlaskConical size={16} className="text-[#d4af37]" />
-                    <h2 className="text-base font-black uppercase tracking-widest text-gray-300">
-                        Strategy Lab
-                    </h2>
-                </div>
-                <p className="text-xs text-gray-600">
-                    Research, build, test, and compare quantitative strategies.
-                </p>
-            </div>
-
-            {/* ── Sub-Navigation ── */}
-            <div className="flex gap-1 p-1 glass-card border-[#30363d] rounded-xl overflow-x-auto">
-                {SUB_TABS.map((tab) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => lab.setSubView(tab.id)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${lab.subView === tab.id
-                            ? "bg-[#d4af37]/15 text-[#d4af37] border border-[#d4af37]/30"
-                            : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
-                            }`}
-                    >
-                        {tab.icon}
-                        {tab.label}
-                    </button>
-                ))}
-            </div>
-
-            <div className="separator-gold" />
-
+        <LabShell
+            activeView={lab.subView}
+            onNavigate={lab.setSubView}
+            strategyName={activeStrategyName}
+            strategies={lab.strategies}
+            selectedStrategyId={lab.selectedStrategyId}
+            onNewStrategy={() => setNewStrategyModal(true)}
+            onOpenStrategy={(id) => lab.openBuilder(id)}
+        >
             {/* ── Error banner ── */}
             {lab.error && (
-                <div className="glass-card border-red-900/50 rounded-xl px-4 py-2 text-red-400 text-xs">
+                <div className="glass-card border-red-900/50 rounded-xl px-4 py-2 text-red-400 text-xs mb-4">
                     {lab.error}
                 </div>
             )}
@@ -516,6 +484,6 @@ export default function StrategyLabView() {
                     </div>
                 </div>
             )}
-        </div>
+        </LabShell>
     );
 }

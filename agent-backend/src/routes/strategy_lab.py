@@ -461,3 +461,45 @@ async def list_allocation_methods():
             {"id": "momentum", "name": "Momentum", "description": "Overweight recent outperformers"},
         ]
     }
+
+
+# ── Strategy AI Assistant ────────────────────────────────────────────────────
+
+from src.engines.strategy_assistant.agent import StrategyAssistant
+
+_assistant = StrategyAssistant()
+
+
+class ChatRequest(BaseModel):
+    message: str
+    session_id: str = "default"
+    context: dict | None = None
+
+
+@router.post("/assistant/chat")
+async def assistant_chat(req: ChatRequest):
+    """Chat with the Strategy AI Assistant."""
+    try:
+        result = _assistant.chat(
+            message=req.message,
+            session_id=req.session_id,
+            context=req.context,
+        )
+        return result
+    except Exception as e:
+        logger.error("Assistant chat failed: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/assistant/sessions")
+async def list_sessions():
+    """List active assistant chat sessions."""
+    return {"sessions": _assistant.list_sessions()}
+
+
+@router.delete("/assistant/sessions/{session_id}")
+async def clear_session(session_id: str):
+    """Clear a chat session."""
+    _assistant.clear_session(session_id)
+    return {"status": "cleared"}
+
