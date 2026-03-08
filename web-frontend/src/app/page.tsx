@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import TopNav, { ViewId } from "@/components/navigation/TopNav";
 import CommandPalette from "@/components/navigation/CommandPalette";
-import WatchlistPanel from "@/components/navigation/WatchlistPanel";
+import TerminalShell from "@/components/shell/TerminalShell";
 import TerminalView from "@/components/views/TerminalView";
 import MarketIntelligenceView from "@/components/views/MarketIntelligenceView";
 import IdeaExplorerView from "@/components/views/IdeaExplorerView";
@@ -11,11 +11,12 @@ import DeepAnalysisView from "@/components/views/DeepAnalysisView";
 import PortfolioView from "@/components/views/PortfolioView";
 import SystemView from "@/components/views/SystemView";
 import StrategyLabView from "@/components/views/StrategyLabView";
+import MarketplaceView from "@/components/views/MarketplaceView";
+import AIAssistantView from "@/components/views/AIAssistantView";
 import HelpPanel from "@/components/HelpPanel";
 import OnboardingOverlay, { useOnboarding } from "@/components/OnboardingOverlay";
 import ReportHeader from "@/components/ReportHeader";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import CompareView, { CompareState } from "@/components/CompareView";
 
 import { useAnalysisStream } from "@/hooks/useAnalysisStream";
 import { useWatchlist } from "@/hooks/useWatchlist";
@@ -26,7 +27,21 @@ import { useCombinedStream } from "@/hooks/useCombinedStream";
 import { useIdeasEngine } from "@/hooks/useIdeasEngine";
 import { useAlphaSignals } from "@/hooks/useAlphaSignals";
 
-// ─── Inline Animations ───────────────────────────────────────────────────────
+import {
+  Activity,
+  TrendingUp,
+  Zap,
+  BarChart3,
+  Shield,
+  Radio,
+  Lightbulb,
+  Target,
+  Clock,
+  Briefcase,
+  Brain,
+} from "lucide-react";
+
+// ─── Inline Animations ───────────────────────────────────────────────────
 const INLINE_STYLES = `
   @keyframes badgePop {
     0%   { opacity: 0; transform: scale(0.6); }
@@ -40,13 +55,119 @@ const INLINE_STYLES = `
   }
 `;
 
-// ─── Main Page ───────────────────────────────────────────────────────────────
+// ─── Shell Content Hooks ──────────────────────────────────────────────────
+
+function useShellContext(activeView: ViewId, combined: any, alphaProfile: any, watchlist: any, ideasEngine: any) {
+  return useMemo(() => {
+    const ticker = combined.state?.ticker;
+    const isComplete = combined.state?.status === "complete";
+
+    // ─── Right Intel Insights ─────────────────────────────────────────
+    const insights: Array<{ type: "info" | "warn" | "success"; text: string }> = [];
+    const sections: Array<{ title: string; icon: React.ReactNode; content: React.ReactNode }> = [];
+
+    if (activeView === "terminal") {
+      if (isComplete && combined.state.opportunity?.opportunity_score) {
+        const score = combined.state.opportunity.opportunity_score;
+        insights.push({
+          type: score >= 7 ? "success" : score >= 5 ? "info" : "warn",
+          text: `Opportunity Score: ${score.toFixed(1)}/10`,
+        });
+      }
+      if (isComplete && combined.state.decision?.investment_position) {
+        insights.push({
+          type: combined.state.decision.investment_position === "BUY" ? "success" : "info",
+          text: `Verdict: ${combined.state.decision.investment_position}`,
+        });
+      }
+      if (alphaProfile?.profile?.fired_signals) {
+        insights.push({
+          type: "info",
+          text: `${alphaProfile.profile.fired_signals} of ${alphaProfile.profile.total_signals} signals active`,
+        });
+      }
+    } else if (activeView === "ideas") {
+      const count = ideasEngine.ideas?.length ?? 0;
+      insights.push({ type: "info", text: `${count} ideas discovered` });
+      if (count > 10) {
+        insights.push({ type: "success", text: "Rich opportunity set — consider strategy lab" });
+      }
+    } else if (activeView === "analysis") {
+      if (ticker) insights.push({ type: "info", text: `Analyzing: ${ticker}` });
+      if (isComplete) insights.push({ type: "success", text: "Full analysis available" });
+    } else if (activeView === "portfolio") {
+      const positions = watchlist.items?.length ?? 0;
+      insights.push({ type: "info", text: `${positions} assets in coverage` });
+    } else if (activeView === "system") {
+      insights.push({ type: "success", text: "All systems nominal" });
+      insights.push({ type: "info", text: "Signal pipeline healthy" });
+    } else if (activeView === "marketplace") {
+      insights.push({ type: "info", text: "6 institutional strategies available" });
+      insights.push({ type: "info", text: "Import to Strategy Lab to customize" });
+    } else if (activeView === "ai-assistant") {
+      insights.push({ type: "info", text: "Knowledge Graph connected" });
+      insights.push({ type: "info", text: "Strategy Lab integration active" });
+    }
+
+    // ─── Bottom Panel Metrics ─────────────────────────────────────────
+    const bottomMetrics: Array<{ icon: React.ReactNode; label: string; value: string }> = [];
+    let bottomTitle = "Analytics";
+    let bottomSubtitle = "";
+
+    if (activeView === "terminal" && isComplete) {
+      bottomTitle = "Signal Matrix";
+      bottomSubtitle = ticker ?? "";
+      if (alphaProfile?.profile) {
+        bottomMetrics.push(
+          { icon: <Radio size={12} className="text-[#d4af37]" />, label: "Active Signals", value: `${alphaProfile.profile.fired_signals ?? 0}` },
+          { icon: <TrendingUp size={12} className="text-emerald-400" />, label: "CASE Score", value: `${alphaProfile.profile.composite_score?.toFixed(0) ?? "—"}` },
+        );
+      }
+      if (combined.state.opportunity) {
+        bottomMetrics.push(
+          { icon: <Target size={12} className="text-blue-400" />, label: "Opp. Score", value: `${combined.state.opportunity.opportunity_score?.toFixed(1) ?? "—"}` },
+        );
+      }
+    } else if (activeView === "ideas") {
+      bottomTitle = "Idea Distribution";
+      bottomSubtitle = `${ideasEngine.ideas?.length ?? 0} opportunities`;
+    } else if (activeView === "analysis") {
+      bottomTitle = "Evidence Summary";
+      bottomSubtitle = ticker ?? "";
+    } else if (activeView === "portfolio") {
+      bottomTitle = "Portfolio Metrics";
+      bottomSubtitle = `${watchlist.items.length} assets`;
+    } else if (activeView === "system") {
+      bottomTitle = "System Metrics";
+    }
+
+    // ─── Watchlist for Left Nav ───────────────────────────────────────
+    const wlItems = watchlist.items.map((item: any) => ({
+      ticker: item.ticker,
+      name: item.name,
+      lastSignal: item.lastSignal,
+      lastScore: item.lastScore,
+    }));
+
+    return {
+      insights,
+      sections,
+      bottomMetrics,
+      bottomTitle,
+      bottomSubtitle,
+      wlItems,
+      activeSignals: alphaProfile?.profile?.fired_signals ?? undefined,
+      lastUpdate: isComplete ? "now" : undefined,
+    };
+  }, [activeView, combined.state, alphaProfile, watchlist.items, ideasEngine.ideas]);
+}
+
+// ─── Main Page ───────────────────────────────────────────────────────────
 
 export default function Home() {
   // ── View state ────────────────────────────────────────────────────────────
   const [activeView, setActiveView] = useState<ViewId>("terminal");
   const [ticker, setTicker] = useState("");
-  const [panelCollapsed, setPanelCollapsed] = useState(true);
   const [helpOpen, setHelpOpen] = useState(false);
   const [cmdPaletteOpen, setCmdPaletteOpen] = useState(false);
   const { showOnboarding, dismiss: dismissOnboarding } = useOnboarding();
@@ -65,6 +186,9 @@ export default function Home() {
   const isLoading = combined.state.status === "fetching_data" || combined.state.status === "fundamental" || combined.state.status === "technical" || combined.state.status === "decision";
   const dataReady = state.dataReady;
 
+  // ── Shell context ─────────────────────────────────────────────────────────
+  const shellCtx = useShellContext(activeView, combined, alphaSignals, watchlist, ideasEngine);
+
   // ── Keyboard shortcuts ────────────────────────────────────────────────────
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -72,16 +196,19 @@ export default function Home() {
       if (e.shiftKey && e.key === "?") { e.preventDefault(); setHelpOpen((v) => !v); return; }
       // Ctrl+K / Cmd+K → Command Palette
       if ((e.ctrlKey || e.metaKey) && e.key === "k") { e.preventDefault(); setCmdPaletteOpen((v) => !v); return; }
+      // Alt+1..9 → View switching
+      if (e.altKey && !e.ctrlKey && !e.metaKey) {
+        const viewMap: Record<string, ViewId> = {
+          "1": "terminal", "2": "market", "3": "ideas", "4": "analysis",
+          "5": "portfolio", "6": "system", "7": "strategy-lab",
+          "8": "marketplace", "9": "ai-assistant",
+        };
+        const view = viewMap[e.key];
+        if (view) { e.preventDefault(); setActiveView(view); return; }
+      }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, []);
-
-  // ── Auto-collapse panel on mobile ─────────────────────────────────────────
-  useEffect(() => {
-    if (typeof window !== "undefined" && window.innerWidth < 768) {
-      setPanelCollapsed(true);
-    }
   }, []);
 
   // ── Auto-evaluate alpha signals on combined complete ──────────────────────
@@ -174,127 +301,131 @@ export default function Home() {
     ? (combined.state.opportunity?.opportunity_score ?? combined.state.committee?.score ?? null)
     : null;
 
+  // ── Check if current view needs TerminalShell (all except strategy-lab) ──
+  const useShell = activeView !== "strategy-lab";
+
   return (
     <>
       <style>{INLINE_STYLES}</style>
 
-      <div className="flex min-h-screen gap-4 p-4 md:p-6 max-w-[1600px] mx-auto">
-        {/* ── Main Content ── */}
-        <main className="flex-1 min-w-0 flex flex-col gap-5">
-          {/* Top Navigation */}
-          <TopNav
-            activeView={activeView}
-            onViewChange={setActiveView}
-            ticker={ticker}
-            onTickerChange={setTicker}
-            onAnalyze={() => handleAnalyze()}
-            isLoading={isLoading}
-            showCacheBadge={state.fromCache}
-            cachedAt={state.cachedAt}
-            onForceRefresh={handleForceRefresh}
-            showExport={combined.state.status === "complete" && !!dataReady}
-            onExport={handleExport}
-            showWatchlistToggle={!!dataReady?.ticker}
-            inWatchlist={inWatchlist}
-            onToggleWatchlist={handleToggleWatchlist}
-            onOpenHelp={() => setHelpOpen(true)}
-            onOpenCommandPalette={() => setCmdPaletteOpen(true)}
-            analysisScore={analysisScore}
-            analysisLoading={isLoading}
-          />
-
-          {/* Print-only Report Header */}
-          {dataReady && (
-            <ReportHeader
-              ticker={dataReady.ticker}
-              name={dataReady.name}
-              price={typeof dataReady.fundamental_metrics?.price === "number" ? dataReady.fundamental_metrics.price as number : undefined}
-            />
-          )}
-
-          {/* ── View Router ── */}
-          {/* Key forces React to fully unmount/mount on tab switch, preventing insertBefore DOM errors */}
-          <ErrorBoundary key={activeView}>
-            {activeView === "terminal" && (
-              <TerminalView
-                combined={combined.state}
-                alphaProfile={alphaSignals.profile}
-                watchlistItems={watchlist.items}
-                onAnalyze={handleAnalyze}
-                onNavigateAnalysis={() => setActiveView("analysis")}
-              />
-            )}
-
-            {activeView === "market" && (
-              <MarketIntelligenceView
-                onSelectTicker={(t) => handleAnalyze(t)}
-              />
-            )}
-
-            {activeView === "ideas" && (
-              <IdeaExplorerView
-                ideas={ideasEngine.ideas}
-                scanStatus={ideasEngine.scanStatus}
-                error={ideasEngine.error}
-                onScan={() => {
-                  const tickers = watchlist.items.map((i) => i.ticker);
-                  if (tickers.length > 0) ideasEngine.scan(tickers);
-                }}
-                onAnalyze={(t) => handleAnalyze(t)}
-                onDismiss={(id) => ideasEngine.dismiss(id)}
-              />
-            )}
-
-            {activeView === "analysis" && (
-              <DeepAnalysisView
-                combined={combined.state}
-                alphaProfile={alphaSignals.profile}
-                alphaStatus={alphaSignals.status}
-                alphaError={alphaSignals.error}
-                onEvaluateSignals={() => {
-                  const t = combined.state.ticker || ticker;
-                  if (t) alphaSignals.evaluate(t);
-                }}
-                onBack={() => setActiveView("terminal")}
-              />
-            )}
-
-            {activeView === "portfolio" && (
-              <PortfolioView historyEntries={history.entries} />
-            )}
-
-            {activeView === "system" && (
-              <SystemView />
-            )}
-
-            {activeView === "strategy-lab" && (
-              <StrategyLabView />
-            )}
-          </ErrorBoundary>
-        </main>
-
-        {/* ── Right Side Panel (Watchlist/History/Ideas) ── */}
-        <WatchlistPanel
-          items={watchlist.items}
-          onSelect={(t) => handleAnalyze(t)}
-          onRemove={watchlist.remove}
-          activeTicker={combined.state.ticker ?? undefined}
-          historyEntries={history.entries}
-          onHistorySelect={(t) => handleAnalyze(t)}
-          onHistoryRemove={history.removeById}
-          onHistoryClear={history.clear}
-          ideas={ideasEngine.ideas}
-          ideasScanStatus={ideasEngine.scanStatus}
-          ideasError={ideasEngine.error}
-          onIdeasScan={() => {
-            const tickers = watchlist.items.map((i) => i.ticker);
-            if (tickers.length > 0) ideasEngine.scan(tickers);
-          }}
-          onIdeasAnalyze={(t) => handleAnalyze(t)}
-          onIdeasDismiss={(id) => ideasEngine.dismiss(id)}
-          collapsed={panelCollapsed}
-          onToggle={() => setPanelCollapsed((v) => !v)}
+      <div className={`flex flex-col min-h-screen ${useShell ? "p-4 md:p-6" : "p-0"} max-w-[1920px] mx-auto`}>
+        {/* Top Navigation */}
+        <TopNav
+          activeView={activeView}
+          onViewChange={setActiveView}
+          ticker={ticker}
+          onTickerChange={setTicker}
+          onAnalyze={() => handleAnalyze()}
+          isLoading={isLoading}
+          showCacheBadge={state.fromCache}
+          cachedAt={state.cachedAt}
+          onForceRefresh={handleForceRefresh}
+          showExport={combined.state.status === "complete" && !!dataReady}
+          onExport={handleExport}
+          showWatchlistToggle={!!dataReady?.ticker}
+          inWatchlist={inWatchlist}
+          onToggleWatchlist={handleToggleWatchlist}
+          onOpenHelp={() => setHelpOpen(true)}
+          onOpenCommandPalette={() => setCmdPaletteOpen(true)}
+          analysisScore={analysisScore}
+          analysisLoading={isLoading}
         />
+
+        {/* Print-only Report Header */}
+        {dataReady && (
+          <ReportHeader
+            ticker={dataReady.ticker}
+            name={dataReady.name}
+            price={typeof dataReady.fundamental_metrics?.price === "number" ? dataReady.fundamental_metrics.price as number : undefined}
+          />
+        )}
+
+        {/* ── View Router with TerminalShell ── */}
+        <ErrorBoundary key={activeView}>
+          {useShell ? (
+            <TerminalShell
+              activeView={activeView}
+              // Watchlist for left nav
+              watchlistItems={shellCtx.wlItems}
+              activeTicker={combined.state.ticker ?? undefined}
+              onTickerSelect={(t) => handleAnalyze(t)}
+              // Right intel
+              insights={shellCtx.insights}
+              intelSections={shellCtx.sections}
+              // Bottom panel
+              bottomTitle={shellCtx.bottomTitle}
+              bottomSubtitle={shellCtx.bottomSubtitle}
+              bottomMetrics={shellCtx.bottomMetrics}
+              // Status bar
+              regime="bull"
+              activeSignals={shellCtx.activeSignals}
+              lastUpdate={shellCtx.lastUpdate}
+            >
+              {activeView === "terminal" && (
+                <TerminalView
+                  combined={combined.state}
+                  alphaProfile={alphaSignals.profile}
+                  watchlistItems={watchlist.items}
+                  onAnalyze={handleAnalyze}
+                  onNavigateAnalysis={() => setActiveView("analysis")}
+                />
+              )}
+
+              {activeView === "market" && (
+                <MarketIntelligenceView
+                  onSelectTicker={(t) => handleAnalyze(t)}
+                />
+              )}
+
+              {activeView === "ideas" && (
+                <IdeaExplorerView
+                  ideas={ideasEngine.ideas}
+                  scanStatus={ideasEngine.scanStatus}
+                  error={ideasEngine.error}
+                  onScan={() => {
+                    const tickers = watchlist.items.map((i) => i.ticker);
+                    if (tickers.length > 0) ideasEngine.scan(tickers);
+                  }}
+                  onAnalyze={(t) => handleAnalyze(t)}
+                  onDismiss={(id) => ideasEngine.dismiss(id)}
+                />
+              )}
+
+              {activeView === "analysis" && (
+                <DeepAnalysisView
+                  combined={combined.state}
+                  alphaProfile={alphaSignals.profile}
+                  alphaStatus={alphaSignals.status}
+                  alphaError={alphaSignals.error}
+                  onEvaluateSignals={() => {
+                    const t = combined.state.ticker || ticker;
+                    if (t) alphaSignals.evaluate(t);
+                  }}
+                  onBack={() => setActiveView("terminal")}
+                />
+              )}
+
+              {activeView === "portfolio" && (
+                <PortfolioView historyEntries={history.entries} />
+              )}
+
+              {activeView === "system" && (
+                <SystemView />
+              )}
+
+              {activeView === "marketplace" && (
+                <MarketplaceView />
+              )}
+
+              {activeView === "ai-assistant" && (
+                <AIAssistantView />
+              )}
+            </TerminalShell>
+          ) : (
+            /* Strategy Lab has its own shell */
+            <StrategyLabView />
+          )}
+        </ErrorBoundary>
       </div>
 
       {/* ── Overlays ── */}
