@@ -180,6 +180,16 @@ from src.routes.oms import router as oms_router
 from src.routes.multi_asset import router as multi_asset_router
 from src.routes.capital_allocation import router as capital_allocation_router
 from src.routes.risk import router as risk_router
+from src.routes.market_feed import router as market_feed_router
+from src.routes.portfolio_optimisation import router as optimisation_router
+from src.routes.factor_risk import router as factor_risk_router
+from src.routes.attribution import router as attribution_router
+from src.routes.event_backtester import router as event_backtester_router
+from src.routes.compliance import router as compliance_router
+from src.routes.dl_signals import router as dl_signals_router
+from src.routes.nlp_signals import router as nlp_signals_router
+from src.routes.alt_data import router as alt_data_router
+from src.routes.rl_optimisation import router as rl_optimisation_router
 
 app.include_router(health_router)
 app.include_router(analysis_router)
@@ -212,8 +222,18 @@ app.include_router(oms_router)
 app.include_router(multi_asset_router)
 app.include_router(capital_allocation_router)
 app.include_router(risk_router)
+app.include_router(market_feed_router)
+app.include_router(optimisation_router)
+app.include_router(factor_risk_router)
+app.include_router(attribution_router)
+app.include_router(event_backtester_router)
+app.include_router(compliance_router)
+app.include_router(dl_signals_router)
+app.include_router(nlp_signals_router)
+app.include_router(alt_data_router)
+app.include_router(rl_optimisation_router)
 
-logger.info(f"Mounted {len(app.routes)} routes across 31 routers")
+logger.info(f"Mounted {len(app.routes)} routes across 41 routers")
 
 
 # ── Dev Server ───────────────────────────────────────────────────────────────

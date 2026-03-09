@@ -27,6 +27,8 @@ class OrderStatus(str, Enum):
 
 class Order(BaseModel):
     order_id: str = Field(default_factory=lambda: uuid4().hex[:12])
+    broker_order_id: str = ""  # external ID from broker
+    broker_type: str = "paper"  # paper | alpaca | interactive_brokers
     ticker: str
     side: OrderSide
     order_type: OrderType = OrderType.MARKET
