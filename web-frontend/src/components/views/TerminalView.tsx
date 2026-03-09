@@ -60,25 +60,67 @@ export default function TerminalView({
 
     // ── Empty state ──────────────────────────────────────────────────────────
     if (isIdle && watchlistItems.length === 0) {
+        const trendingTickers = ["AAPL", "NVDA", "MSFT", "GOOGL", "AMZN", "TSLA"];
         return (
-            <div className="flex flex-col items-center justify-center flex-1 text-center mesh-gradient rounded-2xl py-20 px-6"
-                style={{ animation: "fadeSlideIn 0.4s ease both" }}>
-                <div className="w-24 h-24 bg-[#161b22] rounded-3xl flex items-center justify-center mb-8 border border-[#d4af37]/15 glow-ring">
-                    <Activity size={44} className="text-[#d4af37]/40 breathe" />
-                </div>
-                <h2 className="text-2xl font-black gold-gradient mb-3" style={{ fontFamily: "var(--font-insight)" }}>
-                    Investment Intelligence Terminal
-                </h2>
-                <p className="text-gray-500 max-w-md mx-auto leading-relaxed text-sm mb-2">
-                    Institutional-grade investment analysis. Type a ticker to convene the
-                    Investment Committee and get your decision in seconds.
-                </p>
-                <p className="text-[#d4af37]/60 text-xs font-mono mb-8 blink-cursor">Search or type a ticker above</p>
-                <div className="flex gap-3 text-xs font-mono text-gray-500 flex-wrap justify-center stagger-children">
-                    <span className="flex items-center gap-1.5 glass-card px-3 py-1.5 border-[#30363d]"><ShieldCheck size={12} className="text-[#d4af37]/60" /> Fundamental</span>
-                    <span className="flex items-center gap-1.5 glass-card px-3 py-1.5 border-[#30363d]"><LineChart size={12} className="text-[#60a5fa]/60" /> Technical</span>
-                    <span className="flex items-center gap-1.5 glass-card px-3 py-1.5 border-[#30363d]"><Zap size={12} className="text-[#c084fc]/60" /> Combined</span>
-                    <span className="flex items-center gap-1.5 glass-card px-3 py-1.5 border-[#30363d]"><Radio size={12} className="text-emerald-400/60" /> Alpha Signals</span>
+            <div className="flex flex-col items-center justify-center flex-1 mesh-gradient-v2 rounded-2xl particles bg-grid"
+                style={{ animation: "fadeSlideIn 0.4s ease both", minHeight: "60vh" }}>
+
+                {/* Hero Section */}
+                <div className="ambient-glow">
+                    <div className="premium-card p-10 text-center max-w-lg mx-auto"
+                        style={{ animation: "verdictReveal 0.6s ease both" }}>
+
+                        {/* Icon */}
+                        <div className="w-28 h-28 mx-auto mb-8 rounded-3xl flex items-center justify-center"
+                            style={{
+                                background: 'linear-gradient(135deg, rgba(22,27,34,0.9), rgba(13,17,26,0.95))',
+                                border: '1px solid rgba(212,175,55,0.2)',
+                                boxShadow: '0 0 40px -8px rgba(212,175,55,0.15), inset 0 1px 0 rgba(255,255,255,0.05)',
+                            }}>
+                            <Activity size={48} className="text-[#d4af37] breathe" />
+                        </div>
+
+                        {/* Title */}
+                        <h2 className="text-3xl font-black gold-gradient mb-3"
+                            style={{ fontFamily: "var(--font-insight)" }}>
+                            Investment Intelligence Terminal
+                        </h2>
+
+                        <p className="text-gray-400 max-w-sm mx-auto leading-relaxed text-sm mb-3">
+                            Institutional-grade multi-agent analysis. Type a ticker to convene the
+                            Investment Committee and get your decision in seconds.
+                        </p>
+
+                        <p className="text-[#d4af37]/60 text-xs font-mono mb-8 blink-cursor">
+                            Search or type a ticker above
+                        </p>
+
+                        {/* Capability badges */}
+                        <div className="flex gap-2.5 text-xs font-mono text-gray-500 flex-wrap justify-center mb-8 stagger-children">
+                            <span className="flex items-center gap-1.5 glass-card px-3.5 py-2 border-[#30363d]"><ShieldCheck size={12} className="text-[#d4af37]/70" /> Fundamental</span>
+                            <span className="flex items-center gap-1.5 glass-card px-3.5 py-2 border-[#30363d]"><LineChart size={12} className="text-[#60a5fa]/70" /> Technical</span>
+                            <span className="flex items-center gap-1.5 glass-card px-3.5 py-2 border-[#30363d]"><Zap size={12} className="text-[#c084fc]/70" /> Combined</span>
+                            <span className="flex items-center gap-1.5 glass-card px-3.5 py-2 border-[#30363d]"><Radio size={12} className="text-emerald-400/70" /> Alpha Signals</span>
+                        </div>
+
+                        {/* Trending Tickers */}
+                        <div>
+                            <p className="text-[8px] font-black uppercase tracking-[0.2em] text-gray-600 mb-3">Trending</p>
+                            <div className="flex flex-wrap gap-2 justify-center">
+                                {trendingTickers.map((t, i) => (
+                                    <button
+                                        key={t}
+                                        onClick={() => onAnalyze(t)}
+                                        className="ticker-chip"
+                                        style={{ animation: `fadeSlideIn 0.35s ease ${0.15 + i * 0.06}s both` }}
+                                    >
+                                        <span className="ticker-chip-icon" />
+                                        {t}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         );
@@ -87,13 +129,14 @@ export default function TerminalView({
     // ── Coverage List (idle + has watchlist) ─────────────────────────────────
     if (isIdle && watchlistItems.length > 0) {
         return (
-            <div className="space-y-5" style={{ animation: "fadeSlideIn 0.4s ease both" }}>
+            <div className="space-y-5 bg-grid" style={{ animation: "fadeSlideIn 0.4s ease both" }}>
                 <div className="flex items-center justify-between">
                     <div>
                         <h2 className="text-base font-black uppercase tracking-widest text-gray-300">Coverage List</h2>
                         <p className="text-xs text-gray-600 mt-0.5">Select an asset to convene the Investment Committee</p>
                     </div>
-                    <span className="text-[9px] font-mono text-gray-700 bg-[#161b22] border border-[#30363d] rounded-lg px-2 py-1">
+                    <span className="text-[9px] font-mono text-gray-500 glass-card border border-[#30363d] rounded-lg px-2.5 py-1.5"
+                        style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)' }}>
                         {watchlistItems.length} asset{watchlistItems.length !== 1 ? "s" : ""} tracked
                     </span>
                 </div>
@@ -106,20 +149,38 @@ export default function TerminalView({
                                 sig === "SELL" ? "text-red-400 border-red-500/30 bg-red-500/8" :
                                     sig === "HOLD" ? "text-yellow-400 border-yellow-500/30 bg-yellow-500/8" :
                                         "text-gray-500 border-[#30363d] bg-transparent";
+                        const sigDotColor =
+                            sig === "BUY" ? "#22c55e" : sig === "SELL" ? "#ef4444" : sig === "HOLD" ? "#eab308" : "#4b5563";
 
                         return (
                             <button
                                 key={item.ticker}
                                 onClick={() => onAnalyze(item.ticker)}
-                                className="glass-card p-5 border-[#30363d] text-left hover:border-[#d4af37]/40 hover:bg-[#d4af37]/3 transition-all group"
-                                style={{ animation: `fadeSlideIn 0.35s ease ${i * 0.07}s both` }}
+                                className="premium-card p-5 text-left group scan-lines"
+                                style={{
+                                    animation: `fadeSlideIn 0.35s ease ${i * 0.07}s both`,
+                                    transition: 'transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s ease',
+                                }}
+                                onMouseEnter={(e) => {
+                                    (e.currentTarget as HTMLElement).style.transform = 'translateY(-3px)';
+                                    (e.currentTarget as HTMLElement).style.boxShadow = '0 12px 40px -8px rgba(212,175,55,0.15), 0 0 0 1px rgba(212,175,55,0.15)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
+                                    (e.currentTarget as HTMLElement).style.boxShadow = '';
+                                }}
                             >
                                 <div className="flex items-start justify-between mb-3">
-                                    <div>
-                                        <p className="text-lg font-black tracking-tight text-white" style={{ fontFamily: "var(--font-data)" }}>
-                                            {item.ticker}
-                                        </p>
-                                        <p className="text-[10px] text-gray-600 truncate max-w-[140px]">{item.name ?? item.ticker}</p>
+                                    <div className="flex items-center gap-2">
+                                        {/* Signal dot */}
+                                        <span className="w-2 h-2 rounded-full flex-shrink-0"
+                                            style={{ background: sigDotColor, boxShadow: `0 0 8px ${sigDotColor}60` }} />
+                                        <div>
+                                            <p className="text-lg font-black tracking-tight text-white" style={{ fontFamily: "var(--font-data)" }}>
+                                                {item.ticker}
+                                            </p>
+                                            <p className="text-[10px] text-gray-600 truncate max-w-[140px]">{item.name ?? item.ticker}</p>
+                                        </div>
                                     </div>
                                     {sig !== "—" && (
                                         <span className={`text-[9px] font-black px-2 py-1 rounded-md border uppercase flex-shrink-0 ${sigColor}`}>
@@ -182,7 +243,7 @@ export default function TerminalView({
 
     // ── Active Terminal — Decision First layout ─────────────────────────────
     return (
-        <div className="space-y-5" style={{ animation: "fadeSlideIn 0.3s ease both" }}>
+        <div className="space-y-5 bg-grid-dense" style={{ animation: "fadeSlideIn 0.3s ease both" }}>
             {/* Main Grid — Verdict + Environment */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
                 {/* Left: Decision Column (2/3) */}

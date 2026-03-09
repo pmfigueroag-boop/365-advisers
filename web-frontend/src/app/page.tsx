@@ -13,6 +13,7 @@ import SystemView from "@/components/views/SystemView";
 import StrategyLabView from "@/components/views/StrategyLabView";
 import MarketplaceView from "@/components/views/MarketplaceView";
 import AIAssistantView from "@/components/views/AIAssistantView";
+import PilotDashboardView from "@/components/views/PilotDashboardView";
 import HelpPanel from "@/components/HelpPanel";
 import OnboardingOverlay, { useOnboarding } from "@/components/OnboardingOverlay";
 import ReportHeader from "@/components/ReportHeader";
@@ -201,7 +202,7 @@ export default function Home() {
         const viewMap: Record<string, ViewId> = {
           "1": "terminal", "2": "market", "3": "ideas", "4": "analysis",
           "5": "portfolio", "6": "system", "7": "strategy-lab",
-          "8": "marketplace", "9": "ai-assistant",
+          "8": "marketplace", "9": "ai-assistant", "0": "pilot",
         };
         const view = viewMap[e.key];
         if (view) { e.preventDefault(); setActiveView(view); return; }
@@ -411,6 +412,10 @@ export default function Home() {
 
               {activeView === "system" && (
                 <SystemView />
+              )}
+
+              {activeView === "pilot" && (
+                <PilotDashboardView />
               )}
 
               {activeView === "marketplace" && (

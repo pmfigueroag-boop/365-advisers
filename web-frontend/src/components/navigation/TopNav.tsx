@@ -19,11 +19,12 @@ import {
     FlaskConical,
     Store,
     Sparkles,
+    Rocket,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type ViewId = "terminal" | "market" | "ideas" | "analysis" | "portfolio" | "system" | "strategy-lab" | "marketplace" | "ai-assistant";
+export type ViewId = "terminal" | "market" | "ideas" | "analysis" | "portfolio" | "system" | "pilot" | "strategy-lab" | "marketplace" | "ai-assistant";
 
 interface TopNavProps {
     activeView: ViewId;
@@ -58,6 +59,7 @@ const TABS: { id: ViewId; label: string; icon: React.ReactNode }[] = [
     { id: "analysis", label: "Analysis", icon: <Microscope size={13} /> },
     { id: "portfolio", label: "Portfolio", icon: <Briefcase size={13} /> },
     { id: "system", label: "System", icon: <Brain size={13} /> },
+    { id: "pilot", label: "Pilot", icon: <Rocket size={13} /> },
     { id: "strategy-lab", label: "Strategy Lab", icon: <FlaskConical size={13} /> },
     { id: "marketplace", label: "Marketplace", icon: <Store size={13} /> },
     { id: "ai-assistant", label: "AI Assistant", icon: <Sparkles size={13} /> },
@@ -86,11 +88,20 @@ export default function TopNav({
     analysisLoading,
 }: TopNavProps) {
     return (
-        <header className="flex flex-col gap-3">
+        <header className="flex flex-col gap-3" style={{ position: 'sticky', top: 0, zIndex: 50 }}>
             {/* ── Row 1: Logo + Search + Actions ── */}
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4"
+                style={{
+                    background: 'rgba(6, 9, 19, 0.85)',
+                    backdropFilter: 'blur(20px) saturate(1.3)',
+                    WebkitBackdropFilter: 'blur(20px) saturate(1.3)',
+                    borderRadius: '16px',
+                    padding: '12px 16px',
+                    border: '1px solid rgba(212, 175, 55, 0.06)',
+                    boxShadow: '0 8px 32px -8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)',
+                }}>
                 <div className="flex items-center gap-3">
-                    <div className="relative bg-gradient-to-br from-[#d4af37] to-[#b8962e] p-2 rounded-xl glow-ring breathe">
+                    <div className="relative bg-gradient-to-br from-[#d4af37] to-[#b8962e] p-2.5 rounded-xl shadow-[0_0_24px_-4px_rgba(212,175,55,0.4)] breathe">
                         <TrendingUp size={22} className="text-black" />
                     </div>
                     <div>
@@ -123,7 +134,10 @@ export default function TopNav({
                         id="analyze-btn"
                         onClick={onAnalyze}
                         disabled={isLoading}
-                        className="bg-gradient-to-r from-[#d4af37] to-[#e8c84a] text-black font-bold px-5 py-2 rounded-2xl hover:brightness-110 transition-all disabled:opacity-50 flex items-center gap-2 text-sm shadow-[0_0_16px_-4px_rgba(212,175,55,0.3)]"
+                        className="bg-gradient-to-r from-[#d4af37] to-[#e8c84a] text-black font-bold px-5 py-2.5 rounded-2xl hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2 text-sm"
+                        style={{
+                            boxShadow: '0 0 24px -4px rgba(212,175,55,0.45), 0 4px 12px -2px rgba(212,175,55,0.2)',
+                        }}
                     >
                         {isLoading ? (
                             <><Loader2 className="animate-spin" size={14} /><span>Analyzing…</span></>
@@ -188,29 +202,39 @@ export default function TopNav({
                 </div>
             </div>
 
-            {/* ── Row 2: 5-Tab Navigation ── */}
-            <div className="flex gap-1 p-1 glass-card border-[#30363d] rounded-2xl w-full overflow-x-auto">
-                {TABS.map((tab) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => onViewChange(tab.id)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeView === tab.id
-                            ? "tab-active"
-                            : "text-gray-500 tab-inactive"
-                            }`}
-                    >
-                        {tab.icon}
-                        {tab.label}
-                        {tab.id === "analysis" && analysisLoading && (
-                            <Loader2 size={9} className="animate-spin" />
-                        )}
-                        {tab.id === "analysis" && analysisScore != null && !analysisLoading && (
-                            <span className="bg-black/20 text-black rounded-md px-1.5 text-[8px] font-mono">
-                                {analysisScore.toFixed(1)}
-                            </span>
-                        )}
-                    </button>
-                ))}
+            {/* ── Row 2: Tab Navigation ── */}
+            <div className="flex gap-1 p-1 glass-card border-[#30363d] rounded-2xl w-full overflow-x-auto scan-lines">
+                {TABS.map((tab) => {
+                    const isActive = activeView === tab.id;
+                    return (
+                        <button
+                            key={tab.id}
+                            onClick={() => onViewChange(tab.id)}
+                            className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${isActive
+                                ? "tab-active"
+                                : "text-gray-500 tab-inactive"
+                                }`}
+                        >
+                            {/* Active dot indicator */}
+                            {isActive && (
+                                <span
+                                    className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#d4af37]"
+                                    style={{ boxShadow: '0 0 6px 1px rgba(212,175,55,0.6)' }}
+                                />
+                            )}
+                            {tab.icon}
+                            {tab.label}
+                            {tab.id === "analysis" && analysisLoading && (
+                                <Loader2 size={9} className="animate-spin" />
+                            )}
+                            {tab.id === "analysis" && analysisScore != null && !analysisLoading && (
+                                <span className="bg-black/20 text-black rounded-md px-1.5 text-[8px] font-mono">
+                                    {analysisScore.toFixed(1)}
+                                </span>
+                            )}
+                        </button>
+                    );
+                })}
             </div>
 
             {/* Separator */}

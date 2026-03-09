@@ -24,6 +24,7 @@ import {
     Sparkles,
     Star,
     TrendingUp,
+    Rocket,
 } from "lucide-react";
 import type { ViewId } from "../navigation/TopNav";
 
@@ -41,6 +42,7 @@ const VIEW_CONTEXT: Record<ViewId, LeftNavContext> = {
     analysis: { icon: <Microscope size={18} />, label: "Deep Analysis" },
     portfolio: { icon: <Briefcase size={18} />, label: "Portfolio" },
     system: { icon: <Brain size={18} />, label: "System Intel" },
+    pilot: { icon: <Rocket size={18} />, label: "Pilot" },
     "strategy-lab": { icon: <FlaskConical size={18} />, label: "Strategy Lab" },
     marketplace: { icon: <Store size={18} />, label: "Marketplace" },
     "ai-assistant": { icon: <Sparkles size={18} />, label: "AI Assistant" },

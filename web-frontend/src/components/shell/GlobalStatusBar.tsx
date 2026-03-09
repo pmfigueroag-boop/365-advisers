@@ -43,6 +43,7 @@ const VIEW_LABELS: Record<ViewId, string> = {
     analysis: "DEEP ANALYSIS",
     portfolio: "PORTFOLIO INTELLIGENCE",
     system: "SYSTEM INTELLIGENCE",
+    pilot: "PILOT COMMAND CENTER",
     "strategy-lab": "STRATEGY LAB",
     marketplace: "STRATEGY MARKETPLACE",
     "ai-assistant": "AI ASSISTANT",

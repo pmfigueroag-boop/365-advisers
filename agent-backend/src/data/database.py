@@ -949,6 +949,78 @@ class LiquidityProfileRecord(Base):
     updated_at               = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
+# ─── Pilot Deployment Tables ─────────────────────────────────────────────────
+
+class PilotRunRecord(Base):
+    """Master record for a pilot deployment run."""
+    __tablename__ = "pilot_runs"
+
+    id           = Column(Integer, primary_key=True, autoincrement=True)
+    pilot_id     = Column(String(36), nullable=False, unique=True, index=True)
+    phase        = Column(String(20), nullable=False, default="setup")  # setup|observation|paper_trading|evaluation|completed
+    week         = Column(Integer, default=0)
+    start_date   = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    end_date     = Column(DateTime)
+    config_json  = Column(Text, default="{}")    # Portfolio IDs, counters, settings
+    is_active    = Column(Boolean, default=True)
+    created_at   = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class PilotDailySnapshotRecord(Base):
+    """Daily portfolio snapshot for pilot performance tracking."""
+    __tablename__ = "pilot_daily_snapshots"
+    __table_args__ = (
+        Index("idx_pilot_snap_portfolio", "pilot_id", "portfolio_id", "snapshot_date"),
+    )
+
+    id                = Column(Integer, primary_key=True, autoincrement=True)
+    pilot_id          = Column(String(36), nullable=False, index=True)
+    portfolio_id      = Column(String(36), nullable=False, index=True)
+    snapshot_date     = Column(DateTime, nullable=False)
+    nav               = Column(Float, default=1000000.0)
+    daily_return      = Column(Float, default=0.0)
+    cumulative_return = Column(Float, default=0.0)
+    drawdown          = Column(Float, default=0.0)
+    positions_count   = Column(Integer, default=0)
+    signal_count      = Column(Integer, default=0)
+    metrics_json      = Column(Text, default="{}")
+
+
+class PilotAlertRecord(Base):
+    """Persistent record of pilot alerts and their actions."""
+    __tablename__ = "pilot_alerts"
+    __table_args__ = (
+        Index("idx_pilot_alert_type", "pilot_id", "alert_type", "created_at"),
+    )
+
+    id           = Column(Integer, primary_key=True, autoincrement=True)
+    alert_id     = Column(String(36), nullable=False, index=True)
+    pilot_id     = Column(String(36), nullable=False, index=True)
+    alert_type   = Column(String(40), nullable=False)
+    severity     = Column(String(20), nullable=False)
+    portfolio_id = Column(String(36))
+    message      = Column(Text)
+    auto_action  = Column(String(40))
+    resolved     = Column(Boolean, default=False)
+    created_at   = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class PilotMetricRecord(Base):
+    """Rolling pilot metrics store."""
+    __tablename__ = "pilot_metrics"
+    __table_args__ = (
+        Index("idx_pilot_metric_type", "pilot_id", "metric_type", "computed_at"),
+    )
+
+    id           = Column(Integer, primary_key=True, autoincrement=True)
+    pilot_id     = Column(String(36), nullable=False, index=True)
+    metric_type  = Column(String(30), nullable=False)   # signal|idea|strategy|portfolio|system
+    metric_name  = Column(String(50), nullable=False)
+    value        = Column(Float, default=0.0)
+    category     = Column(String(30))                    # signal category, strategy id, portfolio type
+    computed_at  = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
 # ─── Create tables ────────────────────────────────────────────────────────────
 
 def init_db():
