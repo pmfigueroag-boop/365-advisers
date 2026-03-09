@@ -37,6 +37,17 @@ class Settings(BaseSettings):
     SEC_EDGAR_EMAIL: str = ""
     # GDELT is fully open — no key needed
 
+    # ── New provider keys (multi-source integration layer) ────────────────
+    ALPHA_VANTAGE_API_KEY: str = ""
+    TWELVE_DATA_API_KEY: str = ""
+    FMP_API_KEY: str = ""
+    STOCKTWITS_API_KEY: str = ""          # optional for higher rate limit
+    SANTIMENT_API_KEY: str = ""
+    SIMILARWEB_API_KEY: str = ""          # commercial — stub only
+    THINKNUM_API_KEY: str = ""            # commercial — stub only
+    CBOE_API_KEY: str = ""                # public data, key optional
+    OPTIONMETRICS_API_KEY: str = ""       # commercial — stub only
+
     # Provider timeouts (seconds)
     EDPL_DEFAULT_TIMEOUT: int = 10
     EDPL_POLYGON_TIMEOUT: int = 10
@@ -46,6 +57,15 @@ class Settings(BaseSettings):
     EDPL_QUIVER_TIMEOUT: int = 12
     EDPL_EDGAR_TIMEOUT: int = 15
     EDPL_GDELT_TIMEOUT: int = 20
+    # New provider timeouts
+    EDPL_AV_TIMEOUT: int = 12             # Alpha Vantage
+    EDPL_TD_TIMEOUT: int = 10             # Twelve Data
+    EDPL_FMP_TIMEOUT: int = 10            # Financial Modeling Prep
+    EDPL_WB_TIMEOUT: int = 15             # World Bank
+    EDPL_ST_TIMEOUT: int = 8              # Stocktwits
+    EDPL_SAN_TIMEOUT: int = 10            # Santiment
+    EDPL_IMF_TIMEOUT: int = 15            # IMF
+    EDPL_CBOE_TIMEOUT: int = 10           # Cboe
 
     # Retry policy
     EDPL_DEFAULT_MAX_RETRIES: int = 2
@@ -64,6 +84,9 @@ class Settings(BaseSettings):
     EDPL_CACHE_TTL_MACRO: int = 21600      # 6 hours
     EDPL_CACHE_TTL_FILING_EVENTS: int = 86400  # 24 hours
     EDPL_CACHE_TTL_GEOPOLITICAL: int = 43200   # 12 hours
+    EDPL_CACHE_TTL_FUNDAMENTAL: int = 86400    # 24 hours
+    EDPL_CACHE_TTL_ALTERNATIVE: int = 86400    # 24 hours
+    EDPL_CACHE_TTL_VOLATILITY: int = 900       # 15 min
 
     # Feature flags — enable/disable entire data domains
     EDPL_ENABLE_MARKET_DATA: bool = True
@@ -74,6 +97,9 @@ class Settings(BaseSettings):
     EDPL_ENABLE_MACRO: bool = True
     EDPL_ENABLE_FILING_EVENTS: bool = True
     EDPL_ENABLE_GEOPOLITICAL: bool = True
+    EDPL_ENABLE_FUNDAMENTAL: bool = True
+    EDPL_ENABLE_ALTERNATIVE: bool = True
+    EDPL_ENABLE_VOLATILITY: bool = True
 
     # ── Database
     DATABASE_URL: str = "sqlite:///advisers.db"  # Override with postgresql+psycopg://... in .env

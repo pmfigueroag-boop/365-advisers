@@ -33,6 +33,10 @@ class DataDomain(str, Enum):
     MACRO = "macro"
     FILING_EVENTS = "filing_events"
     GEOPOLITICAL = "geopolitical"
+    # ── New domains (multi-source integration layer) ──
+    FUNDAMENTAL = "fundamental"
+    ALTERNATIVE = "alternative"
+    VOLATILITY = "volatility"
 
 
 class ProviderStatus(str, Enum):
@@ -92,6 +96,31 @@ class ProviderCapability(str, Enum):
     GEOPOLITICAL_EVENTS = "geopolitical_events"
     GEOPOLITICAL_TONE = "geopolitical_tone"
     COUNTRY_RISK = "country_risk"
+
+    # ── New capabilities (multi-source integration layer) ──────────────
+
+    # Fundamental Data
+    FINANCIAL_STATEMENTS = "financial_statements"
+    FINANCIAL_RATIOS = "financial_ratios"
+    ANALYST_ESTIMATES = "analyst_estimates"
+    COMPANY_PROFILE = "company_profile"
+
+    # Extended Macro
+    GDP_DATA = "gdp_data"
+    INFLATION_DATA = "inflation_data"
+    LABOR_DATA = "labor_data"
+
+    # Social / Community Sentiment
+    SOCIAL_SENTIMENT = "social_sentiment"
+
+    # Alternative Data
+    WEB_TRAFFIC = "web_traffic"
+    ALT_DATASETS = "alt_datasets"
+
+    # Extended Options / Volatility
+    OPTIONS_CHAIN_FULL = "options_chain_full"
+    VOLATILITY_SURFACE = "volatility_surface"
+    VIX_DATA = "vix_data"
 
 
 # ─── Request / Response Models ────────────────────────────────────────────────

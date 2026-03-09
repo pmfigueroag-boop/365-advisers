@@ -51,7 +51,14 @@ async def lifespan(app: FastAPI):
     from src.data.external.contracts.institutional import InstitutionalFlowData
     from src.data.external.contracts.sentiment import NewsSentimentData
     from src.data.external.contracts.macro import MacroContext
+    from src.data.external.contracts.filing_event import FilingEventData
+    from src.data.external.contracts.asset_profile import AssetProfile
+    from src.data.external.contracts.sentiment_signal import SentimentSignal
+    from src.data.external.contracts.alternative_signal import AlternativeSignal
+    from src.data.external.contracts.volatility_snapshot import VolatilitySnapshot
     from src.routes.providers import init_provider_routes
+    from src.routes.market_data_api import init_market_data_routes
+    from src.data.external.scheduler import SyncManager
 
     registry = ProviderRegistry()
     health_checker = HealthChecker(
@@ -68,8 +75,13 @@ async def lifespan(app: FastAPI):
             DataDomain.INSTITUTIONAL: InstitutionalFlowData.empty,
             DataDomain.SENTIMENT: NewsSentimentData.empty,
             DataDomain.MACRO: MacroContext.default,
+            DataDomain.FILING_EVENTS: FilingEventData.empty,
+            DataDomain.FUNDAMENTAL: AssetProfile.empty,
+            DataDomain.ALTERNATIVE: AlternativeSignal.empty,
+            DataDomain.VOLATILITY: VolatilitySnapshot.empty,
         },
     )
+    sync_manager = SyncManager()
 
     # Store on app state for access by routes / engines
     app.state.edpl_registry = registry
@@ -78,6 +90,7 @@ async def lifespan(app: FastAPI):
 
     # Inject into provider routes
     init_provider_routes(registry, health_checker)
+    init_market_data_routes(fallback_router, sync_manager)
 
     # ── Register concrete adapters (conditional on API keys) ─────────────
     if settings.POLYGON_API_KEY and settings.EDPL_ENABLE_MARKET_DATA:
@@ -122,10 +135,75 @@ async def lifespan(app: FastAPI):
         health_checker.register_provider(macro.name, macro.domain)
         logger.info("Macro adapter registered")
 
+    # ── New adapters (multi-source integration layer) ─────────────────────
+    if settings.ALPHA_VANTAGE_API_KEY and settings.EDPL_ENABLE_MARKET_DATA:
+        from src.data.external.adapters.alpha_vantage import AlphaVantageAdapter
+        av = AlphaVantageAdapter()
+        registry.register(av)
+        health_checker.register_provider(av.name, av.domain)
+        logger.info("Alpha Vantage adapter registered")
+
+    if settings.TWELVE_DATA_API_KEY and settings.EDPL_ENABLE_MARKET_DATA:
+        from src.data.external.adapters.twelve_data import TwelveDataAdapter
+        td = TwelveDataAdapter()
+        registry.register(td)
+        health_checker.register_provider(td.name, td.domain)
+        logger.info("Twelve Data adapter registered")
+
+    if settings.FMP_API_KEY and settings.EDPL_ENABLE_FUNDAMENTAL:
+        from src.data.external.adapters.fmp import FMPAdapter
+        fmp = FMPAdapter()
+        registry.register(fmp)
+        health_checker.register_provider(fmp.name, fmp.domain)
+        logger.info("FMP adapter registered")
+
+    if settings.EDPL_ENABLE_MACRO:
+        from src.data.external.adapters.world_bank import WorldBankAdapter
+        wb = WorldBankAdapter()
+        registry.register(wb)
+        health_checker.register_provider(wb.name, wb.domain)
+        logger.info("World Bank adapter registered")
+
+        from src.data.external.adapters.imf import IMFAdapter
+        imf = IMFAdapter()
+        registry.register(imf)
+        health_checker.register_provider(imf.name, imf.domain)
+        logger.info("IMF adapter registered")
+
+    if settings.EDPL_ENABLE_SENTIMENT:
+        from src.data.external.adapters.stocktwits import StocktwitsAdapter
+        st = StocktwitsAdapter()
+        registry.register(st)
+        health_checker.register_provider(st.name, st.domain)
+        logger.info("Stocktwits adapter registered")
+
+    if settings.SANTIMENT_API_KEY and settings.EDPL_ENABLE_SENTIMENT:
+        from src.data.external.adapters.santiment import SantimentAdapter
+        san = SantimentAdapter()
+        registry.register(san)
+        health_checker.register_provider(san.name, san.domain)
+        logger.info("Santiment adapter registered")
+
+    if settings.EDPL_ENABLE_VOLATILITY:
+        from src.data.external.adapters.cboe import CboeAdapter
+        cboe = CboeAdapter()
+        registry.register(cboe)
+        health_checker.register_provider(cboe.name, cboe.domain)
+        logger.info("Cboe adapter registered")
+
+    # ── Commercial stubs (always register for capability introspection) ───
+    from src.data.external.adapters.stubs import (
+        MorningstarAdapter, SimilarwebAdapter, ThinknumAdapter, OptionMetricsAdapter,
+    )
+    for stub_cls in [MorningstarAdapter, SimilarwebAdapter, ThinknumAdapter, OptionMetricsAdapter]:
+        stub = stub_cls()
+        registry.register(stub)
+        health_checker.register_provider(stub.name, stub.domain)
+
     logger.info("EDPL initialised — %d adapters registered across %d domains", sum(
         len(registry.get_all(d)) for d in registry.list_domains()
     ), len(registry.list_domains()))
-    logger.info("365 Advisers API started (v3.2 — full EDPL)")
+    logger.info("365 Advisers API started (v3.3 — multi-source integration layer)")
     yield
 
 
@@ -190,6 +268,8 @@ from src.routes.dl_signals import router as dl_signals_router
 from src.routes.nlp_signals import router as nlp_signals_router
 from src.routes.alt_data import router as alt_data_router
 from src.routes.rl_optimisation import router as rl_optimisation_router
+from src.routes.market_data_api import router as market_data_api_router
+from src.routes.alpha_intelligence import router as alpha_intelligence_router
 
 app.include_router(health_router)
 app.include_router(analysis_router)
@@ -232,8 +312,10 @@ app.include_router(dl_signals_router)
 app.include_router(nlp_signals_router)
 app.include_router(alt_data_router)
 app.include_router(rl_optimisation_router)
+app.include_router(market_data_api_router)
+app.include_router(alpha_intelligence_router)
 
-logger.info(f"Mounted {len(app.routes)} routes across 41 routers")
+logger.info(f"Mounted {len(app.routes)} routes across 43 routers")
 
 
 # ── Dev Server ───────────────────────────────────────────────────────────────
