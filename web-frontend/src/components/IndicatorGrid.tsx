@@ -46,7 +46,7 @@ function ScoreBar({ value, label }: { value: number; label: string }) {
                 <span className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">
                     {label}
                 </span>
-                <span className="text-[10px] font-mono text-gray-300">{value.toFixed(1)}</span>
+                <span className="text-[10px] font-mono tabular-nums text-gray-300">{value.toFixed(1)}</span>
             </div>
             <div className="h-1 bg-[#21262d] rounded-full overflow-hidden">
                 <div
@@ -81,11 +81,11 @@ function TrendCard({ data }: { data: TechnicalAnalysisResult }) {
             <div className="space-y-1.5 text-[9px]">
                 <div className="flex justify-between">
                     <span className="text-gray-600"><GlossaryTooltip term="SMA" label="SMA 50" /></span>
-                    <span className={`font-mono font-bold ${statusColor(t.price_vs_sma50)}`}>{t.price_vs_sma50}</span>
+                    <span className={`font-mono font-bold tabular-nums ${statusColor(t.price_vs_sma50)}`}>{t.price_vs_sma50}</span>
                 </div>
                 <div className="flex justify-between">
                     <span className="text-gray-600"><GlossaryTooltip term="SMA" label="SMA 200" /></span>
-                    <span className={`font-mono font-bold ${statusColor(t.price_vs_sma200)}`}>{t.price_vs_sma200}</span>
+                    <span className={`font-mono font-bold tabular-nums ${statusColor(t.price_vs_sma200)}`}>{t.price_vs_sma200}</span>
                 </div>
                 <div className="flex justify-between">
                     <span className="text-gray-600"><GlossaryTooltip term="MACD" label="MACD Cross" /></span>
@@ -129,7 +129,7 @@ function MomentumCard({ data }: { data: TechnicalAnalysisResult }) {
             <div className="space-y-1">
                 <div className="flex justify-between text-[9px]">
                     <span className="text-gray-600">RSI (14)</span>
-                    <span className={`font-mono font-bold ${statusColor(m.rsi_zone)}`}>{m.rsi.toFixed(1)}</span>
+                    <span className={`font-mono font-bold tabular-nums ${statusColor(m.rsi_zone)}`}>{m.rsi.toFixed(1)}</span>
                 </div>
                 <div className="relative h-2 bg-[#21262d] rounded-full overflow-hidden">
                     <div className="absolute inset-y-0 left-[30%] right-[30%] bg-gray-700/30" />
@@ -152,7 +152,7 @@ function MomentumCard({ data }: { data: TechnicalAnalysisResult }) {
                 </div>
                 <div className="flex justify-between">
                     <span className="text-gray-600"><GlossaryTooltip term="Stochastic" label="Stoch %K" /></span>
-                    <span className={`font-mono font-bold ${statusColor(m.stochastic_zone)}`}>{m.stochastic_k.toFixed(1)}</span>
+                    <span className={`font-mono font-bold tabular-nums ${statusColor(m.stochastic_zone)}`}>{m.stochastic_k.toFixed(1)}</span>
                 </div>
             </div>
         </div>
@@ -184,11 +184,11 @@ function VolatilityCard({ data }: { data: TechnicalAnalysisResult }) {
                 </div>
                 <div className="flex justify-between">
                     <span className="text-gray-600">BB Width</span>
-                    <span className="font-mono text-gray-300">{v.bb_width.toFixed(2)}</span>
+                    <span className="font-mono tabular-nums text-gray-300">{v.bb_width.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                     <span className="text-gray-600"><GlossaryTooltip term="ATR" label="ATR" /></span>
-                    <span className="font-mono text-gray-300">{v.atr.toFixed(2)} ({(v.atr_pct * 100).toFixed(1)}%)</span>
+                    <span className="font-mono tabular-nums text-gray-300">{v.atr.toFixed(2)} ({(v.atr_pct * 100).toFixed(1)}%)</span>
                 </div>
             </div>
         </div>

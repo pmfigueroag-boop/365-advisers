@@ -11,6 +11,11 @@ import {
     Zap,
     Clock,
     Star,
+    Map,
+    FlaskConical,
+    Store,
+    Sparkles,
+    Rocket,
 } from "lucide-react";
 import type { ViewId } from "./TopNav";
 
@@ -39,10 +44,15 @@ interface CommandPaletteProps {
 function buildViewCommands(onNavigate: (v: ViewId) => void): CommandItem[] {
     return [
         { id: "v-terminal", label: "Terminal", sublabel: "Investment decisions", icon: <Monitor size={14} />, type: "view", action: () => onNavigate("terminal") },
+        { id: "v-market", label: "Market Intelligence", sublabel: "Opportunity radar & regime", icon: <Map size={14} />, type: "view", action: () => onNavigate("market") },
         { id: "v-ideas", label: "Idea Explorer", sublabel: "Opportunity ranking", icon: <Lightbulb size={14} />, type: "view", action: () => onNavigate("ideas") },
         { id: "v-analysis", label: "Deep Analysis", sublabel: "Full evidence review", icon: <Microscope size={14} />, type: "view", action: () => onNavigate("analysis") },
         { id: "v-portfolio", label: "Portfolio Intelligence", sublabel: "Risk & allocation", icon: <Briefcase size={14} />, type: "view", action: () => onNavigate("portfolio") },
         { id: "v-system", label: "System Intelligence", sublabel: "Signal health monitor", icon: <Brain size={14} />, type: "view", action: () => onNavigate("system") },
+        { id: "v-pilot", label: "Pilot Command Center", sublabel: "12-week paper trading validation", icon: <Rocket size={14} />, type: "view", action: () => onNavigate("pilot") },
+        { id: "v-strategy-lab", label: "Strategy Lab", sublabel: "Bloomberg 4-panel workspace", icon: <FlaskConical size={14} />, type: "view", action: () => onNavigate("strategy-lab") },
+        { id: "v-marketplace", label: "Marketplace", sublabel: "Pre-built strategies", icon: <Store size={14} />, type: "view", action: () => onNavigate("marketplace") },
+        { id: "v-ai-assistant", label: "AI Assistant", sublabel: "Knowledge Graph chat", icon: <Sparkles size={14} />, type: "view", action: () => onNavigate("ai-assistant") },
     ];
 }
 

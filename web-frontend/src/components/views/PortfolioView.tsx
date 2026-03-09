@@ -98,28 +98,30 @@ export default function PortfolioView({ historyEntries }: PortfolioViewProps) {
     return (
         <div className="space-y-6" style={{ animation: "fadeSlideIn 0.3s ease both" }}>
             {/* Intelligence Panels — shown when we have history data */}
-            {portfolioMetrics && (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                    <ErrorBoundary>
-                        <AllocationChart entries={portfolioMetrics.allocEntries} />
-                    </ErrorBoundary>
-                    <ErrorBoundary>
-                        <RiskBudgetPanel
-                            var95={portfolioMetrics.var95}
-                            maxDrawdown={portfolioMetrics.maxDrawdown}
-                            sharpeEstimate={portfolioMetrics.sharpeEstimate}
-                            portfolioVolatility={portfolioMetrics.portfolioVolatility}
-                        />
-                    </ErrorBoundary>
-                    <ErrorBoundary>
-                        <ScenarioAnalysisPanel
-                            bullReturn={portfolioMetrics.bullReturn}
-                            baseReturn={portfolioMetrics.baseReturn}
-                            bearReturn={portfolioMetrics.bearReturn}
-                        />
-                    </ErrorBoundary>
-                </div>
-            )}
+            <div>
+                {portfolioMetrics && (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
+                        <ErrorBoundary>
+                            <AllocationChart entries={portfolioMetrics.allocEntries} />
+                        </ErrorBoundary>
+                        <ErrorBoundary>
+                            <RiskBudgetPanel
+                                var95={portfolioMetrics.var95}
+                                maxDrawdown={portfolioMetrics.maxDrawdown}
+                                sharpeEstimate={portfolioMetrics.sharpeEstimate}
+                                portfolioVolatility={portfolioMetrics.portfolioVolatility}
+                            />
+                        </ErrorBoundary>
+                        <ErrorBoundary>
+                            <ScenarioAnalysisPanel
+                                bullReturn={portfolioMetrics.bullReturn}
+                                baseReturn={portfolioMetrics.baseReturn}
+                                bearReturn={portfolioMetrics.bearReturn}
+                            />
+                        </ErrorBoundary>
+                    </div>
+                )}
+            </div>
 
             {/* Existing Portfolio Dashboard */}
             <ErrorBoundary>

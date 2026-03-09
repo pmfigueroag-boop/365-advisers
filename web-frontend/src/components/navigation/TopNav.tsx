@@ -52,17 +52,17 @@ interface TopNavProps {
 
 // ─── Tab Config ───────────────────────────────────────────────────────────────
 
-const TABS: { id: ViewId; label: string; icon: React.ReactNode }[] = [
-    { id: "terminal", label: "Terminal", icon: <Monitor size={13} /> },
-    { id: "market", label: "Market", icon: <Map size={13} /> },
-    { id: "ideas", label: "Ideas", icon: <Lightbulb size={13} /> },
-    { id: "analysis", label: "Analysis", icon: <Microscope size={13} /> },
-    { id: "portfolio", label: "Portfolio", icon: <Briefcase size={13} /> },
-    { id: "system", label: "System", icon: <Brain size={13} /> },
-    { id: "pilot", label: "Pilot", icon: <Rocket size={13} /> },
-    { id: "strategy-lab", label: "Strategy Lab", icon: <FlaskConical size={13} /> },
-    { id: "marketplace", label: "Marketplace", icon: <Store size={13} /> },
-    { id: "ai-assistant", label: "AI Assistant", icon: <Sparkles size={13} /> },
+const TABS: { id: ViewId; label: string; icon: React.ReactNode; title: string }[] = [
+    { id: "terminal", label: "Terminal", icon: <Monitor size={13} />, title: "Investment decisions — score, verdict, allocation" },
+    { id: "market", label: "Market", icon: <Map size={13} />, title: "Market regime, sector heatmap, signal clusters" },
+    { id: "ideas", label: "Ideas", icon: <Lightbulb size={13} />, title: "AI-ranked investment opportunities" },
+    { id: "analysis", label: "Analysis", icon: <Microscope size={13} />, title: "Full fundamental + technical evidence" },
+    { id: "portfolio", label: "Portfolio", icon: <Briefcase size={13} />, title: "Risk analysis & position sizing" },
+    { id: "system", label: "System", icon: <Brain size={13} />, title: "Signal health, drift alerts, providers" },
+    { id: "pilot", label: "Pilot", icon: <Rocket size={13} />, title: "12-week paper trading validation" },
+    { id: "strategy-lab", label: "Strategy Lab", icon: <FlaskConical size={13} />, title: "Bloomberg-style research workspace" },
+    { id: "marketplace", label: "Marketplace", icon: <Store size={13} />, title: "Pre-built institutional strategies" },
+    { id: "ai-assistant", label: "AI Assistant", icon: <Sparkles size={13} />, title: "Knowledge Graph conversational AI" },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -210,6 +210,8 @@ export default function TopNav({
                         <button
                             key={tab.id}
                             onClick={() => onViewChange(tab.id)}
+                            aria-current={isActive ? "page" : undefined}
+                            title={tab.title}
                             className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${isActive
                                 ? "tab-active"
                                 : "text-gray-500 tab-inactive"
@@ -228,7 +230,7 @@ export default function TopNav({
                                 <Loader2 size={9} className="animate-spin" />
                             )}
                             {tab.id === "analysis" && analysisScore != null && !analysisLoading && (
-                                <span className="bg-black/20 text-black rounded-md px-1.5 text-[8px] font-mono">
+                                <span className="bg-[#d4af37]/20 text-[#d4af37] rounded-md px-1.5 text-[8px] font-mono font-bold">
                                     {analysisScore.toFixed(1)}
                                 </span>
                             )}

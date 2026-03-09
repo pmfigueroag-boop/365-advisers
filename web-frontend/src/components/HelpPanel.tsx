@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import {
     X,
     HelpCircle,
@@ -12,6 +13,13 @@ import {
     Briefcase,
     ChevronDown,
     ChevronRight,
+    Globe,
+    Activity,
+    FlaskConical,
+    Store,
+    Bot,
+    Radio,
+    Settings,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -19,9 +27,11 @@ import {
 interface HelpPanelProps {
     open: boolean;
     onClose: () => void;
+    /** When true, renders as a full-page layout instead of an overlay sidebar */
+    standalone?: boolean;
 }
 
-type HelpTab = "start" | "fundamental" | "technical" | "combined" | "portfolio" | "ideas" | "tips";
+type HelpTab = "start" | "fundamental" | "technical" | "combined" | "signals" | "portfolio" | "ideas" | "market" | "system" | "pilot" | "strategylab" | "marketplace" | "assistant" | "tips";
 
 interface AccordionItemProps {
     title: string;
@@ -85,25 +95,32 @@ function StartSection() {
                 </div>
             </AccordionItem>
 
-            <AccordionItem title="Mapa de navegación" defaultOpen>
-                <p className="mb-2">La interfaz se organiza en <strong className="text-white">pestañas principales</strong> (arriba) y <strong className="text-white">sidebar</strong> (izquierda):</p>
+            <AccordionItem title="Mapa de navegación — 10 vistas" defaultOpen>
+                <p className="mb-2">La interfaz se organiza en <strong className="text-white">10 vistas principales</strong> (barra superior) y <strong className="text-white">sidebar</strong> (izquierda):</p>
                 <div className="space-y-1.5">
                     {[
-                        { tab: "Fundamental", desc: "Análisis IA con 4 analistas — memos individuales, ratios, Research Memo", icon: "🏛" },
-                        { tab: "Technical", desc: "15+ indicadores técnicos — tendencia, momentum, volatilidad, volumen, estructura", icon: "📈" },
-                        { tab: "Combined", desc: "Veredicto unificado del CIO — tesis, position sizing, score institucional", icon: "⚡" },
-                        { tab: "Portfolio", desc: "Construcción de portafolio Core-Satellite con Volatility Parity", icon: "💼" },
+                        { tab: "Terminal", desc: "Vista de inicio. Resumen ejecutivo, veredicto institucional y watchlist inteligente.", icon: "🖥️", key: "Alt+1" },
+                        { tab: "Market", desc: "Radar de mercado — clusters de señales, mapa de calor, régimen.", icon: "🗺️", key: "Alt+2" },
+                        { tab: "Ideas", desc: "Oportunidades del Idea Engine — Value, Quality, Momentum, Reversal, Event.", icon: "💡", key: "Alt+3" },
+                        { tab: "Analysis", desc: "Deep-dive: Fundamental (4 analistas IA), Technical (15+ indicadores), Combined (CIO).", icon: "🔬", key: "Alt+4" },
+                        { tab: "Portfolio", desc: "Construcción Core-Satellite con Volatility Parity y What-If Simulator.", icon: "💼", key: "Alt+5" },
+                        { tab: "System", desc: "Salud del pipeline, proveedores de datos, monitoreo de modelos.", icon: "🧠", key: "Alt+6" },
+                        { tab: "Strategy Lab", desc: "Workspace Bloomberg de 4 paneles para investigar estrategias.", icon: "🧪", key: "Alt+7" },
+                        { tab: "Marketplace", desc: "Catálogo de estrategias pre-construidas con backtest verificado.", icon: "🏬", key: "Alt+8" },
+                        { tab: "AI Assistant", desc: "Chat con IA con acceso al Knowledge Graph del sistema.", icon: "✨", key: "Alt+9" },
+                        { tab: "Pilot", desc: "Centro de comando — despliegue de 12 semanas con 3 portafolios paper.", icon: "�", key: "Alt+0" },
                     ].map(t => (
                         <div key={t.tab} className="flex items-start gap-2 bg-[#0d1117] rounded px-3 py-2 border border-[#21262d]">
                             <span>{t.icon}</span>
-                            <div>
+                            <div className="flex-1">
                                 <span className="text-white font-black text-[10px]">{t.tab}</span>
                                 <p className="text-gray-500 text-[9px]">{t.desc}</p>
                             </div>
+                            <kbd className="bg-[#21262d] border border-[#30363d] px-1.5 py-0.5 rounded text-[8px] font-mono text-gray-500 flex-shrink-0">{t.key}</kbd>
                         </div>
                     ))}
                 </div>
-                <p className="mt-2 text-gray-600 text-[10px]">En el sidebar: <strong className="text-white">Watch</strong> = watchlist, <strong className="text-white">History</strong> = últimos 50 análisis, <strong className="text-white">Ideas</strong> = oportunidades detectadas por el Idea Engine.</p>
+                <p className="mt-2 text-gray-600 text-[10px]">En el sidebar: <strong className="text-white">Watch</strong> = watchlist, <strong className="text-white">History</strong> = últimos 50 análisis, <strong className="text-white">Ideas</strong> = oportunidades detectadas automáticamente.</p>
             </AccordionItem>
 
             <AccordionItem title="Interpretación de señales">
@@ -161,12 +178,8 @@ function StartSection() {
                         <p className="text-gray-500 text-[10px] mt-0.5">Ve al tab <strong className="text-white">Combined</strong> y lee el veredicto del CIO. Incluye señal, confidence %, tesis de inversión, catalizadores y riesgos. Usa Position Sizing para el tamaño sugerido de la posición.</p>
                     </div>
                     <div>
-                        <p className="text-white text-[10px] font-bold">¿Puedo comparar varias acciones?</p>
-                        <p className="text-gray-500 text-[10px] mt-0.5">Sí. Clic en el icono ⇋ (Compare) en el header. Ingresa 2-3 tickers separados por coma y compara veredictos lado a lado.</p>
-                    </div>
-                    <div>
-                        <p className="text-white text-[10px] font-bold">¿Los tooltips del glosario están en español?</p>
-                        <p className="text-gray-500 text-[10px] mt-0.5">Sí. Pasa el cursor sobre cualquier término subrayado (RSI, P/E, ROIC, etc.) para ver su definición y cómo interpretarlo.</p>
+                        <p className="text-white text-[10px] font-bold">¿Puedo analizar varias acciones?</p>
+                        <p className="text-gray-500 text-[10px] mt-0.5">Sí. Analiza múltiples tickers y guárdalos en tu watchlist con ★. Luego ve al tab Portfolio para ver la cartera construida con todos tus análisis.</p>
                     </div>
                 </div>
             </AccordionItem>
@@ -238,7 +251,6 @@ function FundamentalSection() {
                     <li><strong className="text-white">Catalizadores</strong> — eventos futuros que podrían mover el precio</li>
                     <li><strong className="text-white">Riesgos</strong> — factores que podrían invalidar la tesis</li>
                 </ul>
-                <p className="mt-2 text-gray-600 text-[10px]">Usa el botón PDF (↓) en el header para exportar el memo como documento institucional.</p>
             </AccordionItem>
         </div>
     );
@@ -387,7 +399,7 @@ function PortfolioSection() {
     return (
         <div className="space-y-3">
             <p className="text-[10px] text-gray-500 px-1">
-                Motor de portafolio institucional: Core-Satellite allocation con Volatility Parity sizing. Persistencia en SQLite.
+                Motor de portafolio institucional: Core-Satellite allocation con Volatility Parity sizing. Persistencia en PostgreSQL.
             </p>
 
             <AccordionItem title="Portfolio Builder" defaultOpen>
@@ -405,12 +417,7 @@ function PortfolioSection() {
                 <ul className="mt-1.5 space-y-1">
                     <li><strong className="text-white">Inyectar ticker</strong> — agrega un activo del historial al portafolio simulado y ve cómo cambian los pesos</li>
                     <li><strong className="text-white">Remover ticker</strong> — elimina un activo y recalcula la distribución</li>
-                    <li><strong className="text-white">Comparar</strong> — ve side-by-side el portafolio base vs. el escenario simulado</li>
                 </ul>
-            </AccordionItem>
-
-            <AccordionItem title="Guardar portafolios">
-                <p>Clic en <strong className="text-white">Save Portfolio</strong> para persistir la configuración actual en la base de datos del servidor (SQLite). Los portafolios guardados aparecen en la lista inferior con nombre, estrategia y fecha.</p>
             </AccordionItem>
         </div>
     );
@@ -423,8 +430,10 @@ function TipsSection() {
                 <div className="space-y-1.5">
                     {[
                         ["Enter", "Ejecutar análisis (desde el campo de búsqueda)"],
-                        ["Shift + ?", "Abrir / cerrar este panel de ayuda"],
+                        ["Ctrl+K", "Abrir el Command Palette (navegación rápida)"],
+                        ["Shift+?", "Abrir / cerrar este panel de ayuda"],
                         ["Esc", "Cerrar este panel / overlays"],
+                        ["Alt+1-9,0", "Navegar entre las 10 vistas principales"],
                     ].map(([key, desc]) => (
                         <div key={key} className="flex items-center gap-3">
                             <kbd className="bg-[#21262d] border border-[#30363d] px-2 py-0.5 rounded text-[9px] font-mono text-gray-300 flex-shrink-0">
@@ -445,13 +454,12 @@ function TipsSection() {
                 </ul>
             </AccordionItem>
 
-            <AccordionItem title="Comparar tickers">
-                <p>Clic en el icono <strong className="text-white">⟳</strong> (Compare) en el header para activar el modo comparación. Introduce hasta 3 tickers separados por coma (ej. <code className="text-[#d4af37] bg-[#161b22] px-1 rounded">AAPL, MSFT, NVDA</code>) y compara el veredicto de los agentes en paralelo.</p>
+            <AccordionItem title="Analizar múltiples tickers">
+                <p>Para comparar activos, analiza cada uno individualmente y guárdalos en tu watchlist. El tab <strong className="text-white">Portfolio</strong> construye automáticamente una cartera óptima con todos tus análisis.</p>
             </AccordionItem>
 
             <AccordionItem title="Exportar análisis">
                 <ul className="space-y-1.5">
-                    <li><strong className="text-white">PDF</strong> — botón <strong className="text-white">↓</strong> en el header — exporta el Research Memo institucional completo</li>
                     <li><strong className="text-white">CSV</strong> — botón <strong className="text-white">CSV</strong> en el Combined tab — descarga ratios fundamentales + indicadores técnicos en formato tabular</li>
                 </ul>
             </AccordionItem>
@@ -472,7 +480,7 @@ function TipsSection() {
                     </div>
                     <div className="flex justify-between text-[10px] bg-[#0d1117] rounded px-3 py-2 border border-[#21262d]">
                         <span className="text-gray-400">Persistencia</span>
-                        <span className="text-[#d4af37] font-mono">SQLite (server)</span>
+                        <span className="text-[#d4af37] font-mono">PostgreSQL (server)</span>
                     </div>
                 </div>
                 <p className="mt-2 text-gray-600 text-[9px]">El badge <strong className="text-white">CACHED</strong> en el Combined timeline indica que la respuesta vino de la base de datos, no de una nueva llamada a la IA.</p>
@@ -581,6 +589,281 @@ function IdeasHelpSection() {
     );
 }
 
+// ─── Market Section ───────────────────────────────────────────────────────────
+
+function MarketSection() {
+    return (
+        <div className="space-y-3">
+            <p className="text-[10px] text-gray-500 px-1">
+                Vista panorámica del mercado. Muestra señales activas, clusters de oportunidades y el mapa de calor del universo.
+            </p>
+            <AccordionItem title="¿Qué es?" defaultOpen>
+                <p>La vista <strong className="text-white">Market</strong> (Alt+2) muestra el estado general del mercado y las oportunidades detectadas por el sistema. Es tu radar de mercado institucional.</p>
+            </AccordionItem>
+            <AccordionItem title="Componentes principales">
+                <ul className="space-y-1.5">
+                    <li><strong className="text-white">Signal Clusters</strong> — agrupaciones de señales activas por tipo (momentum, value, quality, reversal, event). Permite ver qué estilos están dominando.</li>
+                    <li><strong className="text-white">Opportunity Map</strong> — mapa de calor con los tickers más prometedores según el CASE score. Verde = oportunidad, rojo = riesgo.</li>
+                    <li><strong className="text-white">Market Regime</strong> — indicador del régimen actual (Bull, Bear, Sideways) basado en indicadores técnicos agregados.</li>
+                </ul>
+            </AccordionItem>
+            <AccordionItem title="Cómo interpretar">
+                <ul className="space-y-1.5">
+                    <li><strong className="text-white">Muchos clusters Value</strong> — el mercado puede estar sobrevendido, buenas oportunidades de compra</li>
+                    <li><strong className="text-white">Muchos clusters Momentum</strong> — tendencias fuertes activas, seguir la dirección</li>
+                    <li><strong className="text-white">Pocos clusters</strong> — mercado en pausa, esperar confirmación</li>
+                </ul>
+            </AccordionItem>
+        </div>
+    );
+}
+
+// ─── Signals / CASE Section ──────────────────────────────────────────────────
+
+function SignalsSection() {
+    return (
+        <div className="space-y-3">
+            <p className="text-[10px] text-gray-500 px-1">
+                Biblioteca de 50+ señales Alpha organizadas en 8 categorías, evaluadas por el pipeline CASE (Composite Alpha Score Engine).
+            </p>
+            <AccordionItem title="¿Qué es el CASE Score?" defaultOpen>
+                <p>El <strong className="text-white">Composite Alpha Score Engine (CASE)</strong> es el sistema de puntuación que combina múltiples señales en un score unificado de 0-100 para cada ticker:</p>
+                <div className="mt-2 space-y-1">
+                    <div className="flex justify-between bg-[#0d1117] rounded px-3 py-1.5 border border-[#21262d] text-[10px]">
+                        <span className="text-green-400 font-bold">80-100</span>
+                        <span className="text-gray-400">Oportunidad excepcional — múltiples señales confirman</span>
+                    </div>
+                    <div className="flex justify-between bg-[#0d1117] rounded px-3 py-1.5 border border-[#21262d] text-[10px]">
+                        <span className="text-[#d4af37] font-bold">60-79</span>
+                        <span className="text-gray-400">Señal moderada — vale la pena investigar</span>
+                    </div>
+                    <div className="flex justify-between bg-[#0d1117] rounded px-3 py-1.5 border border-[#21262d] text-[10px]">
+                        <span className="text-gray-400 font-bold">40-59</span>
+                        <span className="text-gray-400">Neutral — señales mixtas</span>
+                    </div>
+                    <div className="flex justify-between bg-[#0d1117] rounded px-3 py-1.5 border border-[#21262d] text-[10px]">
+                        <span className="text-red-400 font-bold">0-39</span>
+                        <span className="text-gray-400">Débil — pocas señales activas</span>
+                    </div>
+                </div>
+            </AccordionItem>
+            <AccordionItem title="Fórmula CASE: P×C×R">
+                <p>El CASE combina 3 dimensiones con pesos configurables:</p>
+                <ul className="mt-1.5 space-y-1">
+                    <li><strong className="text-white">P (Potencia)</strong> — fuerza bruta de la señal (cuántas sub-señales se activaron)</li>
+                    <li><strong className="text-white">C (Confianza)</strong> — confiabilidad histórica de la señal (hit rate, Sharpe)</li>
+                    <li><strong className="text-white">R (Relevancia)</strong> — frescura de la señal; las señales decaen exponencialmente con el tiempo</li>
+                </ul>
+            </AccordionItem>
+            <AccordionItem title="Las 8 categorías de señales">
+                <div className="space-y-1">
+                    {[
+                        { cat: "Momentum", desc: "Tendencia de precio (SMA, MACD, RSI)" },
+                        { cat: "Value", desc: "Valuación relativa (P/E, P/B, FCF Yield)" },
+                        { cat: "Quality", desc: "Calidad del negocio (ROIC, márgenes, deuda)" },
+                        { cat: "Growth", desc: "Crecimiento de ingresos, beneficios y expansión" },
+                        { cat: "Flow", desc: "Flujos institucionales y de opciones" },
+                        { cat: "Macro", desc: "Indicadores macroeconómicos" },
+                        { cat: "Volatility", desc: "Régimen de volatilidad y Bollinger" },
+                        { cat: "Event", desc: "Earnings, splits, catalizadores especiales" },
+                    ].map(s => (
+                        <div key={s.cat} className="flex items-center gap-2 bg-[#0d1117] rounded px-3 py-1.5 border border-[#21262d] text-[10px]">
+                            <span className="text-[#d4af37] font-bold w-20">{s.cat}</span>
+                            <span className="text-gray-400">{s.desc}</span>
+                        </div>
+                    ))}
+                </div>
+            </AccordionItem>
+            <AccordionItem title="Alpha Decay (vida media)">
+                <p>Cada señal tiene una <strong className="text-white">vida media</strong> — el tiempo en que mantiene su poder predictivo. El sistema aplica decaimiento exponencial automáticamente:</p>
+                <ul className="mt-1.5 space-y-1">
+                    <li><strong className="text-green-400">Fresca</strong> — señal recién generada, máxima potencia</li>
+                    <li><strong className="text-[#d4af37]">Madura</strong> — 50-80% de potencia restante</li>
+                    <li><strong className="text-red-400">Decaída</strong> — &lt;50% de potencia, considerar si aún es válida</li>
+                </ul>
+            </AccordionItem>
+            <AccordionItem title="Radar y Gauge">
+                <ul className="space-y-1.5">
+                    <li><strong className="text-white">Alpha Gauge</strong> — medidor semicircular que muestra el CASE score total. La aguja indica la fuerza global de señales activas.</li>
+                    <li><strong className="text-white">Radar Chart</strong> — diagrama radar que muestra la distribución de señales en las 8 categorías. Categorías con picos altos = señales fuertes en ese estilo.</li>
+                </ul>
+            </AccordionItem>
+        </div>
+    );
+}
+
+// ─── System Section ──────────────────────────────────────────────────────────
+
+function SystemSection() {
+    return (
+        <div className="space-y-3">
+            <p className="text-[10px] text-gray-500 px-1">
+                Panel de salud del sistema: estado del pipeline, proveedores de datos, monitoreo de modelos, y alertas de drift.
+            </p>
+            <AccordionItem title="¿Qué es?" defaultOpen>
+                <p>La vista <strong className="text-white">System</strong> (Alt+6) es el centro de operaciones. Muestra si todos los motores y proveedores de datos están funcionando correctamente.</p>
+            </AccordionItem>
+            <AccordionItem title="Dashboard de Salud">
+                <ul className="space-y-1.5">
+                    <li><strong className="text-white">Provider Health</strong> — estado de cada fuente de datos (Market Data, ETF Flows, Options, Institutional Flow, News, Macro). Verde = activo, rojo = caído.</li>
+                    <li><strong className="text-white">Pipeline Status</strong> — estado del ciclo diario (idle/running/complete/failed)</li>
+                    <li><strong className="text-white">Model Monitoring</strong> — performance de los modelos de IA, alertas de drift si la calidad cae</li>
+                    <li><strong className="text-white">Circuit Breakers</strong> — si un componente falla repetidamente, se desactiva automáticamente para proteger el sistema</li>
+                </ul>
+            </AccordionItem>
+            <AccordionItem title="Cómo interpretar">
+                <ul className="space-y-1.5">
+                    <li><strong className="text-green-400">Todo verde</strong> — sistema operando normalmente</li>
+                    <li><strong className="text-yellow-400">Amarillo</strong> — algún proveedor degradado; los análisis pueden tener datos incompletos</li>
+                    <li><strong className="text-red-400">Rojo</strong> — componente caído; el sistema usa fallbacks pero la calidad puede ser menor</li>
+                </ul>
+            </AccordionItem>
+        </div>
+    );
+}
+
+// ─── Pilot Section ───────────────────────────────────────────────────────────
+
+function PilotSection() {
+    return (
+        <div className="space-y-3">
+            <p className="text-[10px] text-gray-500 px-1">
+                Centro de comando del piloto: validación de 12 semanas con 3 portafolios paper ($1M cada uno).
+            </p>
+            <AccordionItem title="¿Qué es el Pilot?" defaultOpen>
+                <p>El <strong className="text-white">Pilot Command Center</strong> (Alt+0) ejecuta un despliegue de prueba de 12 semanas con 3 portafolios paper trading. Valida que el sistema genera alpha real antes de comprometer capital.</p>
+            </AccordionItem>
+            <AccordionItem title="Los 3 portafolios">
+                <ul className="space-y-1.5">
+                    <li><strong className="text-[#d4af37]">Research</strong> — Top 8 tickers por CASE score. Portafolio basado en señales del sistema. Es el que debe generar alpha.</li>
+                    <li><strong className="text-green-400">Strategy</strong> — Equal-weight de los 10 tickers del universo piloto. Referencia del peso igualitario.</li>
+                    <li><strong className="text-blue-400">Benchmark</strong> — 70% SPY + 30% QQQ. Comparación vs. el mercado.</li>
+                </ul>
+            </AccordionItem>
+            <AccordionItem title="Las 4 fases">
+                <ul className="space-y-1.5">
+                    <li><strong className="text-blue-400">Setup</strong> (Sem 0) — Inicialización de portafolios y configuración</li>
+                    <li><strong className="text-yellow-400">Observation</strong> (Sem 1-4) — Sistema recolecta datos, no opera</li>
+                    <li><strong className="text-green-400">Paper Trading</strong> (Sem 5-8) — Ejecución paper con posiciones reales</li>
+                    <li><strong className="text-purple-400">Evaluation</strong> (Sem 9-12) — Evaluación de criterios Go/No-Go</li>
+                </ul>
+            </AccordionItem>
+            <AccordionItem title="Cómo usar el dashboard">
+                <ol className="space-y-1.5 list-decimal list-inside">
+                    <li><strong className="text-white">▶ Run Daily Cycle</strong> — ejecuta el pipeline completo (data → signals → allocation → snapshot). Tarda ~27s.</li>
+                    <li><strong className="text-white">⏭ Advance Phase</strong> — avanza a la siguiente fase del piloto</li>
+                    <li><strong className="text-white">↻ Refresh</strong> — actualiza los datos del dashboard</li>
+                </ol>
+            </AccordionItem>
+            <AccordionItem title="Interpretar las Equity Curves">
+                <ul className="space-y-1.5">
+                    <li><strong className="text-white">NAV</strong> — Net Asset Value. El valor total del portafolio. Empieza en $1M.</li>
+                    <li><strong className="text-white">Retorno acumulado</strong> — ganancia/pérdida total desde el inicio. Research debe superar a Benchmark para validar alpha.</li>
+                    <li><strong className="text-white">Gráfico de líneas</strong> — aparece con 2+ ciclos en días diferentes. Las líneas se separan cuando los portafolios tienen diferente performance.</li>
+                </ul>
+            </AccordionItem>
+            <AccordionItem title="Tabla de posiciones">
+                <p>Muestra las posiciones actuales de cada portafolio:</p>
+                <ul className="mt-1.5 space-y-1">
+                    <li><strong className="text-white">Weight %</strong> — porcentaje del portafolio asignado. Research varía por CASE; Strategy es 10% cada uno; Benchmark es 70/30.</li>
+                    <li><strong className="text-white">Shares</strong> — cantidad de acciones (calculadas con precios reales de mercado)</li>
+                    <li><strong className="text-white">P&L %</strong> — ganancia/pérdida porcentual desde la entrada. Verde = ganando, rojo = perdiendo.</li>
+                </ul>
+            </AccordionItem>
+            <AccordionItem title="Criterios de éxito">
+                <p>Al final de las 12 semanas, el sistema evalúa automáticamente:</p>
+                <ul className="mt-1.5 space-y-1">
+                    <li>Research Alpha &gt; 0 vs Benchmark</li>
+                    <li>Information Ratio &gt; 0.5</li>
+                    <li>Max Drawdown &lt; 15%</li>
+                    <li>Hit Rate de señales &gt; 55%</li>
+                    <li>Uptime del sistema &gt; 99%</li>
+                </ul>
+            </AccordionItem>
+        </div>
+    );
+}
+
+// ─── Strategy Lab Section ────────────────────────────────────────────────────
+
+function StrategyLabSection() {
+    return (
+        <div className="space-y-3">
+            <p className="text-[10px] text-gray-500 px-1">
+                Laboratorio de investigación de estrategias estilo Bloomberg. Workspace multi-panel para diseñar, comparar y validar estrategias.
+            </p>
+            <AccordionItem title="¿Qué es?" defaultOpen>
+                <p>El <strong className="text-white">Strategy Lab</strong> (Alt+7) es un workspace de 4 paneles inspirado en terminales Bloomberg/Aladdin. Permite investigar estrategias de inversión de forma profesional.</p>
+            </AccordionItem>
+            <AccordionItem title="Los 4 paneles">
+                <ul className="space-y-1.5">
+                    <li><strong className="text-white">📋 Strategy List</strong> (izquierda) — catálogo de estrategias disponibles. Clic en una para cargarla.</li>
+                    <li><strong className="text-white">📈 Detail / Performance</strong> (centro) — equity curve, drawdown, métricas de la estrategia seleccionada</li>
+                    <li><strong className="text-white">🧠 Intelligence Panel</strong> (derecha) — chat con IA sobre la estrategia, análisis contextual</li>
+                    <li><strong className="text-white">📊 Bottom Analytics</strong> (inferior) — parámetros, composición, y datos históricos</li>
+                </ul>
+            </AccordionItem>
+            <AccordionItem title="Métricas clave">
+                <ul className="space-y-1.5">
+                    <li><strong className="text-white">Sharpe Ratio</strong> — retorno ajustado por riesgo. &gt;1.5 = bueno, &gt;2.0 = excelente</li>
+                    <li><strong className="text-white">Max Drawdown</strong> — caída máxima desde un pico. &lt;10% = conservador, &lt;20% = moderado</li>
+                    <li><strong className="text-white">Win Rate</strong> — porcentaje de trades ganadores. &gt;55% = bueno en combinación con buen risk/reward</li>
+                    <li><strong className="text-white">Quality Score</strong> — puntuación 0-100 del Scorecard. Integra todos los factores anteriores.</li>
+                </ul>
+            </AccordionItem>
+            <AccordionItem title="Comparar estrategias">
+                <p>Selecciona 2+ estrategias y usa <strong className="text-white">Compare</strong> para ver side-by-side: equity curves superpuestas, tabla de métricas comparativa, y ranking general.</p>
+            </AccordionItem>
+        </div>
+    );
+}
+
+// ─── Marketplace Section ─────────────────────────────────────────────────────
+
+function MarketplaceSection() {
+    return (
+        <div className="space-y-3">
+            <p className="text-[10px] text-gray-500 px-1">
+                Repositorio de estrategias pre-construidas. Explora, evalúa y despliega estrategias institucionales.
+            </p>
+            <AccordionItem title="¿Qué es?" defaultOpen>
+                <p>El <strong className="text-white">Marketplace</strong> (Alt+8) es un catálogo de estrategias verificadas listas para usar. Cada estrategia incluye backtest histórico, métricas de rendimiento y composición.</p>
+            </AccordionItem>
+            <AccordionItem title="Cómo evaluar una estrategia">
+                <ol className="space-y-1.5 list-decimal list-inside">
+                    <li>Revisa el <strong className="text-white">Quality Score</strong> (0-100) — resume la robustez general</li>
+                    <li>Verifica el <strong className="text-white">Sharpe Ratio</strong> — &gt;1.5 es aceptable para producción</li>
+                    <li>Confirma que el <strong className="text-white">Max Drawdown</strong> es tolerable para tu perfil de riesgo</li>
+                    <li>Mira el <strong className="text-white">Regime Stability</strong> — estrategias "estables" funcionan en más condiciones de mercado</li>
+                </ol>
+            </AccordionItem>
+        </div>
+    );
+}
+
+// ─── AI Assistant Section ────────────────────────────────────────────────────
+
+function AssistantSection() {
+    return (
+        <div className="space-y-3">
+            <p className="text-[10px] text-gray-500 px-1">
+                Asistente de investigación con IA. Haz preguntas sobre el mercado, estrategias, y los datos del sistema.
+            </p>
+            <AccordionItem title="¿Qué es?" defaultOpen>
+                <p>El <strong className="text-white">AI Assistant</strong> (Alt+9) es un chat con IA que tiene acceso al Knowledge Graph del sistema. Puede responder preguntas sobre tickers analizados, estrategias, y métricas.</p>
+            </AccordionItem>
+            <AccordionItem title="Ejemplos de uso">
+                <ul className="space-y-1.5">
+                    <li><strong className="text-white">"¿Cuál es la tesis de inversión para NVDA?"</strong> — resume el análisis fundamental más reciente</li>
+                    <li><strong className="text-white">"Compara AAPL vs MSFT en calidad"</strong> — compara métricas de calidad entre tickers</li>
+                    <li><strong className="text-white">"¿Qué señales están activas hoy?"</strong> — lista las señales Alpha activas del día</li>
+                    <li><strong className="text-white">"Explica el CASE score de AMZN"</strong> — desglosa el score compuesto</li>
+                </ul>
+            </AccordionItem>
+        </div>
+    );
+}
+
 // ─── Tab Config ───────────────────────────────────────────────────────────────
 
 const TABS: { id: HelpTab; label: string; Icon: React.ElementType }[] = [
@@ -588,14 +871,21 @@ const TABS: { id: HelpTab; label: string; Icon: React.ElementType }[] = [
     { id: "fundamental", label: "Fundamental", Icon: ShieldCheck },
     { id: "technical", label: "Técnico", Icon: LineChart },
     { id: "combined", label: "Combined", Icon: Zap },
+    { id: "signals", label: "Señales", Icon: Radio },
     { id: "portfolio", label: "Portfolio", Icon: Briefcase },
     { id: "ideas", label: "Ideas", Icon: Lightbulb },
+    { id: "market", label: "Market", Icon: Globe },
+    { id: "system", label: "System", Icon: Settings },
+    { id: "pilot", label: "Pilot", Icon: Activity },
+    { id: "strategylab", label: "Strategy Lab", Icon: FlaskConical },
+    { id: "marketplace", label: "Marketplace", Icon: Store },
+    { id: "assistant", label: "AI Assistant", Icon: Bot },
     { id: "tips", label: "Tips Pro", Icon: HelpCircle },
 ];
 
 // ─── Main HelpPanel ───────────────────────────────────────────────────────────
 
-export default function HelpPanel({ open, onClose }: HelpPanelProps) {
+export default function HelpPanel({ open, onClose, standalone = false }: HelpPanelProps) {
     const [activeTab, setActiveTab] = useState<HelpTab>("start");
     const panelRef = useRef<HTMLDivElement>(null);
 
@@ -615,43 +905,42 @@ export default function HelpPanel({ open, onClose }: HelpPanelProps) {
 
     if (!open) return null;
 
-    return (
-        <>
-            {/* Overlay */}
-            <div
-                className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
-                onClick={onClose}
-                aria-hidden="true"
-            />
-
-            {/* Panel */}
-            <div
-                ref={panelRef}
-                tabIndex={-1}
-                role="dialog"
-                aria-label="Centro de ayuda"
-                className="fixed top-0 right-0 h-full w-full sm:w-96 z-50 flex flex-col bg-[#0d1117] border-l border-[#30363d] shadow-2xl outline-none"
-                style={{ animation: "slideInRight 0.25s cubic-bezier(0.4,0,0.2,1) both" }}
-            >
-                {/* Header */}
-                <div className="flex items-center justify-between px-5 py-4 border-b border-[#21262d] flex-shrink-0">
-                    <div className="flex items-center gap-2">
-                        <HelpCircle size={15} className="text-[#d4af37]" />
-                        <span className="text-[11px] font-black uppercase tracking-widest text-white">
-                            Centro de Ayuda
-                        </span>
-                    </div>
-                    <button
-                        onClick={onClose}
-                        className="p-1 rounded hover:bg-[#21262d] transition-colors text-gray-500 hover:text-white"
-                        aria-label="Cerrar"
-                    >
-                        <X size={15} />
-                    </button>
+    // ── Panel content (shared between standalone and overlay modes) ──────────
+    const panelContent = (
+        <div
+            ref={panelRef}
+            tabIndex={-1}
+            role="dialog"
+            aria-label="Centro de ayuda"
+            className={standalone
+                ? "flex flex-col h-screen bg-[#0d1117] text-gray-300 outline-none"
+                : "fixed top-0 right-0 h-full w-[420px] max-w-[100vw] z-50 flex flex-col bg-[#0d1117] border-l border-[#30363d] shadow-2xl outline-none"
+            }
+            style={standalone ? undefined : { animation: "slideInHelpPanel 0.25s cubic-bezier(0.4,0,0.2,1) both" }}
+        >
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[#21262d] flex-shrink-0">
+                <div className="flex items-center gap-2">
+                    <HelpCircle size={15} className="text-[#d4af37]" />
+                    <span className="text-[11px] font-black uppercase tracking-widest text-white">
+                        Centro de Ayuda
+                    </span>
                 </div>
+                <button
+                    onClick={onClose}
+                    className="p-1 rounded hover:bg-[#21262d] transition-colors text-gray-500 hover:text-white"
+                    aria-label="Cerrar"
+                >
+                    <X size={15} />
+                </button>
+            </div>
 
-                {/* Tab bar */}
-                <div className="flex border-b border-[#21262d] flex-shrink-0 overflow-x-auto">
+            {/* Tab bar */}
+            <div className="relative flex-shrink-0">
+                {/* Scroll gradient hints */}
+                <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-6 z-10 bg-gradient-to-r from-[#0d1117] to-transparent" />
+                <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-6 z-10 bg-gradient-to-l from-[#0d1117] to-transparent" />
+                <div className={`flex flex-nowrap border-b border-[#21262d] overflow-x-auto custom-scrollbar ${standalone ? "flex-wrap" : ""}`}>
                     {TABS.map(({ id, label, Icon }) => (
                         <button
                             key={id}
@@ -666,33 +955,59 @@ export default function HelpPanel({ open, onClose }: HelpPanelProps) {
                         </button>
                     ))}
                 </div>
-
-                {/* Content */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                    {activeTab === "start" && <StartSection />}
-                    {activeTab === "fundamental" && <FundamentalSection />}
-                    {activeTab === "technical" && <TechnicalSection />}
-                    {activeTab === "combined" && <CombinedSection />}
-                    {activeTab === "portfolio" && <PortfolioSection />}
-                    {activeTab === "ideas" && <IdeasHelpSection />}
-                    {activeTab === "tips" && <TipsSection />}
-                </div>
-
-                {/* Footer */}
-                <div className="px-5 py-3 border-t border-[#21262d] flex-shrink-0 flex items-center justify-between">
-                    <span className="text-[9px] text-gray-700 font-mono">365 Advisers v3.0</span>
-                    <span className="text-[9px] text-gray-700">
-                        Presiona <kbd className="bg-[#21262d] border border-[#30363d] px-1 rounded text-[8px]">Esc</kbd> para cerrar
-                    </span>
-                </div>
             </div>
 
+            {/* Content */}
+            <div key={activeTab} className={`flex-1 overflow-y-auto space-y-3 ${standalone ? "p-6 max-w-4xl mx-auto w-full" : "p-4"}`} style={{ animation: 'fadeSlideIn 0.2s ease both' }}>
+                {activeTab === "start" && <StartSection />}
+                {activeTab === "fundamental" && <FundamentalSection />}
+                {activeTab === "technical" && <TechnicalSection />}
+                {activeTab === "combined" && <CombinedSection />}
+                {activeTab === "signals" && <SignalsSection />}
+                {activeTab === "portfolio" && <PortfolioSection />}
+                {activeTab === "ideas" && <IdeasHelpSection />}
+                {activeTab === "market" && <MarketSection />}
+                {activeTab === "system" && <SystemSection />}
+                {activeTab === "pilot" && <PilotSection />}
+                {activeTab === "strategylab" && <StrategyLabSection />}
+                {activeTab === "marketplace" && <MarketplaceSection />}
+                {activeTab === "assistant" && <AssistantSection />}
+                {activeTab === "tips" && <TipsSection />}
+            </div>
+
+            {/* Footer */}
+            <div className="px-5 py-3 border-t border-[#21262d] flex-shrink-0 flex items-center justify-between">
+                <span className="text-[9px] text-gray-700 font-mono">365 Advisers v4.0</span>
+                <span className="text-[9px] text-gray-700">
+                    Presiona <kbd className="bg-[#21262d] border border-[#30363d] px-1 rounded text-[8px]">Esc</kbd> para cerrar
+                </span>
+            </div>
+        </div>
+    );
+
+    // ── Standalone mode: render directly (full page) ────────────────────────
+    if (standalone) {
+        return panelContent;
+    }
+
+    // ── Overlay mode: render via portal ─────────────────────────────────────
+    return createPortal(
+        <>
+            {/* Overlay backdrop */}
+            <div
+                className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
+                onClick={onClose}
+                aria-hidden="true"
+            />
+
+            {panelContent}
+
             <style jsx global>{`
-        @keyframes slideInRight {
+        @keyframes slideInHelpPanel {
           from { transform: translateX(100%); opacity: 0; }
           to   { transform: translateX(0);    opacity: 1; }
         }
       `}</style>
         </>
-    );
+        , document.body);
 }

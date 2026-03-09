@@ -52,6 +52,64 @@
   --signal-negative: #ef4444;
 }
 
+/* ─── Institutional UX Utilities ───────────────────────────────────────────── */
+
+/* Tabular numbers — aligns decimals in financial data columns */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Zebra rows — scannable table pattern */
+.zebra-row:nth-child(even) {
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.zebra-row:hover {
+  background: rgba(212, 175, 55, 0.04);
+  transition: background 0.15s ease;
+}
+
+/* Sticky context panel — keeps decision context visible during scroll */
+.sticky-context {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+}
+
+/* Key metric emphasis — hero numbers */
+.metric-hero {
+  font-size: 1.5rem;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* SSE data arrival pulse */
+@keyframes dataPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.3);
+  }
+
+  70% {
+    box-shadow: 0 0 0 8px rgba(212, 175, 55, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
+  }
+}
+
+.data-pulse {
+  animation: dataPulse 0.6s ease-out;
+}
+
+/* View content transition */
+.view-transition {
+  animation: fadeSlideIn 0.25s ease both;
+}
+
 /* ─── Base ──────────────────────────────────────────────────────────────────── */
 
 body {

@@ -169,7 +169,6 @@ export default function Home() {
   // ── View state ────────────────────────────────────────────────────────────
   const [activeView, setActiveView] = useState<ViewId>("terminal");
   const [ticker, setTicker] = useState("");
-  const [helpOpen, setHelpOpen] = useState(false);
   const [cmdPaletteOpen, setCmdPaletteOpen] = useState(false);
   const { showOnboarding, dismiss: dismissOnboarding } = useOnboarding();
 
@@ -193,8 +192,8 @@ export default function Home() {
   // ── Keyboard shortcuts ────────────────────────────────────────────────────
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      // Shift+? → Help
-      if (e.shiftKey && e.key === "?") { e.preventDefault(); setHelpOpen((v) => !v); return; }
+      // Shift+? → Help (new window)
+      if (e.shiftKey && e.key === "?") { e.preventDefault(); window.open("/help", "365help", "width=700,height=900,scrollbars=yes"); return; }
       // Ctrl+K / Cmd+K → Command Palette
       if ((e.ctrlKey || e.metaKey) && e.key === "k") { e.preventDefault(); setCmdPaletteOpen((v) => !v); return; }
       // Alt+1..9 → View switching
@@ -326,7 +325,7 @@ export default function Home() {
           showWatchlistToggle={!!dataReady?.ticker}
           inWatchlist={inWatchlist}
           onToggleWatchlist={handleToggleWatchlist}
-          onOpenHelp={() => setHelpOpen(true)}
+          onOpenHelp={() => window.open("/help", "365help", "width=700,height=900,scrollbars=yes")}
           onOpenCommandPalette={() => setCmdPaletteOpen(true)}
           analysisScore={analysisScore}
           analysisLoading={isLoading}
@@ -342,7 +341,7 @@ export default function Home() {
         )}
 
         {/* ── View Router with TerminalShell ── */}
-        <ErrorBoundary key={activeView}>
+        <ErrorBoundary>
           {useShell ? (
             <TerminalShell
               activeView={activeView}
@@ -434,7 +433,6 @@ export default function Home() {
       </div>
 
       {/* ── Overlays ── */}
-      <HelpPanel open={helpOpen} onClose={() => setHelpOpen(false)} />
       <CommandPalette
         open={cmdPaletteOpen}
         onClose={() => setCmdPaletteOpen(false)}

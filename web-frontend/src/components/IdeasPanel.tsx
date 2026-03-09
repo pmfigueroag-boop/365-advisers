@@ -182,7 +182,7 @@ export default function IdeasPanel({
                     return (
                         <div
                             key={idea.id ?? idea.idea_uid}
-                            className="group relative mx-2 my-1 rounded-lg border border-[#30363d] bg-[#161b22]/60 hover:border-[#30363d] transition-all"
+                            className="group relative mx-2 my-1 rounded-lg border border-[#30363d] bg-[#161b22]/60 hover:border-[#30363d] transition-all zebra-row"
                         >
                             {/* Main row */}
                             <div className="flex items-center gap-2 px-3 py-2">
@@ -244,7 +244,7 @@ export default function IdeasPanel({
                                             style={{ width: `${idea.signal_strength * 100}%` }}
                                         />
                                     </div>
-                                    <span className="text-[7px] text-gray-600 font-mono">
+                                    <span className="text-[7px] text-gray-600 font-mono tabular-nums">
                                         {(idea.signal_strength * 100).toFixed(0)}%
                                     </span>
                                 </div>

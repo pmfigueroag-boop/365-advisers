@@ -21,7 +21,7 @@ export default function SystemView() {
             {/* Header */}
             <div>
                 <div className="flex items-center gap-2 mb-1">
-                    <Brain size={16} className="text-purple-400" />
+                    <Brain size={16} className="text-[#d4af37]" />
                     <h2 className="text-base font-black uppercase tracking-widest text-gray-300">
                         System Intelligence
                     </h2>

@@ -173,7 +173,7 @@ export default function AlphaSignalsView({
                         </p>
                     </div>
                 </div>
-                <span className="text-lg font-black font-mono text-[#d4af37]">
+                <span className="text-lg font-black font-mono tabular-nums text-[#d4af37]">
                     {profile.fired_signals}/{profile.total_signals}
                 </span>
             </div>
@@ -222,7 +222,7 @@ export default function AlphaSignalsView({
                         <span className="text-xs font-black text-gray-300 uppercase tracking-wider">
                             Composite Alpha Strength
                         </span>
-                        <span className="text-xl font-black text-white font-mono">
+                        <span className="text-xl font-black text-white font-mono tabular-nums">
                             {(composite.overall_strength * 100).toFixed(0)}%
                         </span>
                     </div>
@@ -330,7 +330,7 @@ function CategoryRow({
                 </div>
 
                 {/* Fired count */}
-                <span className="text-[8px] font-mono text-gray-600 w-6 text-right">
+                <span className="text-[8px] font-mono tabular-nums text-gray-600 w-6 text-right">
                     {score ? `${score.fired}/${score.total}` : "0/0"}
                 </span>
             </button>
@@ -341,7 +341,7 @@ function CategoryRow({
                     {signals.map((sig, idx) => (
                         <div
                             key={idx}
-                            className="flex items-center justify-between text-[9px] bg-[#0d1117] rounded px-2 py-1"
+                            className="flex items-center justify-between text-[9px] bg-[#0d1117] rounded px-2 py-1 zebra-row"
                         >
                             <span className="text-gray-300 truncate flex-1">
                                 {sig.description}

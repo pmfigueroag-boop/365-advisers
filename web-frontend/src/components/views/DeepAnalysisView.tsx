@@ -153,7 +153,7 @@ export default function DeepAnalysisView({
 
             {/* Section Content */}
             <ErrorBoundary>
-                <div className="glass-card border-[#30363d] p-5">
+                <div key={section} className="glass-card border-[#30363d] p-5 view-transition">
                     {section === "thesis" && (
                         <InvestmentStory combined={combined} />
                     )}

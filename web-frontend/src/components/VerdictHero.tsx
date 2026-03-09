@@ -83,7 +83,7 @@ function MetricPill({ icon, label, value, color = "text-gray-300" }: { icon: Rea
     return (
         <div className="flex flex-col items-center gap-1 px-3 py-2.5 rounded-xl bg-[#161b22] border border-[#30363d]">
             <div className="text-gray-600">{icon}</div>
-            <span className={`text-lg font-black font-mono ${color}`}>{value}</span>
+            <span className={`text-lg font-black font-mono tabular-nums ${color}`}>{value}</span>
             <span className="text-[8px] font-black uppercase tracking-widest text-gray-600">{label}</span>
         </div>
     );
@@ -166,7 +166,7 @@ export default function VerdictHero({ combined, alphaProfile }: VerdictHeroProps
 
     return (
         <div
-            className={`relative overflow-hidden rounded-2xl border ${vc.border} ${vc.bg} p-6 md:p-8 transition-all duration-500`}
+            className={`relative overflow-hidden rounded-2xl border ${vc.border} ${vc.bg} p-6 md:p-8 transition-all duration-500 sticky-context`}
             style={{ animation: "verdictReveal 0.6s ease both", boxShadow: isComplete ? `0 0 40px -10px ${vc.glow}` : undefined }}
         >
             {/* Subtle gradient overlay */}
@@ -179,7 +179,7 @@ export default function VerdictHero({ combined, alphaProfile }: VerdictHeroProps
                         <div className="flex items-center gap-3 mb-1">
                             <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white">{ticker}</h2>
                             {price !== null && (
-                                <span className="text-sm font-mono text-gray-400">${price.toFixed(2)}</span>
+                                <span className="text-sm font-mono tabular-nums text-gray-400">${price.toFixed(2)}</span>
                             )}
                         </div>
                         <p className="text-xs text-gray-500">{name}</p>

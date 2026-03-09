@@ -4,10 +4,11 @@
  * GlobalStatusBar.tsx
  * ──────────────────────────────────────────────────────────────────────────
  * Terminal-style status bar at the bottom of the Shell.
- * Shows: current view, system status, keyboard hints, clock.
+ * Shows: current view, system status, keyboard hints, live clock.
  * Bloomberg/VS Code inspired bottom strip.
  */
 
+import { useState, useEffect } from "react";
 import {
     Wifi,
     Command,
@@ -15,6 +16,8 @@ import {
     Activity,
     TrendingUp,
     Radio,
+    Database,
+    Shield,
 } from "lucide-react";
 import type { ViewId } from "../navigation/TopNav";
 
@@ -32,6 +35,10 @@ interface GlobalStatusBarProps {
     activeTicker?: string;
     /** Custom status items */
     statusItems?: Array<{ label: string; value: string }>;
+    /** Data source coverage e.g. "6/6" */
+    dataCoverage?: string;
+    /** System health: green/yellow/red */
+    systemHealth?: "green" | "yellow" | "red";
 }
 
 // ─── View Labels ──────────────────────────────────────────────────────────
@@ -56,6 +63,12 @@ const REGIME_STYLES: Record<string, { bg: string; color: string; label: string }
     volatile: { bg: "rgba(245,158,11,0.12)", color: "#f59e0b", label: "VOLATILE" },
 };
 
+const HEALTH_COLORS: Record<string, string> = {
+    green: "#22c55e",
+    yellow: "#f59e0b",
+    red: "#ef4444",
+};
+
 export default function GlobalStatusBar({
     activeView,
     regime = "bull",
@@ -63,15 +76,23 @@ export default function GlobalStatusBar({
     lastUpdate,
     activeTicker,
     statusItems = [],
+    dataCoverage,
+    systemHealth = "green",
 }: GlobalStatusBarProps) {
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-    });
+    // Live clock — updates every minute
+    const [timeStr, setTimeStr] = useState(() =>
+        new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })
+    );
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setTimeStr(new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false }));
+        }, 60_000);
+        return () => clearInterval(interval);
+    }, []);
 
     const regimeStyle = REGIME_STYLES[regime] ?? REGIME_STYLES.neutral;
+    const healthColor = HEALTH_COLORS[systemHealth] ?? HEALTH_COLORS.green;
 
     return (
         <div className="lab-status-bar">
@@ -104,6 +125,22 @@ export default function GlobalStatusBar({
                         </span>
                     </>
                 )}
+
+                {dataCoverage && (
+                    <>
+                        <span className="lab-status-dot">·</span>
+                        <span className="lab-status-count">
+                            <Database size={8} /> {dataCoverage} Sources
+                        </span>
+                    </>
+                )}
+
+                {/* System health dot */}
+                <span className="lab-status-dot">·</span>
+                <span className="lab-status-count" style={{ display: "flex", alignItems: "center", gap: 3 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: healthColor, display: "inline-block", boxShadow: `0 0 6px ${healthColor}` }} />
+                    <Shield size={8} />
+                </span>
 
                 {lastUpdate && (
                     <>
@@ -141,3 +178,4 @@ export default function GlobalStatusBar({
         </div>
     );
 }
+
