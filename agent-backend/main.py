@@ -170,6 +170,16 @@ from src.routes.research import router as research_router
 from src.routes.signal_lab import router as signal_lab_router
 from src.routes.strategy_lab import router as strategy_lab_router
 from src.routes.pilot import router as pilot_router
+from src.routes.long_short import router as long_short_router
+from src.routes.stat_arb import router as stat_arb_router
+from src.routes.event_intelligence import router as event_intelligence_router
+from src.routes.ml_signals import router as ml_signals_router
+from src.routes.valuation import router as valuation_router
+from src.routes.options import router as options_router
+from src.routes.oms import router as oms_router
+from src.routes.multi_asset import router as multi_asset_router
+from src.routes.capital_allocation import router as capital_allocation_router
+from src.routes.risk import router as risk_router
 
 app.include_router(health_router)
 app.include_router(analysis_router)
@@ -192,8 +202,18 @@ app.include_router(research_router)
 app.include_router(signal_lab_router)
 app.include_router(strategy_lab_router)
 app.include_router(pilot_router)
+app.include_router(long_short_router)
+app.include_router(stat_arb_router)
+app.include_router(event_intelligence_router)
+app.include_router(ml_signals_router)
+app.include_router(valuation_router)
+app.include_router(options_router)
+app.include_router(oms_router)
+app.include_router(multi_asset_router)
+app.include_router(capital_allocation_router)
+app.include_router(risk_router)
 
-logger.info(f"Mounted {len(app.routes)} routes across 21 routers")
+logger.info(f"Mounted {len(app.routes)} routes across 31 routers")
 
 
 # ── Dev Server ───────────────────────────────────────────────────────────────

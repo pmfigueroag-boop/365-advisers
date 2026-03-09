@@ -34,6 +34,8 @@ class StrategyCategory(str, Enum):
     EVENT_DRIVEN = "event_driven"
     THEMATIC = "thematic"
     LOW_VOL = "low_vol"
+    LONG_SHORT = "long_short"
+    STAT_ARB = "stat_arb"
 
 
 class Horizon(str, Enum):
@@ -156,6 +158,9 @@ class PortfolioRules(BaseModel):
     sizing_method: str = "vol_parity"      # SizingMethod value
     max_turnover: float = 0.50             # Max turnover per rebalance
     risk_budget_pct: float = 100.0         # Pct of total portfolio risk
+    # Long/Short extensions
+    max_short_exposure: float = 0.40       # 40% max short exposure
+    max_gross_exposure: float = 2.0        # 200% max gross exposure (long + short)
 
 
 class RebalanceConfig(BaseModel):
