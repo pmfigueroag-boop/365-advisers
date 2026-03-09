@@ -13,6 +13,7 @@ import SystemView from "@/components/views/SystemView";
 import StrategyLabView from "@/components/views/StrategyLabView";
 import MarketplaceView from "@/components/views/MarketplaceView";
 import AIAssistantView from "@/components/views/AIAssistantView";
+import SuperAlphaView from "@/components/views/SuperAlphaView";
 import PilotDashboardView from "@/components/views/PilotDashboardView";
 import HelpPanel from "@/components/HelpPanel";
 import OnboardingOverlay, { useOnboarding } from "@/components/OnboardingOverlay";
@@ -423,6 +424,10 @@ export default function Home() {
 
               {activeView === "ai-assistant" && (
                 <AIAssistantView />
+              )}
+
+              {activeView === "alpha-engine" && (
+                <SuperAlphaView />
               )}
             </TerminalShell>
           ) : (

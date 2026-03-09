@@ -20,11 +20,12 @@ import {
     Store,
     Sparkles,
     Rocket,
+    Activity,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type ViewId = "terminal" | "market" | "ideas" | "analysis" | "portfolio" | "system" | "pilot" | "strategy-lab" | "marketplace" | "ai-assistant";
+export type ViewId = "terminal" | "market" | "ideas" | "analysis" | "portfolio" | "system" | "pilot" | "strategy-lab" | "marketplace" | "ai-assistant" | "alpha-engine";
 
 interface TopNavProps {
     activeView: ViewId;
@@ -63,6 +64,7 @@ const TABS: { id: ViewId; label: string; icon: React.ReactNode; title: string }[
     { id: "strategy-lab", label: "Strategy Lab", icon: <FlaskConical size={13} />, title: "Bloomberg-style research workspace" },
     { id: "marketplace", label: "Marketplace", icon: <Store size={13} />, title: "Pre-built institutional strategies" },
     { id: "ai-assistant", label: "AI Assistant", icon: <Sparkles size={13} />, title: "Knowledge Graph conversational AI" },
+    { id: "alpha-engine", label: "Alpha Engine", icon: <Activity size={13} />, title: "8-factor quantitative alpha scoring and ranking" },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
