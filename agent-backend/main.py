@@ -271,6 +271,7 @@ from src.routes.rl_optimisation import router as rl_optimisation_router
 from src.routes.market_data_api import router as market_data_api_router
 from src.routes.alpha_intelligence import router as alpha_intelligence_router
 from src.routes.super_alpha import router as super_alpha_router
+from src.routes.investment_brain import router as investment_brain_router
 
 app.include_router(health_router)
 app.include_router(analysis_router)
@@ -316,8 +317,9 @@ app.include_router(rl_optimisation_router)
 app.include_router(market_data_api_router)
 app.include_router(alpha_intelligence_router)
 app.include_router(super_alpha_router)
+app.include_router(investment_brain_router)
 
-logger.info(f"Mounted {len(app.routes)} routes across 44 routers")
+logger.info(f"Mounted {len(app.routes)} routes across 45 routers")
 
 
 # ── Dev Server ───────────────────────────────────────────────────────────────
