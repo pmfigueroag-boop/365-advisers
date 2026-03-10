@@ -20,7 +20,7 @@ from src.engines.idea_generation.models import (
     SignalStrength,
 )
 from src.engines.alpha_signals.models import SignalCategory
-from src.engines.idea_generation.detectors.base import BaseDetector
+from src.engines.idea_generation.detectors.base import BaseDetector, ScanContext
 
 
 class EventDetector(BaseDetector):
@@ -39,11 +39,14 @@ class EventDetector(BaseDetector):
         self,
         fundamental: FundamentalFeatureSet | None,
         technical: TechnicalFeatureSet | None,
-        previous_score: float | None = None,
-        current_score: float | None = None,
+        context: ScanContext | None = None,
     ) -> DetectorResult | None:
         signals: list[SignalDetail] = []
         total_checks = 4
+
+        # Extract score data from context (if available)
+        previous_score = context.previous_score if context else None
+        current_score = context.current_score if context else None
 
         # 1. Score change detection
         if previous_score is not None and current_score is not None:

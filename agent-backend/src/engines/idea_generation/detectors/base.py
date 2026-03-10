@@ -10,7 +10,9 @@ if it identifies an actionable opportunity — or None if no signal fires.
 
 from __future__ import annotations
 
+import logging
 from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
 
 from src.contracts.features import FundamentalFeatureSet, TechnicalFeatureSet
 from src.engines.alpha_signals.models import SignalProfile, SignalCategory
@@ -22,15 +24,54 @@ from src.engines.idea_generation.models import (
     IdeaType,
 )
 
+logger = logging.getLogger("365advisers.idea_generation.detectors.base")
 
-# Map alpha signal categories to IGE idea types
-_CATEGORY_TO_IDEA_TYPE = {
+
+# ── Scan Context — optional metadata passed uniformly to all detectors ────────
+
+@dataclass
+class ScanContext:
+    """Optional contextual data for detectors that need external state.
+
+    All fields are optional so detectors that don't need context
+    can simply ignore it, preserving the uniform scan() interface.
+    """
+    previous_score: float | None = None
+    current_score: float | None = None
+    extra: dict = field(default_factory=dict)
+
+    # ── Serialization for Celery transport ────────────────────────────
+    def to_dict(self) -> dict:
+        """Convert to a JSON-safe dict for Celery task args."""
+        return {
+            "previous_score": self.previous_score,
+            "current_score": self.current_score,
+            "extra": self.extra,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict | None) -> "ScanContext":
+        """Reconstruct from a serialized dict. Returns defaults if *data* is None."""
+        if not data:
+            return cls()
+        return cls(
+            previous_score=data.get("previous_score"),
+            current_score=data.get("current_score"),
+            extra=data.get("extra", {}),
+        )
+
+
+# Map alpha signal categories to IGE idea types.
+# MACRO maps to EVENT because macro catalysts are event-driven by nature.
+_CATEGORY_TO_IDEA_TYPE: dict[SignalCategory, IdeaType] = {
     SignalCategory.VALUE: IdeaType.VALUE,
     SignalCategory.QUALITY: IdeaType.QUALITY,
+    SignalCategory.GROWTH: IdeaType.GROWTH,
     SignalCategory.MOMENTUM: IdeaType.MOMENTUM,
     SignalCategory.VOLATILITY: IdeaType.REVERSAL,
     SignalCategory.FLOW: IdeaType.MOMENTUM,
     SignalCategory.EVENT: IdeaType.EVENT,
+    SignalCategory.MACRO: IdeaType.EVENT,
 }
 
 
@@ -48,10 +89,17 @@ class BaseDetector(ABC):
         self,
         fundamental: FundamentalFeatureSet | None,
         technical: TechnicalFeatureSet | None,
+        context: ScanContext | None = None,
     ) -> DetectorResult | None:
         """
         Analyse normalised features and return a DetectorResult
         if an opportunity is detected, or None otherwise.
+
+        Parameters
+        ----------
+        context : ScanContext | None
+            Optional metadata such as previous scores for event detection.
+            Detectors that don't need it simply ignore this parameter.
         """
 
     def scan_from_profile(self, profile: SignalProfile) -> DetectorResult | None:
@@ -94,9 +142,13 @@ class BaseDetector(ABC):
         # Map confidence level
         confidence = ConfidenceLevel(cat_score.confidence.value)
 
-        idea_type = _CATEGORY_TO_IDEA_TYPE.get(
-            self.signal_category, IdeaType.EVENT
-        )
+        idea_type = _CATEGORY_TO_IDEA_TYPE.get(self.signal_category)
+        if idea_type is None:
+            logger.warning(
+                "DETECTOR: No IdeaType mapping for category %s — skipping",
+                self.signal_category.value,
+            )
+            return None
 
         return DetectorResult(
             idea_type=idea_type,

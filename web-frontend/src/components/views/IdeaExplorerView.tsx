@@ -31,6 +31,7 @@ import type { IdeaItem } from "@/hooks/useIdeasEngine";
 const TYPE_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; icon: React.ReactNode }> = {
     value: { label: "Value", color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/30", icon: <Diamond size={11} /> },
     quality: { label: "Quality", color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/30", icon: <Shield size={11} /> },
+    growth: { label: "Growth", color: "text-green-400", bg: "bg-green-500/10", border: "border-green-500/30", icon: <TrendingUp size={11} /> },
     momentum: { label: "Momentum", color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/30", icon: <Rocket size={11} /> },
     reversal: { label: "Reversal", color: "text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/30", icon: <Activity size={11} /> },
     event: { label: "Event", color: "text-cyan-400", bg: "bg-cyan-500/10", border: "border-cyan-500/30", icon: <AlertTriangle size={11} /> },
@@ -44,7 +45,7 @@ interface IdeaExplorerViewProps {
     error: string | null;
     onScan: () => void;
     onAnalyze: (ticker: string) => void;
-    onDismiss: (id: number) => void;
+    onDismiss: (id: string) => void;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -57,7 +58,7 @@ export default function IdeaExplorerView({
     onAnalyze,
     onDismiss,
 }: IdeaExplorerViewProps) {
-    const [selectedId, setSelectedId] = useState<number | null>(null);
+    const [selectedId, setSelectedId] = useState<string | null>(null);
     const [filterType, setFilterType] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [sortBy, setSortBy] = useState<"score" | "ticker">("score");
@@ -236,7 +237,7 @@ export default function IdeaExplorerView({
                                                     </span>
                                                 </td>
                                                 <td className="px-3 py-3 text-right font-mono font-bold text-white">
-                                                    {idea.signal_strength.toFixed(1)}
+                                                    {(idea.signal_strength * 100).toFixed(0)}%
                                                 </td>
                                                 <td className="px-5 py-3 text-right">
                                                     <div className="flex items-center justify-end gap-2">
@@ -299,7 +300,7 @@ export default function IdeaExplorerView({
                             <div>
                                 <p className="text-[9px] uppercase text-gray-600 mb-1">Signal Strength</p>
                                 <p className="text-2xl font-black text-[#d4af37]">
-                                    {selectedIdea.signal_strength.toFixed(1)}
+                                    {(selectedIdea.signal_strength * 100).toFixed(0)}%
                                 </p>
                             </div>
 

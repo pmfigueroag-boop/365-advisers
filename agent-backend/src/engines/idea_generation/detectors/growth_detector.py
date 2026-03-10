@@ -19,7 +19,7 @@ from src.engines.idea_generation.models import (
     SignalDetail,
 )
 from src.engines.alpha_signals.models import SignalCategory
-from src.engines.idea_generation.detectors.base import BaseDetector
+from src.engines.idea_generation.detectors.base import BaseDetector, ScanContext
 
 
 class GrowthDetector(BaseDetector):
@@ -39,6 +39,7 @@ class GrowthDetector(BaseDetector):
         self,
         fundamental: FundamentalFeatureSet | None,
         technical: TechnicalFeatureSet | None,
+        context: ScanContext | None = None,
     ) -> DetectorResult | None:
         if fundamental is None:
             return None
@@ -101,7 +102,7 @@ class GrowthDetector(BaseDetector):
         signal_strength = len(signals) / total_checks
 
         return DetectorResult(
-            idea_type=IdeaType.VALUE,  # Re-uses VALUE type; can extend IdeaType if needed
+            idea_type=IdeaType.GROWTH,
             confidence=confidence,
             signal_strength=round(signal_strength, 2),
             signals=signals,

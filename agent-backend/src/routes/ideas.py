@@ -35,8 +35,8 @@ class ScanRequest(BaseModel):
     tickers: list[str] = Field(
         ...,
         min_length=1,
-        max_length=100,
-        description="List of ticker symbols to scan",
+        max_length=500,
+        description="List of ticker symbols to scan (max 500 for local mode; use /scan/distributed for larger universes)",
     )
 
 
@@ -50,7 +50,7 @@ class ScanResponse(BaseModel):
 
 
 class IdeaSummary(BaseModel):
-    id: int
+    id: str
     idea_uid: str
     ticker: str
     name: str
@@ -64,9 +64,17 @@ class IdeaSummary(BaseModel):
     generated_at: str
 
 
-# ── Singleton Engine ──────────────────────────────────────────────────────────
+# ── Engine factory ───────────────────────────────────────────────────────────────
 
-_engine = IdeaGenerationEngine()
+_engine: IdeaGenerationEngine | None = None
+
+
+def get_engine() -> IdeaGenerationEngine:
+    """Lazy singleton factory — enables future config / DI swap."""
+    global _engine
+    if _engine is None:
+        _engine = IdeaGenerationEngine()
+    return _engine
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
@@ -77,9 +85,16 @@ async def scan_universe(body: ScanRequest):
     Run all opportunity detectors across the provided ticker universe.
     Results are persisted and returned as a ranked list.
     """
-    logger.info(f"IDEA-SCAN: Scanning {len(body.tickers)} tickers")
+    logger.info(
+        "scan_requested",
+        extra={
+            "endpoint": "/ideas/scan",
+            "ticker_count": len(body.tickers),
+            "scan_mode": "local",
+        },
+    )
 
-    result = await _engine.scan(tickers=body.tickers)
+    result = await get_engine().scan(tickers=body.tickers)
 
     # Persist to DB
     persisted_count = 0
@@ -143,7 +158,7 @@ async def scan_universe(body: ScanRequest):
 @router.get("", summary="Get active ideas")
 async def get_ideas(
     status: str = Query("active", description="Filter by status: active, analyzed, dismissed"),
-    idea_type: str | None = Query(None, description="Filter by type: value, quality, momentum, reversal, event"),
+    idea_type: str | None = Query(None, description="Filter by type: value, quality, growth, momentum, reversal, event"),
     limit: int = Query(50, ge=1, le=200),
 ):
     """Return persisted ideas, ordered by priority."""
@@ -155,7 +170,7 @@ async def get_ideas(
 
         return [
             {
-                "id": r.id,
+                "id": str(r.id),
                 "idea_uid": r.idea_uid,
                 "ticker": r.ticker,
                 "name": r.name,
@@ -190,7 +205,7 @@ async def get_idea_history(
         )
         return [
             {
-                "id": r.id,
+                "id": str(r.id),
                 "idea_uid": r.idea_uid,
                 "ticker": r.ticker,
                 "name": r.name,
@@ -243,8 +258,8 @@ async def mark_analyzed(idea_id: int):
 class DistributedScanRequest(BaseModel):
     """Request body for distributed universe scan."""
     tickers: list[str] = Field(
-        ..., min_length=1,
-        description="Full universe of tickers to scan (supports thousands)",
+        ..., min_length=1, max_length=5000,
+        description="Full universe of tickers to scan (supports up to 5000)",
     )
     chunk_size: int = Field(50, ge=10, le=200)
     fallback_to_local: bool = Field(True)
@@ -271,7 +286,7 @@ async def start_distributed_scan(body: DistributedScanRequest):
 
     # If fell back to local, run immediately
     if job.status == ScanStatus.PROCESSING and not job.task_ids:
-        result = await _engine.scan(tickers=body.tickers)
+        result = await get_engine().scan(tickers=body.tickers)
         job.status = ScanStatus.COMPLETE
         job.total_ideas = len(result.ideas)
         return {

@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime, timezone
 
-from src.engines.idea_generation.distributed.dispatcher import _jobs
+from src.engines.idea_generation.distributed.dispatcher import _default_job_store
 from src.engines.idea_generation.distributed.models import (
     ChunkResult,
     ScanJob,
@@ -45,7 +45,7 @@ class ResultAggregator:
         -------
         IdeaScanResult if results are available, None if scan not found.
         """
-        job = _jobs.get(scan_id)
+        job = _default_job_store.get(scan_id)
         if not job:
             return None
 
@@ -126,7 +126,7 @@ class ResultAggregator:
 
     def get_status(self, scan_id: str) -> dict | None:
         """Get job status without aggregating results."""
-        job = _jobs.get(scan_id)
+        job = _default_job_store.get(scan_id)
         if not job:
             return None
 
@@ -159,10 +159,24 @@ class ResultAggregator:
 
     @staticmethod
     def _deduplicate(ideas: list[IdeaCandidate]) -> list[IdeaCandidate]:
-        """Remove duplicate ideas (same ticker + idea_type, keep highest strength)."""
+        """Remove duplicate ideas, keep highest signal_strength per unique thesis.
+
+        Dedup key: ``ticker:idea_type:detector:source``
+
+        * ``ticker`` — same asset
+        * ``idea_type`` — same detector family (e.g. growth vs. value)
+        * ``detector`` — origin detector name (prevents cross-detector collisions
+          when two detectors legitimately produce the same idea_type)
+        * ``source`` — detection path (``alpha_signals_library`` vs ``legacy``)
+
+        Only genuine duplicates (same ticker + type + detector + source) from
+        chunk overlap in distributed scans are consolidated.
+        """
         seen: dict[str, IdeaCandidate] = {}
         for idea in ideas:
-            key = f"{idea.ticker}:{idea.idea_type.value}"
+            source = idea.metadata.get("source", "legacy")
+            detector = idea.detector or "unknown"
+            key = f"{idea.ticker}:{idea.idea_type.value}:{detector}:{source}"
             existing = seen.get(key)
             if existing is None or idea.signal_strength > existing.signal_strength:
                 seen[key] = idea

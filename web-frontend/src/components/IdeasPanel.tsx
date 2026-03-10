@@ -38,6 +38,13 @@ const TYPE_CONFIG: Record<
         border: "border-blue-500/30",
         icon: <Zap size={10} />,
     },
+    growth: {
+        label: "Growth",
+        color: "text-green-400",
+        bg: "bg-green-500/10",
+        border: "border-green-500/30",
+        icon: <TrendingUp size={10} />,
+    },
     momentum: {
         label: "Momentum",
         color: "text-orange-400",
@@ -75,7 +82,7 @@ interface IdeasPanelProps {
     error: string | null;
     onScan: () => void;
     onAnalyze: (ticker: string) => void;
-    onDismiss: (ideaId: number) => void;
+    onDismiss: (ideaId: string) => void;
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -89,7 +96,7 @@ export default function IdeasPanel({
     onDismiss,
 }: IdeasPanelProps) {
     const [filter, setFilter] = useState<string | null>(null);
-    const [expandedId, setExpandedId] = useState<number | null>(null);
+    const [expandedId, setExpandedId] = useState<string | null>(null);
 
     const displayed = filter ? ideas.filter((i) => i.idea_type === filter) : ideas;
 

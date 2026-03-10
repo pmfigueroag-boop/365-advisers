@@ -30,7 +30,7 @@ from src.engines.idea_generation.models import (
     IdeaScanResult,
     DetectorResult,
 )
-from src.engines.idea_generation.detectors.base import BaseDetector
+from src.engines.idea_generation.detectors.base import BaseDetector, ScanContext
 from src.engines.idea_generation.detectors.value_detector import ValueDetector
 from src.engines.idea_generation.detectors.quality_detector import QualityDetector
 from src.engines.idea_generation.detectors.momentum_detector import MomentumDetector
@@ -79,8 +79,8 @@ class IdeaGenerationEngine:
             MomentumDetector(),
             ReversalDetector(),
             GrowthDetector(),
+            EventDetector(),
         ]
-        self.event_detector = EventDetector()
         self._signal_evaluator = SignalEvaluator()
         self._composite_alpha_engine = CompositeAlphaEngine()
         # Alpha Decay
@@ -131,7 +131,10 @@ class IdeaGenerationEngine:
         detector_stats: dict[str, int] = {}
         for result in results:
             if isinstance(result, Exception):
-                logger.warning(f"IDEA-ENGINE: Scan error: {result}")
+                logger.warning(
+                    "scan_ticker_error",
+                    extra={"error": str(result)},
+                )
                 continue
             for idea in result:
                 raw_ideas.append(idea)
@@ -227,7 +230,12 @@ class IdeaGenerationEngine:
             except Exception as exc:
                 logger.warning(f"IDEA-ENGINE: CASE computation failed for {symbol}: {exc}")
 
-        # ── Run detectors ────────────────────────────────────────────────
+        # ── Run detectors (uniform loop, ScanContext carries event data) ──
+        scan_context = ScanContext(
+            previous_score=previous_score,
+            current_score=current_score,
+        )
+
         for detector in self.detectors:
             try:
                 result = None
@@ -235,32 +243,35 @@ class IdeaGenerationEngine:
                 if signal_profile is not None:
                     result = detector.scan_from_profile(signal_profile)
                 if result is None:
-                    result = detector.scan(fundamental_features, technical_features)
+                    result = detector.scan(
+                        fundamental_features, technical_features,
+                        context=scan_context,
+                    )
                 if result is not None:
+                    result.detector = detector.name
                     ideas.append(self._result_to_candidate(
                         symbol, result, fundamental_features,
                         composite_alpha=composite_alpha,
                     ))
+                    logger.info(
+                        "idea_generated",
+                        extra={
+                            "ticker": symbol,
+                            "detector": detector.name,
+                            "idea_type": result.idea_type.value,
+                            "signal_strength": result.signal_strength,
+                            "confidence": result.confidence.value,
+                        },
+                    )
             except Exception as exc:
                 logger.warning(
-                    f"IDEA-ENGINE: {detector.name} detector error on {symbol}: {exc}"
+                    "detector_error",
+                    extra={
+                        "ticker": symbol,
+                        "detector": detector.name,
+                        "error": str(exc),
+                    },
                 )
-
-        # Event detector (needs score history)
-        try:
-            event_result = self.event_detector.scan(
-                fundamental_features,
-                technical_features,
-                previous_score=previous_score,
-                current_score=current_score,
-            )
-            if event_result is not None:
-                ideas.append(self._result_to_candidate(
-                    symbol, event_result, fundamental_features,
-                    composite_alpha=composite_alpha,
-                ))
-        except Exception as exc:
-            logger.warning(f"IDEA-ENGINE: event detector error on {symbol}: {exc}")
 
         return ideas
 
@@ -347,5 +358,6 @@ class IdeaGenerationEngine:
             confidence=result.confidence,
             signal_strength=result.signal_strength,
             signals=result.signals,
+            detector=result.detector,
             metadata=metadata,
         )

@@ -19,7 +19,7 @@ from src.engines.idea_generation.models import (
     SignalDetail,
 )
 from src.engines.alpha_signals.models import SignalCategory
-from src.engines.idea_generation.detectors.base import BaseDetector
+from src.engines.idea_generation.detectors.base import BaseDetector, ScanContext
 
 
 class ValueDetector(BaseDetector):
@@ -39,6 +39,7 @@ class ValueDetector(BaseDetector):
         self,
         fundamental: FundamentalFeatureSet | None,
         technical: TechnicalFeatureSet | None,
+        context: ScanContext | None = None,
     ) -> DetectorResult | None:
         if fundamental is None:
             return None

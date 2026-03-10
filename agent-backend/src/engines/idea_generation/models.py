@@ -21,6 +21,7 @@ from pydantic import BaseModel, Field
 class IdeaType(str, Enum):
     VALUE = "value"
     QUALITY = "quality"
+    GROWTH = "growth"
     MOMENTUM = "momentum"
     REVERSAL = "reversal"
     EVENT = "event"
@@ -63,6 +64,7 @@ class DetectorResult(BaseModel):
     confidence: ConfidenceLevel
     signal_strength: float = Field(ge=0.0, le=1.0)
     signals: list[SignalDetail]
+    detector: str = Field("", description="Name of the detector that produced this result")
     metadata: dict = Field(default_factory=dict)
 
 
@@ -79,6 +81,7 @@ class IdeaCandidate(BaseModel):
     signal_strength: float = Field(ge=0.0, le=1.0)
     priority: int = 0
     signals: list[SignalDetail]
+    detector: str = Field("", description="Name of the detector that produced this idea")
     status: IdeaStatus = IdeaStatus.ACTIVE
     generated_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc)

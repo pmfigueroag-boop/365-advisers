@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
+from typing import Protocol
 
 from src.engines.idea_generation.distributed.models import (
     DistributedScanConfig,
@@ -18,8 +19,39 @@ from src.engines.idea_generation.distributed.models import (
 
 logger = logging.getLogger("365advisers.idea_generation.distributed.dispatcher")
 
-# In-memory job registry (production would use Redis/DB)
-_jobs: dict[str, ScanJob] = {}
+
+# ── Job Store protocol + in-memory default ────────────────────────────────────
+
+class JobStore(Protocol):
+    """Abstract job store — swap InMemoryJobStore for a Redis/DB adapter later."""
+
+    def save(self, job: ScanJob) -> None: ...
+    def get(self, scan_id: str) -> ScanJob | None: ...
+    def list_recent(self, limit: int = 20) -> list[ScanJob]: ...
+
+
+class InMemoryJobStore:
+    """Default in-memory implementation of JobStore."""
+
+    def __init__(self) -> None:
+        self._jobs: dict[str, ScanJob] = {}
+
+    def save(self, job: ScanJob) -> None:
+        self._jobs[job.scan_id] = job
+
+    def get(self, scan_id: str) -> ScanJob | None:
+        return self._jobs.get(scan_id)
+
+    def list_recent(self, limit: int = 20) -> list[ScanJob]:
+        sorted_jobs = sorted(
+            self._jobs.values(),
+            key=lambda j: j.started_at,
+            reverse=True,
+        )
+        return sorted_jobs[:limit]
+
+
+_default_job_store = InMemoryJobStore()
 
 
 class ScanDispatcher:
@@ -32,8 +64,13 @@ class ScanDispatcher:
     job = dispatcher.dispatch(tickers=["AAPL", "MSFT", ...])
     """
 
-    def __init__(self, config: DistributedScanConfig | None = None) -> None:
+    def __init__(
+        self,
+        config: DistributedScanConfig | None = None,
+        job_store: JobStore | None = None,
+    ) -> None:
         self.config = config or DistributedScanConfig()
+        self._job_store: JobStore = job_store or _default_job_store
 
     def dispatch(
         self,
@@ -60,9 +97,14 @@ class ScanDispatcher:
         job.total_chunks = len(chunks)
 
         logger.info(
-            f"DISPATCH: scan_id={job.scan_id}, "
-            f"{len(tickers)} tickers → {len(chunks)} chunks "
-            f"(size={self.config.chunk_size})"
+            "scan_dispatched",
+            extra={
+                "scan_id": job.scan_id,
+                "ticker_count": len(tickers),
+                "chunk_count": len(chunks),
+                "chunk_size": self.config.chunk_size,
+                "mode": "distributed",
+            },
         )
 
         # Try to submit to Celery
@@ -77,8 +119,14 @@ class ScanDispatcher:
                 chunk_hist = {t: score_history[t] for t in chunk if t in score_history}
                 chunk_curr = {t: current_scores[t] for t in chunk if t in current_scores}
 
+                # ScanContext serialized for Celery transport
+                context_data = {
+                    "score_history": chunk_hist,
+                    "current_scores": chunk_curr,
+                }
+
                 task = scan_chunk_task.apply_async(
-                    args=[job.scan_id, i, chunk, chunk_hist, chunk_curr],
+                    args=[job.scan_id, i, chunk, chunk_hist, chunk_curr, context_data],
                     queue="idea_scan",
                 )
                 task_ids.append(task.id)
@@ -106,16 +154,16 @@ class ScanDispatcher:
                 job.error = str(exc)
 
         # Register job
-        _jobs[job.scan_id] = job
+        self._job_store.save(job)
         return job
 
     def get_job(self, scan_id: str) -> ScanJob | None:
         """Retrieve a scan job by ID."""
-        return _jobs.get(scan_id)
+        return self._job_store.get(scan_id)
 
     def cancel_job(self, scan_id: str) -> bool:
         """Cancel a running scan."""
-        job = _jobs.get(scan_id)
+        job = self._job_store.get(scan_id)
         if not job:
             return False
 
@@ -132,16 +180,12 @@ class ScanDispatcher:
 
         job.status = ScanStatus.CANCELLED
         job.completed_at = datetime.now(timezone.utc)
+        self._job_store.save(job)
         return True
 
     def list_jobs(self, limit: int = 20) -> list[ScanJob]:
         """List recent scan jobs."""
-        sorted_jobs = sorted(
-            _jobs.values(),
-            key=lambda j: j.started_at,
-            reverse=True,
-        )
-        return sorted_jobs[:limit]
+        return self._job_store.list_recent(limit)
 
     @staticmethod
     def _chunk(items: list[str], size: int) -> list[list[str]]:

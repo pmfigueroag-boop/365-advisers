@@ -33,6 +33,7 @@ def scan_chunk_task(
     tickers: list[str],
     score_history: dict,
     current_scores: dict,
+    context_data: dict | None = None,
 ) -> dict:
     """
     Process a single chunk of tickers.
@@ -54,6 +55,11 @@ def scan_chunk_task(
         Previous scores for event detection.
     current_scores : dict
         Current scores.
+    context_data : dict | None
+        Serialized ScanContext from the dispatcher. Contains
+        ``score_history`` and ``current_scores`` for EventDetector.
+        Falls back to the positional score_history / current_scores
+        if not provided (backward compatibility).
 
     Returns
     -------
@@ -61,8 +67,12 @@ def scan_chunk_task(
         Serialised chunk result.
     """
     logger.info(
-        f"WORKER: Processing chunk {chunk_id} for scan {scan_id} "
-        f"({len(tickers)} tickers)"
+        "chunk_started",
+        extra={
+            "scan_id": scan_id,
+            "chunk_id": chunk_id,
+            "chunk_size": len(tickers),
+        },
     )
 
     try:
@@ -70,12 +80,20 @@ def scan_chunk_task(
 
         engine = IdeaGenerationEngine()
 
+        # Prefer context_data if provided (distributed path),
+        # fall back to positional args (backward compat)
+        hist = score_history
+        curr = current_scores
+        if context_data:
+            hist = context_data.get("score_history", hist)
+            curr = context_data.get("current_scores", curr)
+
         # Run the async scan in a sync context
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         try:
             result = loop.run_until_complete(
-                engine.scan(tickers, score_history, current_scores)
+                engine.scan(tickers, hist, curr)
             )
         finally:
             loop.close()
@@ -85,8 +103,13 @@ def scan_chunk_task(
         ]
 
         logger.info(
-            f"WORKER: Chunk {chunk_id} complete — "
-            f"{len(serialised_ideas)} ideas in {result.scan_duration_ms:.0f}ms"
+            "chunk_complete",
+            extra={
+                "scan_id": scan_id,
+                "chunk_id": chunk_id,
+                "ideas_found": len(serialised_ideas),
+                "duration_ms": round(result.scan_duration_ms, 1),
+            },
         )
 
         return {
@@ -103,7 +126,12 @@ def scan_chunk_task(
 
     except Exception as exc:
         logger.error(
-            f"WORKER: Chunk {chunk_id} failed — {exc}",
+            "chunk_failed",
+            extra={
+                "scan_id": scan_id,
+                "chunk_id": chunk_id,
+                "error": str(exc),
+            },
             exc_info=True,
         )
 

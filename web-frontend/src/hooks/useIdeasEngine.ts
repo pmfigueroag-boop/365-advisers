@@ -15,12 +15,12 @@ export interface IdeaSignal {
 }
 
 export interface IdeaItem {
-    id: number;
+    id: string;
     idea_uid: string;
     ticker: string;
     name: string;
     sector: string;
-    idea_type: "value" | "quality" | "momentum" | "reversal" | "event";
+    idea_type: "value" | "quality" | "growth" | "momentum" | "reversal" | "event";
     confidence: "high" | "medium" | "low";
     signal_strength: number;
     priority: number;
@@ -92,7 +92,7 @@ export function useIdeasEngine() {
     }, []);
 
     /** Dismiss an idea. */
-    const dismiss = useCallback(async (ideaId: number) => {
+    const dismiss = useCallback(async (ideaId: string) => {
         try {
             await fetch(`${BACKEND_URL}/ideas/${ideaId}/dismiss`, { method: "POST" });
             setIdeas((prev) => prev.filter((i) => i.id !== ideaId));
@@ -102,7 +102,7 @@ export function useIdeasEngine() {
     }, []);
 
     /** Mark an idea as analyzed. */
-    const markAnalyzed = useCallback(async (ideaId: number) => {
+    const markAnalyzed = useCallback(async (ideaId: string) => {
         try {
             await fetch(`${BACKEND_URL}/ideas/${ideaId}/analyze`, { method: "POST" });
             setIdeas((prev) =>
