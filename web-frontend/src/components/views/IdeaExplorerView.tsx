@@ -205,6 +205,7 @@ export default function IdeaExplorerView({
                                         <th className="text-left px-3 py-2.5">Strategy</th>
                                         <th className="text-left px-3 py-2.5">Confidence</th>
                                         <th className="text-right px-3 py-2.5">Strength</th>
+                                        <th className="text-right px-3 py-2.5">Reliability</th>
                                         <th className="text-right px-5 py-2.5">Actions</th>
                                     </tr>
                                 </thead>
@@ -238,6 +239,9 @@ export default function IdeaExplorerView({
                                                 </td>
                                                 <td className="px-3 py-3 text-right font-mono font-bold text-white">
                                                     {(idea.signal_strength * 100).toFixed(0)}%
+                                                </td>
+                                                <td className="px-3 py-3 text-right font-mono font-bold text-teal-400" title="Reliability score based on signal confirmation quality">
+                                                    {((idea.confidence_score ?? 0) * 100).toFixed(0)}%
                                                 </td>
                                                 <td className="px-5 py-3 text-right">
                                                     <div className="flex items-center justify-end gap-2">

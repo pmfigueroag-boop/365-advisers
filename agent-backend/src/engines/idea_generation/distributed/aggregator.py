@@ -14,6 +14,7 @@ import logging
 from datetime import datetime, timezone
 
 from src.engines.idea_generation.distributed.dispatcher import _default_job_store
+from src.engines.idea_generation.metrics import get_collector
 from src.engines.idea_generation.distributed.models import (
     ChunkResult,
     ScanJob,
@@ -173,11 +174,22 @@ class ResultAggregator:
         chunk overlap in distributed scans are consolidated.
         """
         seen: dict[str, IdeaCandidate] = {}
+        _m = get_collector()
         for idea in ideas:
             source = idea.metadata.get("source", "legacy")
             detector = idea.detector or "unknown"
             key = f"{idea.ticker}:{idea.idea_type.value}:{detector}:{source}"
             existing = seen.get(key)
             if existing is None or idea.signal_strength > existing.signal_strength:
+                if existing is not None:
+                    _m.increment("dedup_rejected_total", tags={
+                        "idea_type": idea.idea_type.value,
+                        "detector": detector,
+                    })
                 seen[key] = idea
+            else:
+                _m.increment("dedup_rejected_total", tags={
+                    "idea_type": idea.idea_type.value,
+                    "detector": detector,
+                })
         return list(seen.values())

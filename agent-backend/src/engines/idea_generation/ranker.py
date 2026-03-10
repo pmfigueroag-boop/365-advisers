@@ -3,10 +3,21 @@ src/engines/idea_generation/ranker.py
 ──────────────────────────────────────────────────────────────────────────────
 Priority ranking system for investment ideas.
 
-Composite score formula:
-  priority_score = (signal_strength × detector_weight)
-                 + confidence_bonus
-                 + multi_detector_bonus
+Composite score formula (v2 — with confidence_score)
+────────────────────────────────────────────────────
+priority_score = (signal_strength × detector_weight × 0.40)   # intensity
+               + (alpha_score × 0.35)                          # attractiveness
+               + (confidence_score × 0.25)                     # reliability
+               + multi_detector_bonus
+
+This separates three independent dimensions:
+
+    signal_strength — how intense is the signal right now?
+    alpha_score     — how attractive is the opportunity overall?
+    confidence_score — how reliable/credible is this detection?
+
+An idea with high alpha but low confidence will rank below one with
+moderately high alpha and very high confidence.
 
 Ideas are sorted by descending priority_score and assigned integer ranks.
 """
@@ -19,13 +30,12 @@ from src.engines.idea_generation.models import (
 )
 
 
-# ── Bonus mappings ────────────────────────────────────────────────────────────
+# ── Weight constants — easy to calibrate later ────────────────────────────────
 
-_CONFIDENCE_BONUS = {
-    ConfidenceLevel.HIGH: 0.30,
-    ConfidenceLevel.MEDIUM: 0.10,
-    ConfidenceLevel.LOW: 0.0,
-}
+W_SIGNAL = 0.40
+W_ALPHA = 0.35
+W_CONFIDENCE = 0.25
+MULTI_DETECTOR_BONUS = 0.10
 
 
 def rank_ideas(
@@ -59,11 +69,29 @@ def rank_ideas(
     scored: list[tuple[float, IdeaCandidate]] = []
     for idea in ideas:
         w = weights.get(idea.idea_type.value, 1.0)
-        base = idea.signal_strength * w
-        conf_bonus = _CONFIDENCE_BONUS.get(idea.confidence, 0.0)
-        multi_bonus = 0.5 if ticker_detector_count.get(idea.ticker, 0) >= 2 else 0.0
 
-        composite = base + conf_bonus + multi_bonus
+        # ── Three-dimensional composite score ──────────────────────────
+        signal_component = idea.signal_strength * w * W_SIGNAL
+
+        # Alpha score from CASE pipeline (stored in metadata)
+        raw_alpha = idea.metadata.get("composite_alpha_score", 0.0)
+        alpha_score = float(raw_alpha) if raw_alpha else 0.0
+        alpha_component = alpha_score * W_ALPHA
+
+        confidence_component = idea.confidence_score * W_CONFIDENCE
+
+        multi_bonus = (
+            MULTI_DETECTOR_BONUS
+            if ticker_detector_count.get(idea.ticker, 0) >= 2
+            else 0.0
+        )
+
+        composite = (
+            signal_component
+            + alpha_component
+            + confidence_component
+            + multi_bonus
+        )
         scored.append((composite, idea))
 
     # Sort descending by composite score

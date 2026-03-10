@@ -59,10 +59,24 @@ class SignalDetail(BaseModel):
 # ─── Detector Result ──────────────────────────────────────────────────────────
 
 class DetectorResult(BaseModel):
-    """Output of a single detector for a single ticker."""
+    """Output of a single detector for a single ticker.
+
+    Scoring dimensions
+    ------------------
+    signal_strength : float
+        How intense the detected signal is right now (0–1).
+    confidence_score : float
+        How reliable/credible this detection is, based on the number
+        and quality of confirming sub-signals (0–1).
+    alpha_score is computed downstream by the ranker from composite factors.
+    """
     idea_type: IdeaType
     confidence: ConfidenceLevel
     signal_strength: float = Field(ge=0.0, le=1.0)
+    confidence_score: float = Field(
+        0.0, ge=0.0, le=1.0,
+        description="Reliability score: fired_signals / total_signals with quality adjustments",
+    )
     signals: list[SignalDetail]
     detector: str = Field("", description="Name of the detector that produced this result")
     metadata: dict = Field(default_factory=dict)
@@ -71,7 +85,18 @@ class DetectorResult(BaseModel):
 # ─── Idea Candidate ──────────────────────────────────────────────────────────
 
 class IdeaCandidate(BaseModel):
-    """A fully formed investment idea ready for ranking and presentation."""
+    """A fully formed investment idea ready for ranking and presentation.
+
+    Scoring dimensions
+    ------------------
+    signal_strength : float
+        Instantaneous intensity of the detected signal (0–1).
+    confidence_score : float
+        Reliability/credibility of the idea based on signal confirmation (0–1).
+    alpha_score : float
+        Composite attractiveness score computed by the ranker (0–1+).
+        Stored in ``metadata["composite_alpha_score"]`` when available.
+    """
     id: str = Field(default_factory=lambda: uuid4().hex[:12])
     ticker: str
     name: str = ""
@@ -79,6 +104,10 @@ class IdeaCandidate(BaseModel):
     idea_type: IdeaType
     confidence: ConfidenceLevel
     signal_strength: float = Field(ge=0.0, le=1.0)
+    confidence_score: float = Field(
+        0.0, ge=0.0, le=1.0,
+        description="Reliability score based on signal confirmation quality",
+    )
     priority: int = 0
     signals: list[SignalDetail]
     detector: str = Field("", description="Name of the detector that produced this idea")

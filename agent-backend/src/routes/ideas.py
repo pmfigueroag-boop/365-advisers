@@ -23,6 +23,7 @@ from pydantic import BaseModel, Field
 from src.engines.idea_generation.engine import IdeaGenerationEngine
 from src.engines.idea_generation.models import IdeaStatus
 from src.data.database import SessionLocal, IdeaRecord
+from src.engines.idea_generation.metrics import get_collector
 
 logger = logging.getLogger("365advisers.routes.ideas")
 
@@ -58,6 +59,7 @@ class IdeaSummary(BaseModel):
     idea_type: str
     confidence: str
     signal_strength: float
+    confidence_score: float = 0.0
     priority: int
     signals: list[dict]
     status: str
@@ -85,6 +87,9 @@ async def scan_universe(body: ScanRequest):
     Run all opportunity detectors across the provided ticker universe.
     Results are persisted and returned as a ranked list.
     """
+    get_collector().increment("scans_started_total", tags={
+        "mode": "local", "endpoint": "/ideas/scan",
+    })
     logger.info(
         "scan_requested",
         extra={
@@ -95,6 +100,13 @@ async def scan_universe(body: ScanRequest):
     )
 
     result = await get_engine().scan(tickers=body.tickers)
+
+    get_collector().increment("scans_completed_total", tags={
+        "mode": "local", "endpoint": "/ideas/scan",
+    })
+    get_collector().gauge("scan_ideas_total", len(result.ideas), tags={
+        "mode": "local",
+    })
 
     # Persist to DB
     persisted_count = 0

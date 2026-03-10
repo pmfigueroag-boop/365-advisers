@@ -8,6 +8,8 @@ to the Celery task queue for parallel processing.
 from __future__ import annotations
 
 import logging
+
+from src.engines.idea_generation.metrics import get_collector
 from datetime import datetime, timezone
 from typing import Protocol
 
@@ -96,6 +98,9 @@ class ScanDispatcher:
         chunks = self._chunk(tickers, self.config.chunk_size)
         job.total_chunks = len(chunks)
 
+        get_collector().increment("scans_started_total", tags={
+            "mode": "distributed", "endpoint": "/ideas/scan/distributed",
+        })
         logger.info(
             "scan_dispatched",
             extra={

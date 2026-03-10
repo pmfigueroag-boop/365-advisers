@@ -23,6 +23,8 @@ export interface IdeaItem {
     idea_type: "value" | "quality" | "growth" | "momentum" | "reversal" | "event";
     confidence: "high" | "medium" | "low";
     signal_strength: number;
+    confidence_score?: number;
+    detector?: string;
     priority: number;
     signals: IdeaSignal[];
     status: "active" | "analyzed" | "dismissed";

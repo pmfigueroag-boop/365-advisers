@@ -207,11 +207,11 @@ def fetch_fundamental_data(ticker: str) -> dict:
                 "quick_ratio":        info.get("quickRatio") or "DATA_INCOMPLETE",
             },
             "quality": {
-                "revenue_growth_yoy": info.get("revenueGrowth") or "DATA_INCOMPLETE",
-                "earnings_growth_yoy":info.get("earningsGrowth") or "DATA_INCOMPLETE",
-                "dividend_yield":     info.get("dividendYield") or 0.0,
-                "payout_ratio":       info.get("payoutRatio") or 0.0,
-                "beta":               info.get("beta") or "DATA_INCOMPLETE",
+                "revenue_growth_yoy": info.get("revenueGrowth") if info.get("revenueGrowth") is not None else "DATA_INCOMPLETE",
+                "earnings_growth_yoy": info.get("earningsGrowth") if info.get("earningsGrowth") is not None else "DATA_INCOMPLETE",
+                "dividend_yield":     info.get("dividendYield") if info.get("dividendYield") is not None else 0.0,
+                "payout_ratio":       info.get("payoutRatio") if info.get("payoutRatio") is not None else 0.0,
+                "beta":               info.get("beta") if info.get("beta") is not None else "DATA_INCOMPLETE",
             },
         }
 

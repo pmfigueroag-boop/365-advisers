@@ -13,6 +13,7 @@ import asyncio
 import logging
 
 from src.engines.idea_generation.celery_app import celery_app
+from src.engines.idea_generation.metrics import get_collector
 
 logger = logging.getLogger("365advisers.idea_generation.distributed.worker")
 
@@ -111,6 +112,9 @@ def scan_chunk_task(
                 "duration_ms": round(result.scan_duration_ms, 1),
             },
         )
+        get_collector().timing("chunk_processing_ms", result.scan_duration_ms, tags={
+            "mode": "distributed",
+        })
 
         return {
             "scan_id": scan_id,

@@ -15,6 +15,8 @@ import asyncio
 import logging
 import time as _time
 
+from src.engines.idea_generation.metrics import get_collector
+
 from src.contracts.features import FundamentalFeatureSet, TechnicalFeatureSet
 from src.contracts.market_data import (
     FinancialStatements, FinancialRatios,
@@ -31,12 +33,10 @@ from src.engines.idea_generation.models import (
     DetectorResult,
 )
 from src.engines.idea_generation.detectors.base import BaseDetector, ScanContext
-from src.engines.idea_generation.detectors.value_detector import ValueDetector
-from src.engines.idea_generation.detectors.quality_detector import QualityDetector
-from src.engines.idea_generation.detectors.momentum_detector import MomentumDetector
-from src.engines.idea_generation.detectors.reversal_detector import ReversalDetector
-from src.engines.idea_generation.detectors.event_detector import EventDetector
-from src.engines.idea_generation.detectors.growth_detector import GrowthDetector
+from src.engines.idea_generation.detector_registry import (
+    build_active_detectors,
+    default_registry,
+)
 from src.engines.idea_generation.ranker import rank_ideas
 
 # ── Alpha Signals Library integration ─────────────────────────────────────
@@ -72,15 +72,15 @@ class IdeaGenerationEngine:
       5. Return IdeaScanResult
     """
 
-    def __init__(self) -> None:
-        self.detectors: list[BaseDetector] = [
-            ValueDetector(),
-            QualityDetector(),
-            MomentumDetector(),
-            ReversalDetector(),
-            GrowthDetector(),
-            EventDetector(),
-        ]
+    def __init__(
+        self,
+        detector_keys: set[str] | None = None,
+        disabled_keys: set[str] | None = None,
+    ) -> None:
+        self.detectors: list[BaseDetector] = build_active_detectors(
+            enabled_keys=detector_keys,
+            disabled_keys=disabled_keys,
+        )
         self._signal_evaluator = SignalEvaluator()
         self._composite_alpha_engine = CompositeAlphaEngine()
         # Alpha Decay
@@ -249,10 +249,20 @@ class IdeaGenerationEngine:
                     )
                 if result is not None:
                     result.detector = detector.name
+                    # ── Compute confidence_score if detector didn't set it ──
+                    if result.confidence_score == 0.0 and result.signals:
+                        result.confidence_score = self._compute_confidence(
+                            result
+                        )
                     ideas.append(self._result_to_candidate(
                         symbol, result, fundamental_features,
                         composite_alpha=composite_alpha,
                     ))
+                    _m = get_collector()
+                    _m.increment("ideas_generated_total", tags={
+                        "detector": detector.name,
+                        "idea_type": result.idea_type.value,
+                    })
                     logger.info(
                         "idea_generated",
                         extra={
@@ -260,10 +270,14 @@ class IdeaGenerationEngine:
                             "detector": detector.name,
                             "idea_type": result.idea_type.value,
                             "signal_strength": result.signal_strength,
-                            "confidence": result.confidence.value,
+                            "confidence_score": result.confidence_score,
                         },
                     )
             except Exception as exc:
+                get_collector().increment("detector_errors_total", tags={
+                    "detector": detector.name,
+                    "error_type": type(exc).__name__,
+                })
                 logger.warning(
                     "detector_error",
                     extra={
@@ -357,7 +371,39 @@ class IdeaGenerationEngine:
             idea_type=result.idea_type,
             confidence=result.confidence,
             signal_strength=result.signal_strength,
+            confidence_score=result.confidence_score,
             signals=result.signals,
             detector=result.detector,
             metadata=metadata,
         )
+
+    @staticmethod
+    def _compute_confidence(result: DetectorResult) -> float:
+        """Heuristic confidence score from signal confirmation quality.
+
+        Formula
+        -------
+        base = fired_strong / total_signals
+        quality_bonus = strong_ratio * 0.2
+        consistency_penalty = -0.1 if any weak signals present
+
+        confidence = clamp(base + quality_bonus + consistency_penalty, 0, 1)
+        """
+        total = len(result.signals)
+        if total == 0:
+            return 0.0
+
+        strong = sum(1 for s in result.signals if s.strength.value == "strong")
+        moderate = sum(1 for s in result.signals if s.strength.value == "moderate")
+        weak = sum(1 for s in result.signals if s.strength.value == "weak")
+
+        # Base: ratio of confirming signals (strong + moderate weighted)
+        base = (strong + moderate * 0.6) / total
+
+        # Quality bonus for high strong ratio
+        quality_bonus = (strong / total) * 0.2 if total > 0 else 0.0
+
+        # Penalty for weak/conflicting signals
+        consistency_penalty = -0.1 if weak > 0 else 0.0
+
+        return max(0.0, min(1.0, base + quality_bonus + consistency_penalty))
