@@ -27,6 +27,11 @@ from src.engines.idea_generation.metrics import get_collector
 from src.engines.idea_generation.strategy_profiles import (
     default_profile_registry,
 )
+from src.engines.idea_generation.universe_discovery import (
+    UniverseRequest,
+    UniverseSource,
+    default_universe_service,
+)
 
 logger = logging.getLogger("365advisers.routes.ideas")
 
@@ -408,3 +413,109 @@ async def cancel_scan(scan_id: str):
         raise HTTPException(status_code=404, detail="Scan not found or already complete")
     return {"status": "cancelled", "scan_id": scan_id}
 
+
+# ── Universe Discovery Endpoints ─────────────────────────────────────────────
+
+
+class AutoScanRequest(BaseModel):
+    """Request body for auto-discovery scan."""
+    sources: list[str] = Field(
+        default=["static_index"],
+        description="Universe sources to use: static_index, portfolio, idea_history, screener, sector_rotation, custom",
+    )
+    strategy_profile: str | None = Field(
+        None,
+        description="Strategy profile key (e.g. 'swing', 'deep_value')",
+    )
+    max_tickers: int = Field(200, ge=1, le=500)
+    custom_tickers: list[str] = Field(
+        default_factory=list,
+        description="Explicit tickers when 'custom' source is included",
+    )
+    index_name: str = Field("sp500", description="Index for static_index source")
+
+
+@router.post("/scan/auto", summary="Auto-discover universe and scan")
+async def auto_scan(body: AutoScanRequest):
+    """Auto-discover the ticker universe and run a full scan."""
+    # Parse sources
+    try:
+        sources = [UniverseSource(s) for s in body.sources]
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    universe_request = UniverseRequest(
+        sources=sources,
+        max_tickers=body.max_tickers,
+        custom_tickers=body.custom_tickers,
+        index_name=body.index_name,
+        strategy_profile=body.strategy_profile,
+    )
+
+    engine = get_engine(strategy_profile_key=body.strategy_profile)
+    result = await engine.auto_scan(universe_request=universe_request)
+
+    return {
+        "scan_id": result.scan_id,
+        "universe_size": result.universe_size,
+        "ideas_found": len(result.ideas),
+        "scan_duration_ms": result.scan_duration_ms,
+        "detector_stats": result.detector_stats,
+        "strategy_profile": body.strategy_profile,
+        "ideas": [
+            {
+                "id": idea.id,
+                "ticker": idea.ticker,
+                "name": idea.name,
+                "sector": idea.sector,
+                "idea_type": idea.idea_type.value,
+                "confidence": idea.confidence.value,
+                "signal_strength": idea.signal_strength,
+                "priority": idea.priority,
+                "signals": [s.model_dump() for s in idea.signals],
+                "status": idea.status.value,
+                "generated_at": idea.generated_at.isoformat(),
+                "metadata": idea.metadata,
+            }
+            for idea in result.ideas
+        ],
+    }
+
+
+@router.get("/universe/sources", summary="List universe sources")
+async def list_universe_sources():
+    """Return all available universe discovery sources."""
+    return {
+        "sources": default_universe_service._registry.list_sources(),
+        "total": len(default_universe_service._registry),
+    }
+
+
+class UniversePreviewRequest(BaseModel):
+    """Request body for universe preview."""
+    sources: list[str] = Field(
+        default=["static_index"],
+        description="Universe sources to use",
+    )
+    max_tickers: int = Field(50, ge=1, le=500)
+    custom_tickers: list[str] = Field(default_factory=list)
+    index_name: str = Field("sp500")
+
+
+@router.post("/universe/preview", summary="Preview discovered tickers")
+async def preview_universe(body: UniversePreviewRequest):
+    """Preview the tickers that would be discovered without running a scan."""
+    try:
+        sources = [UniverseSource(s) for s in body.sources]
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    request = UniverseRequest(
+        sources=sources,
+        max_tickers=body.max_tickers,
+        custom_tickers=body.custom_tickers,
+        index_name=body.index_name,
+    )
+
+    result = default_universe_service.discover(request)
+    return result.to_dict()

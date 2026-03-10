@@ -39,6 +39,11 @@ from src.engines.idea_generation.detector_registry import (
 )
 from src.engines.idea_generation.ranker import rank_ideas
 from src.engines.idea_generation.strategy_profiles import StrategyProfile
+from src.engines.idea_generation.universe_discovery import (
+    UniverseRequest,
+    UniverseResult,
+    default_universe_service,
+)
 
 # ── Alpha Signals Library integration ─────────────────────────────────────
 from src.engines.alpha_signals.evaluator import SignalEvaluator
@@ -210,6 +215,51 @@ class IdeaGenerationEngine:
             scan_duration_ms=round(elapsed_ms, 1),
             detector_stats=detector_stats,
         )
+
+    async def auto_scan(
+        self,
+        universe_request: UniverseRequest | None = None,
+    ) -> IdeaScanResult:
+        """Auto-discover universe then scan.
+
+        Parameters
+        ----------
+        universe_request : UniverseRequest | None
+            Configuration for universe discovery.
+            When None, uses default (static index).
+
+        Returns
+        -------
+        IdeaScanResult
+            Scan result with discovered universe.
+        """
+        req = universe_request or UniverseRequest()
+        universe = default_universe_service.discover(req)
+
+        if not universe.tickers:
+            logger.warning("auto_scan: no tickers discovered")
+            return IdeaScanResult(
+                universe_size=0,
+                ideas=[],
+                scan_duration_ms=universe.discovery_ms,
+                detector_stats={},
+            )
+
+        logger.info(
+            "auto_scan: discovered %d tickers from %s",
+            len(universe.tickers),
+            list(universe.source_breakdown.keys()),
+        )
+
+        result = await self.scan(tickers=universe.tickers)
+        # Attach discovery metadata
+        result.detector_stats["universe_discovery"] = {
+            "total_discovered": universe.total_discovered,
+            "total_after_dedup": universe.total_after_dedup,
+            "sources": universe.source_breakdown,
+            "discovery_ms": universe.discovery_ms,
+        }
+        return result
 
     async def _scan_single(
         self,
