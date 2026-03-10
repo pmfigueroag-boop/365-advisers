@@ -27,7 +27,7 @@ export interface IdeaItem {
     detector?: string;
     priority: number;
     signals: IdeaSignal[];
-    status: "active" | "analyzed" | "dismissed";
+    status: "active" | "analyzed" | "validated" | "in_portfolio" | "dismissed";
     generated_at: string;
     metadata?: Record<string, any>;
 }
@@ -37,9 +37,16 @@ export interface ScanResult {
     universe_size: number;
     ideas_found: number;
     scan_duration_ms: number;
-    detector_stats: Record<string, number>;
+    detector_stats: Record<string, any>;
     ideas: IdeaItem[];
     strategy_profile?: string | null;
+}
+
+export interface UniverseMeta {
+    total_discovered: number;
+    total_after_dedup: number;
+    sources: Record<string, number>;
+    discovery_ms: number;
 }
 
 type ScanStatus = "idle" | "scanning" | "done" | "error";
@@ -50,6 +57,7 @@ export function useIdeasEngine() {
     const [ideas, setIdeas] = useState<IdeaItem[]>([]);
     const [scanStatus, setScanStatus] = useState<ScanStatus>("idle");
     const [lastScan, setLastScan] = useState<ScanResult | null>(null);
+    const [lastUniverse, setLastUniverse] = useState<UniverseMeta | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     /** Run a universe scan with the given tickers and optional strategy profile. */
@@ -73,6 +81,54 @@ export function useIdeasEngine() {
             const data: ScanResult = await res.json();
             setLastScan(data);
             setIdeas(data.ideas);
+            setLastUniverse(null);
+            setScanStatus("done");
+        } catch (e) {
+            const msg = e instanceof Error ? e.message : String(e);
+            setError(msg);
+            setScanStatus("error");
+        }
+    }, []);
+
+    /** Auto-discover universe and scan — calls /ideas/scan/auto */
+    const autoScan = useCallback(async (
+        sources: string[] = ["static_index", "screener", "sector_rotation", "portfolio", "idea_history"],
+        profileKey?: string,
+        maxTickers: number = 50,
+    ) => {
+        setScanStatus("scanning");
+        setError(null);
+
+        try {
+            const payload: Record<string, any> = {
+                sources,
+                max_tickers: maxTickers,
+            };
+            if (profileKey) payload.strategy_profile = profileKey;
+
+            const res = await fetch(`${BACKEND_URL}/ideas/scan/auto`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+
+            if (!res.ok) throw new Error(`Auto-scan failed: HTTP ${res.status}`);
+
+            const data: ScanResult = await res.json();
+            setLastScan(data);
+            setIdeas(data.ideas);
+
+            // Extract universe metadata from detector_stats
+            const ud = data.detector_stats?.universe_discovery;
+            if (ud) {
+                setLastUniverse({
+                    total_discovered: ud.total_discovered,
+                    total_after_dedup: ud.total_after_dedup,
+                    sources: ud.sources,
+                    discovery_ms: ud.discovery_ms,
+                });
+            }
+
             setScanStatus("done");
         } catch (e) {
             const msg = e instanceof Error ? e.message : String(e);
@@ -119,14 +175,34 @@ export function useIdeasEngine() {
         }
     }, []);
 
+    /** Update idea status to any valid state. */
+    const updateStatus = useCallback(async (ideaId: string, newStatus: string) => {
+        try {
+            const res = await fetch(`${BACKEND_URL}/ideas/${ideaId}/status`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: newStatus }),
+            });
+            if (!res.ok) return;
+            setIdeas((prev) =>
+                prev.map((i) => (i.id === ideaId ? { ...i, status: newStatus as IdeaItem["status"] } : i))
+            );
+        } catch (e) {
+            console.error("Failed to update idea status:", e);
+        }
+    }, []);
+
     return {
         ideas,
         scanStatus,
         lastScan,
+        lastUniverse,
         error,
         scan,
+        autoScan,
         fetchIdeas,
         dismiss,
         markAnalyzed,
+        updateStatus,
     };
 }

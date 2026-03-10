@@ -18,6 +18,7 @@ import {
 import type { IdeaItem, IdeaSignal } from "@/hooks/useIdeasEngine";
 import SignalEnvironmentBadge from "./SignalEnvironmentBadge";
 import StrategyProfileSelector from "./StrategyProfileSelector";
+import HelpTooltip from "@/components/help/HelpTooltip";
 
 // ── Type colors + icons ──────────────────────────────────────────────────────
 
@@ -119,6 +120,7 @@ export default function IdeasPanel({
                             {ideas.length}
                         </span>
                     )}
+                    <HelpTooltip topic="opportunity_ranking" compact side="bottom" />
                 </div>
                 <div className="flex items-center gap-1.5">
                     {onProfileChange && (

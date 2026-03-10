@@ -24,7 +24,8 @@ import {
     Search,
     AlertTriangle,
 } from "lucide-react";
-import type { IdeaItem } from "@/hooks/useIdeasEngine";
+import type { IdeaItem, UniverseMeta } from "@/hooks/useIdeasEngine";
+import HelpTooltip from "@/components/help/HelpTooltip";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
@@ -44,8 +45,10 @@ interface IdeaExplorerViewProps {
     scanStatus: "idle" | "scanning" | "done" | "error";
     error: string | null;
     onScan: () => void;
+    onAutoScan: () => void;
     onAnalyze: (ticker: string) => void;
     onDismiss: (id: string) => void;
+    universeMeta?: UniverseMeta | null;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -55,8 +58,10 @@ export default function IdeaExplorerView({
     scanStatus,
     error,
     onScan,
+    onAutoScan,
     onAnalyze,
     onDismiss,
+    universeMeta,
 }: IdeaExplorerViewProps) {
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [filterType, setFilterType] = useState<string | null>(null);
@@ -98,19 +103,32 @@ export default function IdeaExplorerView({
                     <div className="flex items-center gap-2 mb-3">
                         <Filter size={12} className="text-gray-500" />
                         <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Filters</span>
+                        <HelpTooltip topic="filter_strategy" compact side="right" />
                     </div>
 
-                    {/* Scan button */}
+                    {/* Universe Auto-Scan button */}
                     <button
-                        onClick={onScan}
+                        onClick={onAutoScan}
                         disabled={scanStatus === "scanning"}
-                        className="w-full bg-gradient-to-r from-[#d4af37] to-[#e8c84a] text-black font-bold px-4 py-2 rounded-xl hover:brightness-110 transition-all disabled:opacity-50 flex items-center justify-center gap-2 text-xs mb-4"
+                        className="w-full bg-gradient-to-r from-[#d4af37] to-[#e8c84a] text-black font-bold px-4 py-2 rounded-xl hover:brightness-110 transition-all disabled:opacity-50 flex items-center justify-center gap-2 text-xs mb-2"
                     >
                         {scanStatus === "scanning" ? (
                             <><Loader2 size={12} className="animate-spin" /> Scanning…</>
                         ) : (
-                            <><RefreshCw size={12} /> Scan Universe</>
+                            <><Zap size={12} /> Universe Scan</>
                         )}
+                    </button>
+                    <div className="flex items-center justify-center mb-1">
+                        <HelpTooltip topic="scan_universe" compact side="bottom" />
+                    </div>
+
+                    {/* Watchlist scan fallback */}
+                    <button
+                        onClick={onScan}
+                        disabled={scanStatus === "scanning"}
+                        className="w-full border border-[#30363d] text-gray-400 font-bold px-4 py-1.5 rounded-xl hover:bg-[#30363d]/30 transition-all disabled:opacity-50 flex items-center justify-center gap-2 text-[10px] mb-4"
+                    >
+                        <RefreshCw size={10} /> Scan Watchlist
                     </button>
 
                     {/* Strategy filter */}
@@ -136,7 +154,7 @@ export default function IdeaExplorerView({
                     </div>
 
                     {/* Sort */}
-                    <p className="text-[9px] font-black uppercase tracking-wider text-gray-500 mb-2">Sort by</p>
+                    <p className="text-[9px] font-black uppercase tracking-wider text-gray-500 mb-2">Sort by <HelpTooltip topic="filter_sort" compact side="right" /></p>
                     <div className="flex gap-1">
                         {(["score", "ticker"] as const).map((s) => (
                             <button
@@ -161,6 +179,7 @@ export default function IdeaExplorerView({
                             <span className="text-sm font-black uppercase tracking-widest text-gray-300">
                                 Opportunity Ranking
                             </span>
+                            <HelpTooltip topic="opportunity_ranking" side="bottom" />
                             <span className="text-[9px] font-mono text-gray-600 bg-[#161b22] rounded px-2 py-0.5 border border-[#30363d]">
                                 {displayIdeas.length} ideas
                             </span>
@@ -176,6 +195,22 @@ export default function IdeaExplorerView({
                             />
                         </div>
                     </div>
+
+                    {/* Universe source breakdown banner */}
+                    {universeMeta && (
+                        <div className="px-5 py-2 bg-[#161b22] border-b border-[#30363d] flex items-center gap-4 text-[9px] text-gray-500">
+                            <span className="font-bold text-gray-400 uppercase tracking-wider">Universe: <HelpTooltip topic="source_breakdown" compact side="bottom" /></span>
+                            {Object.entries(universeMeta.sources).map(([src, count]) => (
+                                <span key={src} className="flex items-center gap-1">
+                                    <span className={`w-1.5 h-1.5 rounded-full ${count > 0 ? 'bg-emerald-400' : 'bg-gray-700'}`} />
+                                    {src.replace('_', ' ')} <span className="font-mono text-gray-600">({count})</span>
+                                </span>
+                            ))}
+                            <span className="ml-auto text-gray-600 font-mono">
+                                {universeMeta.total_discovered} found → {universeMeta.total_after_dedup} unique • {universeMeta.discovery_ms}ms
+                            </span>
+                        </div>
+                    )}
 
                     {/* Table */}
                     <div className="overflow-x-auto">
@@ -194,7 +229,7 @@ export default function IdeaExplorerView({
                             <div className="flex flex-col items-center justify-center py-16 text-center">
                                 <Lightbulb size={28} className="text-gray-700 mb-3" />
                                 <p className="text-gray-600 text-sm">No ideas found</p>
-                                <p className="text-gray-700 text-xs mt-1">Run a scan to detect opportunities in your watchlist</p>
+                                <p className="text-gray-700 text-xs mt-1">Click <b>Universe Scan</b> to auto-discover opportunities across 300+ tickers</p>
                             </div>
                         ) : (
                             <table className="w-full text-[11px]">
@@ -202,10 +237,10 @@ export default function IdeaExplorerView({
                                     <tr className="border-b border-[#30363d] text-gray-600 text-[9px] font-black uppercase tracking-widest">
                                         <th className="text-left px-5 py-2.5 w-8">#</th>
                                         <th className="text-left px-3 py-2.5">Ticker</th>
-                                        <th className="text-left px-3 py-2.5">Strategy</th>
-                                        <th className="text-left px-3 py-2.5">Confidence</th>
-                                        <th className="text-right px-3 py-2.5">Strength</th>
-                                        <th className="text-right px-3 py-2.5">Reliability</th>
+                                        <th className="text-left px-3 py-2.5">Strategy <HelpTooltip topic="col_strategy" compact /></th>
+                                        <th className="text-left px-3 py-2.5">Confidence <HelpTooltip topic="col_confidence" compact /></th>
+                                        <th className="text-right px-3 py-2.5">Strength <HelpTooltip topic="col_strength" compact /></th>
+                                        <th className="text-right px-3 py-2.5">Reliability <HelpTooltip topic="col_reliability" compact /></th>
                                         <th className="text-right px-5 py-2.5">Actions</th>
                                     </tr>
                                 </thead>
@@ -289,7 +324,7 @@ export default function IdeaExplorerView({
 
                             {/* Strategy */}
                             <div>
-                                <p className="text-[9px] uppercase text-gray-600 mb-1">Detected by</p>
+                                <p className="text-[9px] uppercase text-gray-600 mb-1">Detected by <HelpTooltip topic="preview_detected_by" compact side="right" /></p>
                                 {(() => {
                                     const cfg = TYPE_CONFIG[selectedIdea.idea_type] ?? TYPE_CONFIG.value;
                                     return (
@@ -302,7 +337,7 @@ export default function IdeaExplorerView({
 
                             {/* Strength */}
                             <div>
-                                <p className="text-[9px] uppercase text-gray-600 mb-1">Signal Strength</p>
+                                <p className="text-[9px] uppercase text-gray-600 mb-1">Signal Strength <HelpTooltip topic="preview_strength" compact side="right" /></p>
                                 <p className="text-2xl font-black text-[#d4af37]">
                                     {(selectedIdea.signal_strength * 100).toFixed(0)}%
                                 </p>
@@ -310,7 +345,7 @@ export default function IdeaExplorerView({
 
                             {/* Confidence */}
                             <div>
-                                <p className="text-[9px] uppercase text-gray-600 mb-1">Confidence</p>
+                                <p className="text-[9px] uppercase text-gray-600 mb-1">Confidence <HelpTooltip topic="confidence_level" compact side="right" /></p>
                                 <span className={`text-xs font-black uppercase ${selectedIdea.confidence === "high" ? "text-green-400" : selectedIdea.confidence === "medium" ? "text-yellow-400" : "text-gray-500"}`}>
                                     {selectedIdea.confidence}
                                 </span>
@@ -319,7 +354,7 @@ export default function IdeaExplorerView({
                             {/* Signals */}
                             {selectedIdea.signals && selectedIdea.signals.length > 0 && (
                                 <div>
-                                    <p className="text-[9px] uppercase text-gray-600 mb-2">Key Signals</p>
+                                    <p className="text-[9px] uppercase text-gray-600 mb-2">Key Signals <HelpTooltip topic="preview_signals" compact side="right" /></p>
                                     <div className="space-y-1.5">
                                         {selectedIdea.signals.slice(0, 4).map((sig, i) => (
                                             <div key={i} className="flex items-center gap-2">

@@ -493,46 +493,85 @@ function IdeasHelpSection() {
     return (
         <div className="space-y-3">
             <p className="text-[10px] text-gray-500 px-1">
-                Motor de generación de ideas: escanea tu watchlist para detectar oportunidades automáticamente usando 5 detectores modulares.
+                Autonomous Idea Generation Engine — discovers opportunities across 300+ tickers using 6 modular detectors, configurable strategy profiles, and pluggable universe providers.
             </p>
 
-            <AccordionItem title="¿Cómo usar el Ideas Engine?" defaultOpen>
+            <AccordionItem title="Getting Started — How to Use" defaultOpen>
                 <ol className="space-y-2 list-decimal list-inside text-gray-400">
-                    <li><strong className="text-white">Agrega tickers a tu Watchlist</strong> — analiza varios tickers y guárdalos con ★</li>
-                    <li><strong className="text-white">Ve a la pestaña Ideas</strong> en el sidebar (icono 💡)</li>
-                    <li><strong className="text-white">Clic en ↻</strong> (refresh) — el sistema escanea todos tus tickers en paralelo</li>
-                    <li><strong className="text-white">Revisa los resultados</strong> — cada idea muestra tipo, confianza y señales detectadas</li>
-                    <li><strong className="text-white">Clic en ⚡</strong> para ejecutar un análisis completo del ticker seleccionado</li>
+                    <li><strong className="text-white">Navigate to the Ideas tab</strong> (Alt+3) in the top navigation bar</li>
+                    <li><strong className="text-white">Click ⚡ Universe Scan</strong> — the engine auto-discovers 300+ tickers from multiple sources and scans them in parallel</li>
+                    <li><strong className="text-white">Browse the Opportunity Ranking</strong> — ideas are sorted by signal strength, with strategy badges showing how each was detected</li>
+                    <li><strong className="text-white">Click any row</strong> to preview the idea details (signals, confidence, detector) in the side panel</li>
+                    <li><strong className="text-white">Click Analyze</strong> to run a full Investment Committee analysis on that ticker</li>
                 </ol>
-                <p className="mt-2 text-gray-600 text-[10px]">El escaneo tarda ~5-15 s dependiendo del número de tickers y la conexión.</p>
+                <div className="mt-3 bg-[#0d1117] rounded p-3 border border-[#21262d]">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-[#d4af37] mb-1">Two Scan Modes</p>
+                    <ul className="space-y-1 text-[10px]">
+                        <li><strong className="text-[#d4af37]">⚡ Universe Scan</strong> — auto-discovers tickers from 5+ sources (S&P 500, screener, sector rotation, portfolio, recent ideas). Best for broad discovery.</li>
+                        <li><strong className="text-gray-300">↻ Scan Watchlist</strong> — scans only the tickers in your watchlist. Best for monitoring positions you already track.</li>
+                    </ul>
+                </div>
             </AccordionItem>
 
-            <AccordionItem title="Los 5 detectores" defaultOpen>
+            <AccordionItem title="Universe Discovery — Where Tickers Come From" defaultOpen>
+                <p className="mb-2">The engine autonomously discovers tickers from <strong className="text-white">6 pluggable sources</strong>. After discovery, duplicates are removed and results are capped to avoid overload.</p>
+                <div className="space-y-1.5">
+                    {[
+                        { name: "Static Index", source: "S&P 500, NASDAQ 100, Dow 30", desc: "Constituents of major US equity indices (~160 tickers)", icon: "📊" },
+                        { name: "Screener", source: "Market cap + volume filter", desc: "Large-cap ($1B+), high-volume equities — proxy for institutional liquidity", icon: "🔍" },
+                        { name: "Sector Rotation", source: "11 GICS sectors × 10 leaders", desc: "Technology, Healthcare, Financials, Energy, and 7 more sector groups", icon: "🔄" },
+                        { name: "Portfolio", source: "Your saved portfolios", desc: "Re-scans tickers from portfolio positions stored in the database", icon: "💼" },
+                        { name: "Idea History", source: "Recent strong ideas", desc: "Re-evaluates tickers that generated high-quality ideas in the last 7 days", icon: "📈" },
+                        { name: "Custom", source: "User watchlist", desc: "Pass-through for the tickers you manually track in your watchlist", icon: "⭐" },
+                    ].map(s => (
+                        <div key={s.name} className="bg-[#0d1117] rounded p-2.5 border border-[#21262d]">
+                            <div className="flex items-center gap-2">
+                                <span>{s.icon}</span>
+                                <span className="text-white font-black text-[10px]">{s.name}</span>
+                                <span className="text-gray-600 text-[9px] ml-auto font-mono">{s.source}</span>
+                            </div>
+                            <p className="text-gray-500 text-[9px] mt-0.5 ml-5">{s.desc}</p>
+                        </div>
+                    ))}
+                </div>
+                <div className="mt-2 bg-[#0d1117] rounded px-3 py-2 border border-[#21262d]">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-[#d4af37] mb-1">Source Breakdown Banner</p>
+                    <p className="text-gray-500 text-[10px]">After a Universe Scan, a banner appears above the ranking table showing exactly how many tickers came from each source, the total discovered, unique count after dedup, and discovery time in milliseconds.</p>
+                </div>
+            </AccordionItem>
+
+            <AccordionItem title="The 6 Detectors">
+                <p className="mb-2">Each ticker is evaluated by <strong className="text-white">6 independent detectors</strong>. A ticker can generate multiple ideas if it triggers more than one detector — this signal confluence is a strong indicator.</p>
                 {[
                     {
                         name: "Value", icon: "💎", color: "text-emerald-400",
-                        desc: "Identifica activos subvaluados: FCF yield alto, P/E bajo, EV/EBITDA bajo, P/B bajo.",
-                        interpretation: "Señal fuerte cuando ≥3 de 4 métricas están por debajo de los umbrales. Indica descuento fundamental vs. valor intrínseco.",
+                        desc: "Identifies undervalued assets: high FCF yield, low P/E, low EV/EBITDA, low P/B.",
+                        interpretation: "Strong signal when ≥3 of 4 metrics are below thresholds. Indicates fundamental discount vs. intrinsic value.",
                     },
                     {
-                        name: "Quality", icon: "⚡", color: "text-blue-400",
-                        desc: "Detecta negocios de alta calidad: ROIC alto, márgenes estables, crecimiento rentable, baja deuda.",
-                        interpretation: "Señal fuerte cuando el ROIC >15%, márgenes expandiéndose y D/E <0.5. Indica franchise value.",
+                        name: "Quality", icon: "🛡️", color: "text-blue-400",
+                        desc: "Detects high-quality businesses: high ROIC, stable margins, profitable growth, low leverage.",
+                        interpretation: "Strong when ROIC >15%, margins expanding, and D/E <0.5. Indicates franchise value.",
                     },
                     {
-                        name: "Momentum", icon: "📈", color: "text-orange-400",
-                        desc: "Identifica tendencias fuertes: Golden Cross, RSI 50-70, MACD positivo, volumen alto, precio sobre EMA20.",
-                        interpretation: "Señal fuerte = tendencia alcista confirmada por múltiples indicadores. Ideal para entradas con momentum.",
+                        name: "Growth", icon: "🌱", color: "text-green-400",
+                        desc: "Spots high-growth companies: revenue acceleration, earnings expansion, and improving fundamentals.",
+                        interpretation: "Strong when both revenue and earnings growth exceed market averages with improving margins.",
                     },
                     {
-                        name: "Reversal", icon: "📉", color: "text-red-400",
-                        desc: "Detecta posibles reversiones: RSI sobrevendido, Stochastic bajo, precio cerca de Bollinger inferior, capitulación de volumen.",
-                        interpretation: "Requiere mínimo 2 señales confirmando. Mayor riesgo — potencial de rebote tras caída excesiva.",
+                        name: "Momentum", icon: "🚀", color: "text-orange-400",
+                        desc: "Identifies strong trends: Golden Cross, RSI 50-70, positive MACD, high volume, price above EMA20.",
+                        interpretation: "Strong signal = confirmed uptrend across multiple technical indicators. Ideal for trend-following entries.",
                     },
                     {
-                        name: "Event", icon: "📊", color: "text-purple-400",
-                        desc: "Oportunidades por catalizadores: cambio significativo en score, sorpresa de earnings, squeeze de volatilidad, beta alto.",
-                        interpretation: "Captura eventos que preceden movimientos significativos de precio. Complementa otros detectores.",
+                        name: "Reversal", icon: "↩️", color: "text-red-400",
+                        desc: "Detects potential reversals: oversold RSI, low stochastic, price near lower Bollinger, volume capitulation.",
+                        interpretation: "Requires minimum 2 confirming signals. Higher risk — potential bounce after excessive selloff.",
+                    },
+                    {
+                        name: "Event", icon: "⚡", color: "text-purple-400",
+                        desc: "Catalysts: significant score changes, earnings surprises, volatility squeezes, high beta opportunities.",
+                        interpretation: "Captures events that precede significant price moves. Complements other detectors.",
                     },
                 ].map(d => (
                     <div key={d.name} className="bg-[#0d1117] rounded p-3 space-y-1 border border-[#21262d]">
@@ -541,49 +580,105 @@ function IdeasHelpSection() {
                             <span className={`font-black text-[11px] ${d.color}`}>{d.name}</span>
                         </div>
                         <p className="text-gray-400 text-[10px]">{d.desc}</p>
-                        <p className="text-gray-600 text-[9px] italic">Interpretación: {d.interpretation}</p>
+                        <p className="text-gray-600 text-[9px] italic">Interpretation: {d.interpretation}</p>
                     </div>
                 ))}
             </AccordionItem>
 
-            <AccordionItem title="Interpretar resultados">
+            <AccordionItem title="Strategy Profiles">
+                <p className="mb-2">Strategy Profiles configure <strong className="text-white">which detectors are active</strong> and <strong className="text-white">how ideas are ranked</strong>, adapting the engine to different investment styles:</p>
+                <div className="space-y-1.5">
+                    {[
+                        { name: "Buy & Hold", desc: "Value + Quality focus. Long-term wealth building with undervalued, high-quality companies.", horizon: "1-5 years" },
+                        { name: "Swing", desc: "Momentum + Event focus. Medium-term trend-following with catalyst opportunities.", horizon: "2-8 weeks" },
+                        { name: "Deep Value", desc: "Heavy Value weighting. Contrarian approach — seeks maximum fundamental discount.", horizon: "6-18 months" },
+                        { name: "Growth Quality", desc: "Growth + Quality focus. Premium companies with strong growth trajectories.", horizon: "1-3 years" },
+                        { name: "Event Driven", desc: "Event + Momentum focus. Captures catalysts and high-volatility opportunities.", horizon: "Days to weeks" },
+                    ].map(p => (
+                        <div key={p.name} className="flex items-start gap-2 bg-[#0d1117] rounded px-3 py-2 border border-[#21262d]">
+                            <div className="flex-1">
+                                <span className="text-white font-black text-[10px]">{p.name}</span>
+                                <p className="text-gray-500 text-[9px]">{p.desc}</p>
+                            </div>
+                            <span className="text-[#d4af37] text-[8px] font-mono flex-shrink-0">{p.horizon}</span>
+                        </div>
+                    ))}
+                </div>
+            </AccordionItem>
+
+            <AccordionItem title="Understanding the Results">
                 <div className="space-y-2">
                     <div className="bg-[#0d1117] rounded px-3 py-2 border border-[#21262d]">
-                        <p className="text-white text-[10px] font-bold">Confidence (Confianza)</p>
+                        <p className="text-white text-[10px] font-bold">Signal Strength (%)</p>
+                        <p className="text-gray-500 text-[9px] mt-0.5">Proportion of detector signals that fired for this idea. 100% = all possible signals confirm the opportunity. Higher is stronger.</p>
+                    </div>
+                    <div className="bg-[#0d1117] rounded px-3 py-2 border border-[#21262d]">
+                        <p className="text-white text-[10px] font-bold">Confidence Level</p>
                         <div className="mt-1 space-y-0.5 text-[9px]">
-                            <div className="flex gap-2"><Signal label="HIGH" color="bg-green-500/15 border-green-500/30 text-green-400" /><span className="text-gray-500">≥60% de señales activadas — alta probabilidad</span></div>
-                            <div className="flex gap-2"><Signal label="MEDIUM" color="bg-yellow-500/15 border-yellow-500/30 text-yellow-400" /><span className="text-gray-500">40-60% — señal moderada, validar con análisis completo</span></div>
-                            <div className="flex gap-2"><Signal label="LOW" color="bg-gray-500/15 border-gray-500/30 text-gray-400" /><span className="text-gray-500">&lt;40% — señal débil, tratar como exploratoria</span></div>
+                            <div className="flex gap-2"><Signal label="HIGH" color="bg-green-500/15 border-green-500/30 text-green-400" /><span className="text-gray-500">≥60% of signals activated — high probability opportunity</span></div>
+                            <div className="flex gap-2"><Signal label="MEDIUM" color="bg-yellow-500/15 border-yellow-500/30 text-yellow-400" /><span className="text-gray-500">40-60% — moderate signal, validate with full analysis</span></div>
+                            <div className="flex gap-2"><Signal label="LOW" color="bg-gray-500/15 border-gray-500/30 text-gray-400" /><span className="text-gray-500">&lt;40% — weak signal, treat as exploratory</span></div>
                         </div>
                     </div>
                     <div className="bg-[#0d1117] rounded px-3 py-2 border border-[#21262d]">
-                        <p className="text-white text-[10px] font-bold">Signal Strength (Barra de fuerza)</p>
-                        <p className="text-gray-500 text-[9px] mt-0.5">La barra visual muestra qué proporción de señales del detector se activaron. 100% = todas las señales posibles confirman la oportunidad.</p>
+                        <p className="text-white text-[10px] font-bold">Reliability Score (%)</p>
+                        <p className="text-gray-500 text-[9px] mt-0.5">Measures how trustworthy the idea is, based on detector calibration and confirmation quality. Independent from signal strength — an idea can be strong but unreliable (or vice versa).</p>
                     </div>
                     <div className="bg-[#0d1117] rounded px-3 py-2 border border-[#21262d]">
-                        <p className="text-white text-[10px] font-bold">Priority (Ranking)</p>
-                        <p className="text-gray-500 text-[9px] mt-0.5">Las ideas se ordenan por prioridad #1 = mejor oportunidad. El ranking considera: fuerza de señal, confianza, y bonus por múltiples detectores activados en el mismo ticker.</p>
+                        <p className="text-white text-[10px] font-bold">Priority Ranking (#)</p>
+                        <p className="text-gray-500 text-[9px] mt-0.5">Ideas are ranked #1 = best opportunity. The ranking considers signal strength, confidence, and a bonus for tickers with multiple detectors firing (signal confluence).</p>
+                    </div>
+                    <div className="bg-[#0d1117] rounded px-3 py-2 border border-[#21262d]">
+                        <p className="text-white text-[10px] font-bold">Multiple Ideas per Ticker</p>
+                        <p className="text-gray-500 text-[9px] mt-0.5">A single ticker can generate multiple ideas (e.g., AAPL may appear as both a Value and Quality idea). This <strong className="text-white">signal confluence</strong> indicates a more robust opportunity.</p>
                     </div>
                 </div>
             </AccordionItem>
 
-            <AccordionItem title="Acciones sobre una idea">
+            <AccordionItem title="Actions on Ideas">
                 <ul className="space-y-1.5">
-                    <li><strong className="text-[#d4af37]">⚡ Analizar</strong> — ejecuta el pipeline completo (Fundamental + Technical + CIO) para ese ticker. Los resultados aparecerán en las pestañas principales.</li>
-                    <li><strong className="text-red-400">✕ Descartar</strong> — elimina la idea de la lista activa (aparece al hover). No afecta datos.</li>
-                    <li><strong className="text-white">▼ Expandir</strong> — muestra las señales individuales detectadas con su fuerza (strong/moderate/weak) y descripción.</li>
+                    <li><strong className="text-[#d4af37]">Analyze</strong> — run the full Investment Committee pipeline (Fundamental AI + Technical + CIO Decision) for that ticker.</li>
+                    <li><strong className="text-red-400">✕ Dismiss</strong> — remove the idea from the active list. Does not delete data.</li>
+                    <li><strong className="text-white">Click Row</strong> — opens the preview panel on the right showing the idea&apos;s signals, detector type, strength gauge, and a &quot;Run Full Analysis&quot; button.</li>
                 </ul>
             </AccordionItem>
 
-            <AccordionItem title="Filtros por tipo">
-                <p>Los chips de filtro en la parte superior permiten ver solo ideas de un tipo específico. Esto es útil cuando buscas oportunidades de un estilo particular:</p>
+            <AccordionItem title="Filters & Sorting">
+                <p>The left sidebar panel provides controls to narrow your focus:</p>
                 <ul className="mt-1.5 space-y-1 text-[10px]">
-                    <li><span className="text-emerald-400 font-bold">Value</span> — para inversores value buscando descuentos fundamentales</li>
-                    <li><span className="text-blue-400 font-bold">Quality</span> — para cazadores de calidad (franchises, moats)</li>
-                    <li><span className="text-orange-400 font-bold">Momentum</span> — para seguir tendencias alcistas confirmadas</li>
-                    <li><span className="text-red-400 font-bold">Reversal</span> — para especular en rebotes tras caídas (mayor riesgo)</li>
-                    <li><span className="text-purple-400 font-bold">Event</span> — para capturar catalizadores y cambios repentinos</li>
+                    <li><span className="text-emerald-400 font-bold">Value</span> — undervalued assets with fundamental discount</li>
+                    <li><span className="text-blue-400 font-bold">Quality</span> — high-quality franchises with strong moats</li>
+                    <li><span className="text-green-400 font-bold">Growth</span> — companies with accelerating growth</li>
+                    <li><span className="text-orange-400 font-bold">Momentum</span> — confirmed uptrend with technical strength</li>
+                    <li><span className="text-red-400 font-bold">Reversal</span> — potential bounce after excessive selloff</li>
+                    <li><span className="text-purple-400 font-bold">Event</span> — catalyst-driven opportunities</li>
                 </ul>
+                <p className="mt-2 text-gray-600 text-[10px]">Sort by <strong className="text-white">Score</strong> (default, strongest signal first) or <strong className="text-white">Ticker</strong> (alphabetical). Use the search bar to filter by ticker symbol.</p>
+            </AccordionItem>
+
+            <AccordionItem title="FAQ">
+                <div className="space-y-3">
+                    <div>
+                        <p className="text-white text-[10px] font-bold">How long does a Universe Scan take?</p>
+                        <p className="text-gray-500 text-[10px] mt-0.5">Universe discovery takes ~5ms. The full scan depends on how many tickers are found (typically 50-200). With 50 tickers, expect ~10-30 seconds.</p>
+                    </div>
+                    <div>
+                        <p className="text-white text-[10px] font-bold">Why does a ticker appear multiple times?</p>
+                        <p className="text-gray-500 text-[10px] mt-0.5">Each detector evaluates independently. If AAPL triggers both the Value and Quality detectors, it generates 2 separate ideas. This <strong className="text-white">confluence</strong> is actually a stronger signal.</p>
+                    </div>
+                    <div>
+                        <p className="text-white text-[10px] font-bold">What does "No ideas found" mean?</p>
+                        <p className="text-gray-500 text-[10px] mt-0.5">None of the scanned tickers met the minimum thresholds for any detector. This can happen when markets are in a neutral regime. Try changing the strategy profile or waiting for market conditions to shift.</p>
+                    </div>
+                    <div>
+                        <p className="text-white text-[10px] font-bold">Can I change which sources are used?</p>
+                        <p className="text-gray-500 text-[10px] mt-0.5">The API supports configurable sources via <code className="text-[#d4af37] bg-[#161b22] px-1 rounded">POST /ideas/scan/auto</code> with a <code className="text-[#d4af37] bg-[#161b22] px-1 rounded">sources</code> array. The UI defaults to all 5 automated sources.</p>
+                    </div>
+                    <div>
+                        <p className="text-white text-[10px] font-bold">What&apos;s the difference between Strength and Reliability?</p>
+                        <p className="text-gray-500 text-[10px] mt-0.5"><strong className="text-white">Strength</strong> measures how many signals fired (attractiveness). <strong className="text-white">Reliability</strong> measures how trustworthy the detection is (calibration quality). An idea can be strong but unreliable (e.g., based on volatile data).</p>
+                    </div>
+                </div>
             </AccordionItem>
         </div>
     );

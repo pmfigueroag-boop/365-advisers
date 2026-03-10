@@ -42,6 +42,8 @@ class SignalStrength(str, Enum):
 class IdeaStatus(str, Enum):
     ACTIVE = "active"
     ANALYZED = "analyzed"
+    VALIDATED = "validated"
+    IN_PORTFOLIO = "in_portfolio"
     DISMISSED = "dismissed"
 
 

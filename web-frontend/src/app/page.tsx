@@ -41,7 +41,19 @@ import {
   Clock,
   Briefcase,
   Brain,
+  Star,
 } from "lucide-react";
+
+// ─── Idea Context Type ───────────────────────────────────────────────────
+export interface IdeaContext {
+  idea_id: string;
+  ticker: string;
+  detector: string;
+  idea_type: string;
+  signal_strength: number;
+  confidence: string;
+  confidence_score?: number;
+}
 
 // ─── Inline Animations ───────────────────────────────────────────────────
 const INLINE_STYLES = `
@@ -172,6 +184,7 @@ export default function Home() {
   const [ticker, setTicker] = useState("");
   const [cmdPaletteOpen, setCmdPaletteOpen] = useState(false);
   const [rankingReady, setRankingReady] = useState(false);
+  const [ideaContext, setIdeaContext] = useState<IdeaContext | null>(null);
   const { showOnboarding, dismiss: dismissOnboarding } = useOnboarding();
 
   // ── Hooks ─────────────────────────────────────────────────────────────────
@@ -290,16 +303,27 @@ export default function Home() {
   }, [ideasEngine.scanStatus, ideasEngine.ideas]);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
-  const handleAnalyze = useCallback((symbol?: string) => {
+  const handleAnalyze = useCallback((symbol?: string, fromIdea?: IdeaContext) => {
     const t = symbol ?? ticker;
     if (!t.trim()) return;
     if (!symbol) setTicker(t);
-    setActiveView("terminal");
+
+    // If coming from an idea, navigate to analysis view and store context
+    if (fromIdea) {
+      setIdeaContext(fromIdea);
+      setActiveView("analysis");
+      // Auto-mark idea as analyzed
+      ideasEngine.updateStatus(fromIdea.idea_id, "analyzed");
+    } else {
+      setIdeaContext(null);
+      setActiveView("terminal");
+    }
+
     legacyAnalyze(t);
     technical.analyze(t);
     fundamental.analyze(t);
     combined.analyze(t);
-  }, [ticker, legacyAnalyze, technical, fundamental, combined]);
+  }, [ticker, legacyAnalyze, technical, fundamental, combined, ideasEngine]);
 
   const handleForceRefresh = useCallback(() => {
     if (!dataReady?.ticker) return;
@@ -418,8 +442,26 @@ export default function Home() {
                           const tickers = watchlist.items.map((i) => i.ticker);
                           if (tickers.length > 0) ideasEngine.scan(tickers);
                         }}
-                        onAnalyze={(t) => handleAnalyze(t)}
+                        onAutoScan={() => ideasEngine.autoScan()}
+                        onAnalyze={(t) => {
+                          // Find the idea to build context
+                          const idea = ideasEngine.ideas.find((i) => i.ticker === t);
+                          if (idea) {
+                            handleAnalyze(t, {
+                              idea_id: idea.id,
+                              ticker: idea.ticker,
+                              detector: idea.idea_type,
+                              idea_type: idea.idea_type,
+                              signal_strength: idea.signal_strength,
+                              confidence: idea.confidence,
+                              confidence_score: idea.confidence_score,
+                            });
+                          } else {
+                            handleAnalyze(t);
+                          }
+                        }}
                         onDismiss={(id) => ideasEngine.dismiss(id)}
+                        universeMeta={ideasEngine.lastUniverse}
                       />
                     );
                   case "analysis":
@@ -433,7 +475,31 @@ export default function Home() {
                           const t = combined.state.ticker || ticker;
                           if (t) alphaSignals.evaluate(t);
                         }}
-                        onBack={() => setActiveView("terminal")}
+                        onBack={() => {
+                          if (ideaContext) {
+                            setActiveView("ideas");
+                            setIdeaContext(null);
+                          } else {
+                            setActiveView("terminal");
+                          }
+                        }}
+                        ideaContext={ideaContext}
+                        isInWatchlist={combined.state.ticker ? watchlist.has(combined.state.ticker) : false}
+                        onAddToWatchlist={() => {
+                          const t = combined.state.ticker;
+                          const name = combined.state.fundamentalDataReady?.name ?? t;
+                          if (t) {
+                            if (watchlist.has(t)) {
+                              watchlist.remove(t);
+                            } else {
+                              watchlist.add(t, name ?? t);
+                              // Update idea status to validated if from an idea
+                              if (ideaContext) {
+                                ideasEngine.updateStatus(ideaContext.idea_id, "validated");
+                              }
+                            }
+                          }
+                        }}
                       />
                     );
                   case "portfolio":

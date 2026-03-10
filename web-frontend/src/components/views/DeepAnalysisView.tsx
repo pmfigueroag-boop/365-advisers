@@ -18,6 +18,8 @@ import {
     LineChart,
     ArrowLeft,
     Loader2,
+    Star,
+    CheckCircle,
 } from "lucide-react";
 import type { CombinedState } from "@/hooks/useCombinedStream";
 import type { SignalProfileResponse, SignalStatus } from "@/hooks/useAlphaSignals";
@@ -57,6 +59,9 @@ interface DeepAnalysisViewProps {
     alphaError: string | null;
     onEvaluateSignals: () => void;
     onBack: () => void;
+    ideaContext?: { idea_id: string; ticker: string; detector: string; idea_type: string; signal_strength: number; confidence: string; confidence_score?: number } | null;
+    isInWatchlist?: boolean;
+    onAddToWatchlist?: () => void;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -68,6 +73,9 @@ export default function DeepAnalysisView({
     alphaError,
     onEvaluateSignals,
     onBack,
+    ideaContext,
+    isInWatchlist,
+    onAddToWatchlist,
 }: DeepAnalysisViewProps) {
     const [section, setSection] = useState<Section>("thesis");
 
@@ -102,7 +110,7 @@ export default function DeepAnalysisView({
                     <button
                         onClick={onBack}
                         className="p-2 rounded-xl text-gray-500 hover:text-[#d4af37] hover:bg-[#d4af37]/10 transition-all"
-                        title="Back to Terminal"
+                        title={ideaContext ? "Back to Ideas" : "Back to Terminal"}
                     >
                         <ArrowLeft size={16} />
                     </button>
@@ -121,7 +129,56 @@ export default function DeepAnalysisView({
                         </p>
                     </div>
                 </div>
+                {/* Add to Watchlist button */}
+                <div className="flex items-center gap-2">
+                    {onAddToWatchlist && (
+                        <button
+                            onClick={onAddToWatchlist}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all ${
+                                isInWatchlist
+                                    ? "bg-[#d4af37]/15 text-[#d4af37] border-[#d4af37]/40"
+                                    : "bg-[#161b22] text-gray-400 border-[#30363d] hover:text-[#d4af37] hover:border-[#d4af37]/40"
+                            }`}
+                        >
+                            <Star size={11} fill={isInWatchlist ? "currentColor" : "none"} />
+                            {isInWatchlist ? "In Watchlist" : "Add to Watchlist"}
+                        </button>
+                    )}
+                </div>
             </div>
+
+            {/* Idea Origin Banner */}
+            {ideaContext && (
+                <div className="flex items-center gap-3 px-4 py-2.5 bg-[#161b22] rounded-xl border border-[#30363d]" style={{ animation: "fadeSlideIn 0.2s ease both" }}>
+                    <Lightbulb size={13} className="text-[#d4af37] flex-shrink-0" />
+                    <span className="text-[10px] text-gray-400">
+                        Initiated from <span className="font-bold text-[#d4af37] uppercase">{ideaContext.idea_type}</span> Detector
+                        <span className="mx-1.5 text-gray-600">·</span>
+                        Strength <span className="font-mono font-bold text-white">{(ideaContext.signal_strength * 100).toFixed(0)}%</span>
+                        <span className="mx-1.5 text-gray-600">·</span>
+                        Confidence <span className={`font-bold uppercase ${ideaContext.confidence === "high" ? "text-green-400" : ideaContext.confidence === "medium" ? "text-yellow-400" : "text-gray-500"}`}>{ideaContext.confidence}</span>
+                        {ideaContext.confidence_score != null && (
+                            <>
+                                <span className="mx-1.5 text-gray-600">·</span>
+                                Reliability <span className="font-mono font-bold text-teal-400">{(ideaContext.confidence_score * 100).toFixed(0)}%</span>
+                            </>
+                        )}
+                    </span>
+                </div>
+            )}
+
+            {/* BUY Recommendation prompt */}
+            {combined.status === "complete" && combined.decision?.investment_position === "BUY" && !isInWatchlist && onAddToWatchlist && (
+                <div
+                    className="flex items-center gap-3 px-4 py-2.5 bg-green-500/5 rounded-xl border border-green-500/20 cursor-pointer hover:bg-green-500/10 transition-all"
+                    onClick={onAddToWatchlist}
+                    style={{ animation: "fadeSlideIn 0.25s ease both" }}
+                >
+                    <CheckCircle size={14} className="text-green-400 flex-shrink-0" />
+                    <span className="text-[10px] text-green-400 font-bold">BUY Recommended</span>
+                    <span className="text-[10px] text-gray-500">— Click to add to watchlist for tracking</span>
+                </div>
+            )}
 
             {/* Source Coverage Strip + Warning */}
             {combined.sourceCoverage && (

@@ -179,6 +179,7 @@ async def scan_universe(body: ScanRequest):
                 "idea_type": idea.idea_type.value,
                 "confidence": idea.confidence.value,
                 "signal_strength": idea.signal_strength,
+                "confidence_score": idea.confidence_score,
                 "priority": idea.priority,
                 "signals": [s.model_dump() for s in idea.signals],
                 "status": idea.status.value,
@@ -225,6 +226,7 @@ async def get_ideas(
                 "idea_type": r.idea_type,
                 "confidence": r.confidence,
                 "signal_strength": r.signal_strength,
+                "confidence_score": r.signal_strength * 0.8,  # approx from DB (no stored field yet)
                 "priority": r.priority,
                 "signals": json.loads(r.signals_json or "[]"),
                 "status": r.status,
@@ -297,6 +299,42 @@ async def mark_analyzed(idea_id: int):
             "status": "analyzed",
             "id": idea_id,
             "ticker": record.ticker,
+        }
+
+
+class StatusUpdateRequest(BaseModel):
+    """Request body for status transition."""
+    status: str = Field(
+        ...,
+        description="New status: active, analyzed, validated, in_portfolio, dismissed",
+    )
+
+
+@router.patch("/{idea_id}/status", summary="Update idea status")
+async def update_idea_status(idea_id: int, body: StatusUpdateRequest):
+    """Transition an idea to a new status in the tracking pipeline."""
+    # Validate status value
+    try:
+        new_status = IdeaStatus(body.status)
+    except ValueError:
+        valid = [s.value for s in IdeaStatus]
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid status '{body.status}'. Valid: {valid}",
+        )
+
+    with SessionLocal() as db:
+        record = db.query(IdeaRecord).filter(IdeaRecord.id == idea_id).first()
+        if not record:
+            raise HTTPException(status_code=404, detail="Idea not found")
+        record.status = new_status.value
+        if new_status == IdeaStatus.ANALYZED:
+            record.analyzed_at = datetime.now(timezone.utc)
+        db.commit()
+        return {
+            "id": idea_id,
+            "ticker": record.ticker,
+            "status": new_status.value,
         }
 
 
@@ -471,6 +509,7 @@ async def auto_scan(body: AutoScanRequest):
                 "idea_type": idea.idea_type.value,
                 "confidence": idea.confidence.value,
                 "signal_strength": idea.signal_strength,
+                "confidence_score": idea.confidence_score,
                 "priority": idea.priority,
                 "signals": [s.model_dump() for s in idea.signals],
                 "status": idea.status.value,
