@@ -24,6 +24,9 @@ from src.engines.idea_generation.engine import IdeaGenerationEngine
 from src.engines.idea_generation.models import IdeaStatus
 from src.data.database import SessionLocal, IdeaRecord
 from src.engines.idea_generation.metrics import get_collector
+from src.engines.idea_generation.strategy_profiles import (
+    default_profile_registry,
+)
 
 logger = logging.getLogger("365advisers.routes.ideas")
 
@@ -39,6 +42,10 @@ class ScanRequest(BaseModel):
         max_length=500,
         description="List of ticker symbols to scan (max 500 for local mode; use /scan/distributed for larger universes)",
     )
+    strategy_profile: str | None = Field(
+        None,
+        description="Strategy profile key (e.g. 'buy_and_hold', 'swing', 'deep_value'). None uses institutional defaults.",
+    )
 
 
 class ScanResponse(BaseModel):
@@ -48,6 +55,7 @@ class ScanResponse(BaseModel):
     scan_duration_ms: float
     detector_stats: dict
     ideas: list[dict]
+    strategy_profile: str | None = None
 
 
 class IdeaSummary(BaseModel):
@@ -71,9 +79,17 @@ class IdeaSummary(BaseModel):
 _engine: IdeaGenerationEngine | None = None
 
 
-def get_engine() -> IdeaGenerationEngine:
-    """Lazy singleton factory — enables future config / DI swap."""
+def get_engine(strategy_profile_key: str | None = None) -> IdeaGenerationEngine:
+    """Factory — creates an engine, optionally profile-driven.
+
+    When a profile key is provided, a fresh engine is created with
+    the profile's detectors, weights, and filters.
+    When None, returns the default singleton engine.
+    """
     global _engine
+    if strategy_profile_key is not None:
+        profile = default_profile_registry.get_or_raise(strategy_profile_key)
+        return IdeaGenerationEngine(strategy_profile=profile)
     if _engine is None:
         _engine = IdeaGenerationEngine()
     return _engine
@@ -99,7 +115,9 @@ async def scan_universe(body: ScanRequest):
         },
     )
 
-    result = await get_engine().scan(tickers=body.tickers)
+    result = await get_engine(strategy_profile_key=body.strategy_profile).scan(
+        tickers=body.tickers,
+    )
 
     get_collector().increment("scans_completed_total", tags={
         "mode": "local", "endpoint": "/ideas/scan",
@@ -164,7 +182,19 @@ async def scan_universe(body: ScanRequest):
             }
             for idea in result.ideas
         ],
+        strategy_profile=body.strategy_profile,
     )
+
+
+@router.get("/profiles", summary="List available strategy profiles")
+async def list_profiles():
+    """Return all active strategy profiles with their configuration."""
+    profiles = default_profile_registry.list_active()
+    return {
+        "profiles": [p.to_dict() for p in profiles],
+        "total": len(profiles),
+        "default": None,
+    }
 
 
 @router.get("", summary="Get active ideas")

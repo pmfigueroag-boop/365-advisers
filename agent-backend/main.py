@@ -273,6 +273,7 @@ from src.routes.alpha_intelligence import router as alpha_intelligence_router
 from src.routes.super_alpha import router as super_alpha_router
 from src.routes.investment_brain import router as investment_brain_router
 from src.routes.autonomous_pm import router as autonomous_pm_router
+from src.routes.ideas_backtest import router as ideas_backtest_router
 
 app.include_router(health_router)
 app.include_router(analysis_router)
@@ -320,8 +321,9 @@ app.include_router(alpha_intelligence_router)
 app.include_router(super_alpha_router)
 app.include_router(investment_brain_router)
 app.include_router(autonomous_pm_router)
+app.include_router(ideas_backtest_router)
 
-logger.info(f"Mounted {len(app.routes)} routes across 46 routers")
+logger.info(f"Mounted {len(app.routes)} routes across 47 routers")
 
 
 # ── Dev Server ───────────────────────────────────────────────────────────────

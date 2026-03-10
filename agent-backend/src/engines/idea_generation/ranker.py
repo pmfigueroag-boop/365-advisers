@@ -3,21 +3,15 @@ src/engines/idea_generation/ranker.py
 ──────────────────────────────────────────────────────────────────────────────
 Priority ranking system for investment ideas.
 
-Composite score formula (v2 — with confidence_score)
-────────────────────────────────────────────────────
-priority_score = (signal_strength × detector_weight × 0.40)   # intensity
-               + (alpha_score × 0.35)                          # attractiveness
-               + (confidence_score × 0.25)                     # reliability
+Composite score formula (v3 — configurable via RankingWeights)
+──────────────────────────────────────────────────────────────
+priority_score = (signal_strength × detector_weight × w_signal)   # intensity
+               + (alpha_score × w_alpha)                          # attractiveness
+               + (confidence_score × w_confidence)                # reliability
                + multi_detector_bonus
 
-This separates three independent dimensions:
-
-    signal_strength — how intense is the signal right now?
-    alpha_score     — how attractive is the opportunity overall?
-    confidence_score — how reliable/credible is this detection?
-
-An idea with high alpha but low confidence will rank below one with
-moderately high alpha and very high confidence.
+Weights are configurable per strategy profile via RankingWeights.
+Falls back to institutional defaults when no weights are provided.
 
 Ideas are sorted by descending priority_score and assigned integer ranks.
 """
@@ -30,7 +24,7 @@ from src.engines.idea_generation.models import (
 )
 
 
-# ── Weight constants — easy to calibrate later ────────────────────────────────
+# ── Weight constants — institutional defaults ─────────────────────────────────
 
 W_SIGNAL = 0.40
 W_ALPHA = 0.35
@@ -41,6 +35,7 @@ MULTI_DETECTOR_BONUS = 0.10
 def rank_ideas(
     ideas: list[IdeaCandidate],
     detector_weights: dict[str, float] | None = None,
+    ranking_weights=None,
 ) -> list[IdeaCandidate]:
     """
     Assign a priority rank to each idea based on composite scoring.
@@ -51,6 +46,9 @@ def rank_ideas(
         Unranked ideas from the scan phase.
     detector_weights : dict | None
         Optional override for detector type weights (e.g. {"value": 1.2}).
+    ranking_weights : RankingWeights | None
+        Optional weight vector from a strategy profile.
+        When None, uses the institutional default constants.
 
     Returns
     -------
@@ -58,6 +56,18 @@ def rank_ideas(
         Ideas sorted by priority (1 = highest).
     """
     weights = detector_weights or {}
+
+    # Resolve ranking weights: profile → defaults
+    if ranking_weights is not None:
+        _w_signal = ranking_weights.w_signal
+        _w_alpha = ranking_weights.w_alpha
+        _w_confidence = ranking_weights.w_confidence
+        _multi_bonus_value = ranking_weights.multi_detector_bonus
+    else:
+        _w_signal = W_SIGNAL
+        _w_alpha = W_ALPHA
+        _w_confidence = W_CONFIDENCE
+        _multi_bonus_value = MULTI_DETECTOR_BONUS
 
     # Count how many detectors fired per ticker (multi-detector bonus)
     ticker_detector_count: dict[str, int] = {}
@@ -71,17 +81,17 @@ def rank_ideas(
         w = weights.get(idea.idea_type.value, 1.0)
 
         # ── Three-dimensional composite score ──────────────────────────
-        signal_component = idea.signal_strength * w * W_SIGNAL
+        signal_component = idea.signal_strength * w * _w_signal
 
         # Alpha score from CASE pipeline (stored in metadata)
         raw_alpha = idea.metadata.get("composite_alpha_score", 0.0)
         alpha_score = float(raw_alpha) if raw_alpha else 0.0
-        alpha_component = alpha_score * W_ALPHA
+        alpha_component = alpha_score * _w_alpha
 
-        confidence_component = idea.confidence_score * W_CONFIDENCE
+        confidence_component = idea.confidence_score * _w_confidence
 
         multi_bonus = (
-            MULTI_DETECTOR_BONUS
+            _multi_bonus_value
             if ticker_detector_count.get(idea.ticker, 0) >= 2
             else 0.0
         )

@@ -39,6 +39,7 @@ export interface ScanResult {
     scan_duration_ms: number;
     detector_stats: Record<string, number>;
     ideas: IdeaItem[];
+    strategy_profile?: string | null;
 }
 
 type ScanStatus = "idle" | "scanning" | "done" | "error";
@@ -51,17 +52,20 @@ export function useIdeasEngine() {
     const [lastScan, setLastScan] = useState<ScanResult | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    /** Run a universe scan with the given tickers. */
-    const scan = useCallback(async (tickers: string[]) => {
+    /** Run a universe scan with the given tickers and optional strategy profile. */
+    const scan = useCallback(async (tickers: string[], profileKey?: string) => {
         if (tickers.length === 0) return;
         setScanStatus("scanning");
         setError(null);
 
         try {
+            const payload: Record<string, any> = { tickers };
+            if (profileKey) payload.strategy_profile = profileKey;
+
             const res = await fetch(`${BACKEND_URL}/ideas/scan`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ tickers }),
+                body: JSON.stringify(payload),
             });
 
             if (!res.ok) throw new Error(`Scan failed: HTTP ${res.status}`);

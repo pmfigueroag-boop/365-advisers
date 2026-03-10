@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import type { IdeaItem, IdeaSignal } from "@/hooks/useIdeasEngine";
 import SignalEnvironmentBadge from "./SignalEnvironmentBadge";
+import StrategyProfileSelector from "./StrategyProfileSelector";
 
 // ── Type colors + icons ──────────────────────────────────────────────────────
 
@@ -80,9 +81,11 @@ interface IdeasPanelProps {
     ideas: IdeaItem[];
     scanStatus: "idle" | "scanning" | "done" | "error";
     error: string | null;
-    onScan: () => void;
+    onScan: (profileKey?: string) => void;
     onAnalyze: (ticker: string) => void;
     onDismiss: (ideaId: string) => void;
+    selectedProfile?: string | null;
+    onProfileChange?: (profileKey: string | null) => void;
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -94,6 +97,8 @@ export default function IdeasPanel({
     onScan,
     onAnalyze,
     onDismiss,
+    selectedProfile = null,
+    onProfileChange,
 }: IdeasPanelProps) {
     const [filter, setFilter] = useState<string | null>(null);
     const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -115,18 +120,27 @@ export default function IdeasPanel({
                         </span>
                     )}
                 </div>
-                <button
-                    onClick={onScan}
-                    disabled={scanStatus === "scanning"}
-                    title="Scan watchlist for ideas"
-                    className="p-1 rounded text-gray-500 hover:text-[#d4af37] transition-colors disabled:opacity-40"
-                >
-                    {scanStatus === "scanning" ? (
-                        <Loader2 size={12} className="animate-spin" />
-                    ) : (
-                        <RefreshCw size={12} />
+                <div className="flex items-center gap-1.5">
+                    {onProfileChange && (
+                        <StrategyProfileSelector
+                            selectedProfile={selectedProfile}
+                            onSelect={onProfileChange}
+                            compact
+                        />
                     )}
-                </button>
+                    <button
+                        onClick={() => onScan(selectedProfile ?? undefined)}
+                        disabled={scanStatus === "scanning"}
+                        title="Scan watchlist for ideas"
+                        className="p-1 rounded text-gray-500 hover:text-[#d4af37] transition-colors disabled:opacity-40"
+                    >
+                        {scanStatus === "scanning" ? (
+                            <Loader2 size={12} className="animate-spin" />
+                        ) : (
+                            <RefreshCw size={12} />
+                        )}
+                    </button>
+                </div>
             </div>
 
             {/* Type filter chips */}

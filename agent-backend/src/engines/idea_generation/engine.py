@@ -38,6 +38,7 @@ from src.engines.idea_generation.detector_registry import (
     default_registry,
 )
 from src.engines.idea_generation.ranker import rank_ideas
+from src.engines.idea_generation.strategy_profiles import StrategyProfile
 
 # ── Alpha Signals Library integration ─────────────────────────────────────
 from src.engines.alpha_signals.evaluator import SignalEvaluator
@@ -76,10 +77,22 @@ class IdeaGenerationEngine:
         self,
         detector_keys: set[str] | None = None,
         disabled_keys: set[str] | None = None,
+        strategy_profile: StrategyProfile | None = None,
     ) -> None:
+        self._strategy_profile = strategy_profile
+
+        # Resolve detectors from profile or explicit keys
+        _enabled = detector_keys
+        _disabled = disabled_keys
+        if strategy_profile is not None:
+            if strategy_profile.enabled_detectors:
+                _enabled = set(strategy_profile.enabled_detectors)
+            if strategy_profile.disabled_detectors:
+                _disabled = set(strategy_profile.disabled_detectors)
+
         self.detectors: list[BaseDetector] = build_active_detectors(
-            enabled_keys=detector_keys,
-            disabled_keys=disabled_keys,
+            enabled_keys=_enabled,
+            disabled_keys=_disabled,
         )
         self._signal_evaluator = SignalEvaluator()
         self._composite_alpha_engine = CompositeAlphaEngine()
@@ -141,8 +154,39 @@ class IdeaGenerationEngine:
                 key = idea.idea_type.value
                 detector_stats[key] = detector_stats.get(key, 0) + 1
 
-        # Rank and deduplicate
-        ranked = rank_ideas(raw_ideas)
+        # ── Apply profile minimum thresholds ───────────────────────
+        if self._strategy_profile is not None:
+            min_conf = self._strategy_profile.minimum_confidence
+            min_sig = self._strategy_profile.minimum_signal_strength
+            if min_conf > 0.0 or min_sig > 0.0:
+                before = len(raw_ideas)
+                raw_ideas = [
+                    idea for idea in raw_ideas
+                    if idea.confidence_score >= min_conf
+                    and idea.signal_strength >= min_sig
+                ]
+                filtered = before - len(raw_ideas)
+                if filtered > 0:
+                    logger.info(
+                        "profile_filtered",
+                        extra={
+                            "profile": self._strategy_profile.key,
+                            "filtered_count": filtered,
+                            "min_confidence": min_conf,
+                            "min_signal_strength": min_sig,
+                        },
+                    )
+
+        # Rank and deduplicate (with profile weights if available)
+        _ranking_weights = None
+        if self._strategy_profile is not None:
+            _ranking_weights = self._strategy_profile.ranking_weights
+        ranked = rank_ideas(raw_ideas, ranking_weights=_ranking_weights)
+
+        # ── Store profile key in idea metadata ────────────────────────
+        if self._strategy_profile is not None:
+            for idea in ranked:
+                idea.metadata["strategy_profile"] = self._strategy_profile.key
 
         # ── Auto-register ideas for opportunity tracking ──────────────
         for idea in ranked:
