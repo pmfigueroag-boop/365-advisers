@@ -7,6 +7,7 @@
  */
 
 import { Globe, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import InfoTooltip from "@/components/shared/InfoTooltip";
 
 interface MarketRegimePanelProps {
     regime?: string;
@@ -30,7 +31,9 @@ export default function MarketRegimePanel({ regime = "neutral", universeSize = 0
         <div className={`glass-card p-5 border-[#30363d] ${className}`}>
             <div className="flex items-center gap-2 mb-4">
                 <Globe size={12} className="text-[#d4af37]" />
-                <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Market Regime</span>
+                <InfoTooltip text="Régimen de mercado detectado automáticamente: alcista, bajista, neutral, lateral o volátil. Se basa en el análisis de clusters de señales del universo de activos." position="bottom">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Market Regime</span>
+                </InfoTooltip>
             </div>
 
             <div className={`flex items-center gap-4 p-4 rounded-xl ${cfg.bg} mb-4`}>
@@ -43,12 +46,16 @@ export default function MarketRegimePanel({ regime = "neutral", universeSize = 0
 
             <div className="space-y-2">
                 <div className="flex items-center justify-between text-[10px]">
-                    <span className="text-gray-600">Universe Size</span>
+                    <InfoTooltip text="Cantidad de activos incluidos en el análisis de mercado. Se alimenta del resultado del último Idea Scan." showIcon={false}>
+                        <span className="text-gray-600">Universe Size</span>
+                    </InfoTooltip>
                     <span className="font-mono text-gray-400">{universeSize} assets</span>
                 </div>
                 {computedAt && (
                     <div className="flex items-center justify-between text-[10px]">
-                        <span className="text-gray-600">Last Computed</span>
+                        <InfoTooltip text="Fecha y hora del último cálculo de régimen y ranking de oportunidades." showIcon={false}>
+                            <span className="text-gray-600">Last Computed</span>
+                        </InfoTooltip>
                         <span className="font-mono text-gray-500">{new Date(computedAt).toLocaleString()}</span>
                     </div>
                 )}

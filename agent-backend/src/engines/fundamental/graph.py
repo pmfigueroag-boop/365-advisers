@@ -152,16 +152,32 @@ def _safe_agent_call(ticker: str, agent_name: str, framework: str, focus: str, d
 
 def node_fetch_data(state: FundamentalState) -> dict:
     """Fetches fundamental data + web context for the ticker."""
+    import concurrent.futures
     ticker = state["ticker"]
     print(f"[FundamentalEngine] Fetching data for {ticker}")
-    fund_data = fetch_fundamental_data(ticker)
 
-    # Tavily web search for recent news / sentiment
+    # Run blocking data fetches with a hard timeout to prevent hanging
+    def _fetch_all():
+        fund_data = fetch_fundamental_data(ticker)
+        try:
+            web_results = _tavily.invoke(f"{ticker} stock fundamental analysis recent earnings")
+            web_context = [{"title": r.get("url", ""), "content": r.get("content", "")} for r in (web_results or [])]
+        except Exception as exc:
+            print(f"[FundamentalEngine] Tavily error: {exc}")
+            web_context = []
+        return fund_data, web_context
+
     try:
-        web_results = _tavily.invoke(f"{ticker} stock fundamental analysis recent earnings")
-        web_context = [{"title": r.get("url", ""), "content": r.get("content", "")} for r in (web_results or [])]
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(_fetch_all)
+            fund_data, web_context = future.result(timeout=25)
+    except concurrent.futures.TimeoutError:
+        print(f"[FundamentalEngine] Data fetch TIMEOUT for {ticker} (25s)")
+        fund_data = {"name": ticker, "sector": "", "industry": "", "ratios": {}, "cashflow_series": []}
+        web_context = []
     except Exception as exc:
-        print(f"[FundamentalEngine] Tavily error: {exc}")
+        print(f"[FundamentalEngine] Data fetch error: {exc}")
+        fund_data = {"name": ticker, "sector": "", "industry": "", "ratios": {}, "cashflow_series": []}
         web_context = []
 
     return {"fundamental_data": fund_data, "web_context": web_context}

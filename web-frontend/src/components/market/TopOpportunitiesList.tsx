@@ -8,6 +8,7 @@
 
 import { Trophy, TrendingUp } from "lucide-react";
 import SignalBadge from "@/components/shared/SignalBadge";
+import InfoTooltip from "@/components/shared/InfoTooltip";
 import type { RankedItem } from "@/hooks/useMarketRadar";
 
 interface TopOpportunitiesListProps {
@@ -32,7 +33,9 @@ export default function TopOpportunitiesList({ items, onSelect, limit = 10, clas
             <div className={`glass-card p-5 border-[#30363d] ${className}`}>
                 <div className="flex items-center gap-2 mb-3">
                     <Trophy size={12} className="text-[#d4af37]" />
-                    <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Top Opportunities</span>
+                    <InfoTooltip text="Ranking de las mejores oportunidades de inversión según puntaje compuesto (fundamental + técnico + señales alpha). Haz clic en un activo para analizarlo." position="bottom">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Top Opportunities</span>
+                    </InfoTooltip>
                 </div>
                 <p className="text-xs text-gray-600">Compute a ranking to see top opportunities.</p>
             </div>
@@ -44,7 +47,9 @@ export default function TopOpportunitiesList({ items, onSelect, limit = 10, clas
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                     <Trophy size={12} className="text-[#d4af37]" />
-                    <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Top Opportunities</span>
+                    <InfoTooltip text="Ranking de las mejores oportunidades de inversión según puntaje compuesto (fundamental + técnico + señales alpha). Haz clic en un activo para analizarlo." position="bottom">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Top Opportunities</span>
+                    </InfoTooltip>
                 </div>
                 <span className="text-[8px] font-mono text-gray-600">{items.length} ranked</span>
             </div>
@@ -52,7 +57,7 @@ export default function TopOpportunitiesList({ items, onSelect, limit = 10, clas
             <div className="space-y-1">
                 {display.map((item, i) => (
                     <button
-                        key={item.ticker}
+                        key={`${item.ticker}-${item.idea_type}-${i}`}
                         onClick={() => onSelect?.(item.ticker)}
                         className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-[#161b22] transition-colors group"
                     >
@@ -77,7 +82,7 @@ export default function TopOpportunitiesList({ items, onSelect, limit = 10, clas
                         {/* Score */}
                         <div className="text-right flex-shrink-0">
                             <p className="text-xs font-black text-white" style={{ fontFamily: "var(--font-data)" }}>
-                                {item.composite_score.toFixed(1)}
+                                {(item.composite_score ?? (item as any).uos ?? 0).toFixed(1)}
                             </p>
                             <p className="text-[8px] text-gray-600">{item.idea_type}</p>
                         </div>
@@ -85,7 +90,7 @@ export default function TopOpportunitiesList({ items, onSelect, limit = 10, clas
                         {/* Allocation */}
                         <div className="flex-shrink-0 w-12 text-right">
                             <p className="text-[10px] font-mono text-[#d4af37] font-bold">
-                                {item.suggested_allocation.toFixed(1)}%
+                                {(item.suggested_allocation ?? (item as any).suggested_alloc_pct ?? 0).toFixed(1)}%
                             </p>
                         </div>
                     </button>

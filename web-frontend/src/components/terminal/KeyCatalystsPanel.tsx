@@ -7,6 +7,7 @@
  */
 
 import { Zap, AlertTriangle } from "lucide-react";
+import InfoTooltip from "@/components/shared/InfoTooltip";
 import type { CIOMemo } from "@/hooks/useCombinedStream";
 
 interface KeyCatalystsPanelProps {
@@ -29,9 +30,11 @@ export default function KeyCatalystsPanel({ cioMemo, className = "" }: KeyCataly
                 <div className="mb-4">
                     <div className="flex items-center gap-2 mb-3">
                         <Zap size={12} className="text-emerald-400" />
-                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">
-                            Key Catalysts
-                        </span>
+                        <InfoTooltip text="Eventos o factores que podrían impulsar el precio al alza: resultados trimestrales, lanzamientos de productos, cambios regulatorios, etc." position="bottom">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">
+                                Key Catalysts
+                            </span>
+                        </InfoTooltip>
                     </div>
                     <div className="space-y-2">
                         {catalysts.map((cat, i) => (
@@ -49,9 +52,11 @@ export default function KeyCatalystsPanel({ cioMemo, className = "" }: KeyCataly
                 <div className={catalysts.length > 0 ? "pt-3 border-t border-[#30363d]" : ""}>
                     <div className="flex items-center gap-2 mb-3">
                         <AlertTriangle size={12} className="text-red-400" />
-                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">
-                            Key Risks
-                        </span>
+                        <InfoTooltip text="Riesgos principales identificados por el comité de inversión: amenazas competitivas, macroeconómicas, regulatorias o de ejecución." position="bottom">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">
+                                Key Risks
+                            </span>
+                        </InfoTooltip>
                     </div>
                     <div className="space-y-2">
                         {risks.map((risk, i) => (

@@ -7,6 +7,7 @@
  */
 
 import { BarChart3 } from "lucide-react";
+import InfoTooltip from "@/components/shared/InfoTooltip";
 import type { RankedItem } from "@/hooks/useMarketRadar";
 
 interface SectorHeatmapProps {
@@ -27,7 +28,7 @@ export default function SectorHeatmap({ globalRanking, onSectorClick, className 
     for (const item of globalRanking) {
         const s = item.sector || "Unknown";
         if (!sectorMap[s]) sectorMap[s] = { total: 0, count: 0 };
-        sectorMap[s].total += item.composite_score;
+        sectorMap[s].total += (item.composite_score ?? (item as any).uos ?? 0);
         sectorMap[s].count += 1;
     }
 
@@ -51,7 +52,9 @@ export default function SectorHeatmap({ globalRanking, onSectorClick, className 
             <div className={`glass-card p-5 border-[#30363d] ${className}`}>
                 <div className="flex items-center gap-2 mb-3">
                     <BarChart3 size={12} className="text-[#d4af37]" />
-                    <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Sector Opportunities</span>
+                    <InfoTooltip text="Puntaje promedio de oportunidad por sector. Identifica los sectores con mayores oportunidades de inversión en tu universo." position="bottom">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Sector Opportunities</span>
+                    </InfoTooltip>
                 </div>
                 <p className="text-xs text-gray-600">No ranking data. Run a scan first.</p>
             </div>

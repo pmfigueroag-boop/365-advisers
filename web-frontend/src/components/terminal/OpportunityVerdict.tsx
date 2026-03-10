@@ -13,6 +13,7 @@ import OpportunityScoreGauge from "@/components/shared/OpportunityScoreGauge";
 import ConfidenceMeter from "@/components/shared/ConfidenceMeter";
 import ScoreRing from "@/components/shared/ScoreRing";
 import SignalBadge from "@/components/shared/SignalBadge";
+import InfoTooltip from "@/components/shared/InfoTooltip";
 import type { CombinedState } from "@/hooks/useCombinedStream";
 import type { SignalProfileResponse } from "@/hooks/useAlphaSignals";
 
@@ -81,9 +82,15 @@ export default function OpportunityVerdict({ combined, alphaProfile }: Opportuni
 
                 {/* Score Row — Opportunity + CASE + Committee */}
                 <div className="flex items-center gap-8 mb-6">
-                    <OpportunityScoreGauge score={oppScore} size={100} label="Opportunity" />
-                    <ScoreRing value={caseScore} max={100} size={64} label="CASE" color="#d4af37" />
-                    <ScoreRing value={committee?.score ?? 0} max={10} size={64} label="Committee" />
+                    <InfoTooltip text="Puntaje compuesto 0–100 que evalúa la calidad del negocio, valoración, fortaleza financiera y comportamiento de mercado." showIcon={false}>
+                        <OpportunityScoreGauge score={oppScore} size={100} label="Opportunity" />
+                    </InfoTooltip>
+                    <InfoTooltip text="Composite Alpha Score Engine — puntaje agregado de 50+ señales alpha en 8 categorías (momentum, valor, calidad, etc.)." showIcon={false}>
+                        <ScoreRing value={caseScore} max={100} size={64} label="CASE" color="#d4af37" />
+                    </InfoTooltip>
+                    <InfoTooltip text="Veredicto del Comité de Inversión (4 analistas IA). Puntaje 0–10 basado en análisis fundamental multi-agente." showIcon={false}>
+                        <ScoreRing value={committee?.score ?? 0} max={10} size={64} label="Committee" />
+                    </InfoTooltip>
                 </div>
 
                 {/* Key Metrics Strip */}
@@ -91,7 +98,9 @@ export default function OpportunityVerdict({ combined, alphaProfile }: Opportuni
                     <div className="bg-[#161b22] rounded-xl p-3 border border-[#30363d]">
                         <div className="flex items-center gap-1.5 mb-1">
                             <Target size={10} className="text-[#d4af37]" />
-                            <span className="text-[8px] font-black uppercase tracking-wider text-gray-600">Allocation</span>
+                            <InfoTooltip text="Porcentaje sugerido del portafolio para asignar a esta posición, basado en el puntaje de oportunidad y condiciones de riesgo." position="bottom">
+                                <span className="text-[8px] font-black uppercase tracking-wider text-gray-600">Allocation</span>
+                            </InfoTooltip>
                         </div>
                         <p className="text-lg font-black text-white" style={{ fontFamily: "var(--font-data)" }}>
                             {allocation.toFixed(1)}%
@@ -101,7 +110,9 @@ export default function OpportunityVerdict({ combined, alphaProfile }: Opportuni
                     <div className="bg-[#161b22] rounded-xl p-3 border border-[#30363d]">
                         <div className="flex items-center gap-1.5 mb-1">
                             <Shield size={10} className="text-blue-400" />
-                            <span className="text-[8px] font-black uppercase tracking-wider text-gray-600">Risk Level</span>
+                            <InfoTooltip text="Nivel de riesgo general de la posición, derivado de la volatilidad del activo y las condiciones de mercado actuales." position="bottom">
+                                <span className="text-[8px] font-black uppercase tracking-wider text-gray-600">Risk Level</span>
+                            </InfoTooltip>
                         </div>
                         <p className={`text-sm font-black uppercase ${riskColor(riskLevel)}`}>
                             {riskLevel}
@@ -111,7 +122,9 @@ export default function OpportunityVerdict({ combined, alphaProfile }: Opportuni
                     <div className="bg-[#161b22] rounded-xl p-3 border border-[#30363d]">
                         <div className="flex items-center gap-1.5 mb-1">
                             <DollarSign size={10} className="text-emerald-400" />
-                            <span className="text-[8px] font-black uppercase tracking-wider text-gray-600">Conviction</span>
+                            <InfoTooltip text="Nivel de convicción del sistema: cuán fuerte es la señal de inversión. Alto = múltiples factores alineados." position="bottom">
+                                <span className="text-[8px] font-black uppercase tracking-wider text-gray-600">Conviction</span>
+                            </InfoTooltip>
                         </div>
                         <p className="text-sm font-black text-white capitalize">
                             {positionSizing?.conviction_level ?? "—"}
@@ -120,7 +133,9 @@ export default function OpportunityVerdict({ combined, alphaProfile }: Opportuni
 
                     <div className="bg-[#161b22] rounded-xl p-3 border border-[#30363d]">
                         <div className="flex items-center gap-1.5 mb-1">
-                            <span className="text-[8px] font-black uppercase tracking-wider text-gray-600">Action</span>
+                            <InfoTooltip text="Acción recomendada por el modelo de Position Sizing: acumular, iniciar posición, reducir, etc." position="bottom">
+                                <span className="text-[8px] font-black uppercase tracking-wider text-gray-600">Action</span>
+                            </InfoTooltip>
                         </div>
                         <p className="text-sm font-black text-[#d4af37]">
                             {positionSizing?.recommended_action ?? "—"}
@@ -129,12 +144,16 @@ export default function OpportunityVerdict({ combined, alphaProfile }: Opportuni
                 </div>
 
                 {/* Confidence Meter */}
-                <ConfidenceMeter value={confidence} label="System Confidence" />
+                <InfoTooltip text="Confianza agregada del sistema en su veredicto. Combina el consenso del comité fundamental con el análisis técnico." showIcon={false}>
+                    <ConfidenceMeter value={confidence} label="System Confidence" />
+                </InfoTooltip>
 
                 {/* Investment Thesis (collapsed) */}
                 {decision.cio_memo.thesis_summary && (
                     <div className="mt-5 pt-4 border-t border-[#30363d]">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-gray-600 mb-2">Investment Thesis</p>
+                        <InfoTooltip text="Resumen de la tesis de inversión generada por el CIO (Chief Investment Officer) IA tras sintetizar todos los análisis." position="bottom">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-gray-600 mb-2">Investment Thesis</p>
+                        </InfoTooltip>
                         <p className="text-xs text-gray-300 leading-relaxed" style={{ fontFamily: "var(--font-insight)" }}>
                             {decision.cio_memo.thesis_summary}
                         </p>

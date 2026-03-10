@@ -130,7 +130,7 @@ class RankingEngine:
             by_sector=by_sector,
             by_strategy=by_strategy,
             top_n=top_n,
-            universe_size=len(ranked),
+            universe_size=len({r.ticker for r in ranked}),
             config=cfg,
         )
 

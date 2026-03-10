@@ -21,6 +21,7 @@ import TopOpportunitiesList from "@/components/market/TopOpportunitiesList";
 import SignalClusterPanel from "@/components/market/SignalClusterPanel";
 import MarketRiskSignals from "@/components/market/MarketRiskSignals";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import InfoTooltip from "@/components/shared/InfoTooltip";
 import { useMarketRadar } from "@/hooks/useMarketRadar";
 import { useCrowding } from "@/hooks/useCrowding";
 import { useMonitoringAlerts } from "@/hooks/useMonitoringAlerts";
@@ -59,9 +60,11 @@ export default function MarketIntelligenceView({ onSelectTicker }: MarketIntelli
                 <div>
                     <div className="flex items-center gap-2 mb-1">
                         <Map size={16} className="text-[#d4af37]" />
-                        <h2 className="text-base font-black uppercase tracking-widest text-gray-300">
-                            Market Intelligence
-                        </h2>
+                        <InfoTooltip text="Vista panorámica del mercado: régimen actual, oportunidades top, alertas de riesgo y clusters de señales en todo tu universo de activos." position="bottom">
+                            <h2 className="text-base font-black uppercase tracking-widest text-gray-300">
+                                Market Intelligence
+                            </h2>
+                        </InfoTooltip>
                     </div>
                     <p className="text-xs text-gray-600">
                         Bird&apos;s-eye view of the investment landscape — opportunities, risks, and signal clusters.

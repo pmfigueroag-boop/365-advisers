@@ -8,6 +8,7 @@
  */
 
 import { TrendingUp, TrendingDown, Minus, Radio } from "lucide-react";
+import InfoTooltip from "@/components/shared/InfoTooltip";
 import type { EvaluatedSignal } from "@/hooks/useAlphaSignals";
 
 interface TopSignalsListProps {
@@ -55,9 +56,11 @@ export default function TopSignalsList({
             <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                     <Radio size={12} className="text-[#d4af37]" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                        Top Signals
-                    </span>
+                    <InfoTooltip text="Señales alpha más fuertes activas para este activo, ordenadas por confianza. Cada señal proviene de factores cuantitativos como momentum, valor, calidad o crecimiento." position="bottom">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                            Top Signals
+                        </span>
+                    </InfoTooltip>
                 </div>
                 {totalFired != null && totalSignals != null && (
                     <span className="text-[9px] font-mono text-gray-600">

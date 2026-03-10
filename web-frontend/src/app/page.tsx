@@ -262,6 +262,32 @@ export default function Home() {
     history.add,
   ]);
 
+  // ── Auto-compute ranking when Ideas scan completes ────────────────────────
+  useEffect(() => {
+    if (ideasEngine.scanStatus === "done" && ideasEngine.ideas.length > 0) {
+      const ideaDicts = ideasEngine.ideas.map((idea) => ({
+        ticker: idea.ticker,
+        name: idea.name,
+        sector: idea.sector,
+        idea_type: idea.idea_type,
+        confidence: idea.confidence,
+        signal_strength: idea.signal_strength,
+      }));
+      const oppScores: Record<string, number> = {};
+      for (const idea of ideasEngine.ideas) {
+        const current = oppScores[idea.ticker] ?? 0;
+        oppScores[idea.ticker] = Math.max(current, idea.signal_strength * 10);
+      }
+      // Fire-and-forget: populate backend ranking cache
+      const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      fetch(`${API}/ranking/compute`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ideas: ideaDicts, case_scores: {}, opp_scores: oppScores }),
+      }).catch(() => { /* silent */ });
+    }
+  }, [ideasEngine.scanStatus, ideasEngine.ideas]);
+
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleAnalyze = useCallback((symbol?: string) => {
     const t = symbol ?? ticker;

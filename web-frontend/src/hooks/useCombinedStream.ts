@@ -123,8 +123,20 @@ export function useCombinedStream() {
         const es = new EventSource(url);
         esRef.current = es;
 
+        // Timeout: if no data_ready arrives within 30s, abort with an error
+        const timeoutId = setTimeout(() => {
+            setState((prev) => {
+                if (prev.status === "fetching_data") {
+                    _close();
+                    return { ...prev, status: "error", error: `No se pudo obtener datos para ${symbol}. Verifica el ticker e intenta de nuevo.` };
+                }
+                return prev;
+            });
+        }, 30_000);
+
         // data_ready — fundamental ratios phase starts
         es.addEventListener("data_ready", (e) => {
+            clearTimeout(timeoutId);
             const data: FundamentalDataReady = JSON.parse((e as MessageEvent).data);
             setState((prev) => ({ ...prev, status: "fundamental", fundamentalDataReady: data }));
         });
@@ -179,6 +191,7 @@ export function useCombinedStream() {
 
         // done
         es.addEventListener("done", (e) => {
+            clearTimeout(timeoutId);
             const d = JSON.parse((e as MessageEvent).data ?? "{}");
             setState((prev) => ({
                 ...prev,
@@ -191,6 +204,7 @@ export function useCombinedStream() {
 
         // error
         es.addEventListener("error", (e) => {
+            clearTimeout(timeoutId);
             const msg =
                 "data" in e
                     ? JSON.parse((e as MessageEvent).data)?.message ?? "Stream error"
@@ -200,6 +214,7 @@ export function useCombinedStream() {
         });
 
         es.onerror = () => {
+            clearTimeout(timeoutId);
             if (esRef.current) {
                 setState((prev) =>
                     prev.status !== "complete" && prev.status !== "error"

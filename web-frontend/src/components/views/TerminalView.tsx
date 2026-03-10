@@ -27,6 +27,7 @@ import QuickActionBar from "@/components/decision/QuickActionBar";
 import TopSignalsList from "@/components/insight/TopSignalsList";
 import SignalBadge from "@/components/shared/SignalBadge";
 import CoverageBadge from "@/components/coverage/CoverageBadge";
+import InfoTooltip from "@/components/shared/InfoTooltip";
 import type { CombinedState } from "@/hooks/useCombinedStream";
 import type { SignalProfileResponse } from "@/hooks/useAlphaSignals";
 import type { WatchlistItem } from "@/hooks/useWatchlist";
@@ -132,7 +133,9 @@ export default function TerminalView({
             <div className="space-y-5 bg-grid" style={{ animation: "fadeSlideIn 0.4s ease both" }}>
                 <div className="flex items-center justify-between">
                     <div>
-                        <h2 className="text-base font-black uppercase tracking-widest text-gray-300">Coverage List</h2>
+                        <InfoTooltip text="Activos que estás siguiendo. Selecciona uno para ejecutar el análisis completo del Comité de Inversión." position="bottom">
+                            <h2 className="text-base font-black uppercase tracking-widest text-gray-300">Coverage List</h2>
+                        </InfoTooltip>
                         <p className="text-xs text-gray-600 mt-0.5">Select an asset to convene the Investment Committee</p>
                     </div>
                     <span className="text-[9px] font-mono text-gray-500 glass-card border border-[#30363d] rounded-lg px-2.5 py-1.5"
@@ -301,7 +304,9 @@ export default function TerminalView({
                 <div className="glass-card p-4 border-[#30363d]">
                     <div className="flex items-center gap-2 mb-3">
                         <Star size={11} className="text-[#d4af37]" />
-                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">Coverage List</span>
+                        <InfoTooltip text="Tu watchlist de activos analizados. Haz clic en cualquiera para cambiar de activo y ver su análisis." position="bottom">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">Coverage List</span>
+                        </InfoTooltip>
                     </div>
                     <div className="flex gap-2 flex-wrap">
                         {watchlistItems.map((item) => {

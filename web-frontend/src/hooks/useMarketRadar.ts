@@ -46,6 +46,25 @@ export interface MarketRadarState {
     error: string | null;
 }
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Normalize backend field names to frontend RankedItem contract */
+function normalize(raw: any): RankedItem {
+    return {
+        ticker: raw.ticker ?? "",
+        name: raw.name ?? "",
+        sector: raw.sector ?? "",
+        idea_type: raw.idea_type ?? "",
+        composite_score: raw.composite_score ?? raw.uos ?? 0,
+        case_score: raw.case_score ?? 0,
+        opp_score: raw.opp_score ?? raw.opportunity_score ?? 0,
+        signal_strength: raw.signal_strength ?? 0,
+        suggested_allocation: raw.suggested_allocation ?? raw.suggested_alloc_pct ?? 0,
+        rank: raw.rank ?? 0,
+        tier: raw.tier ?? "Weak",
+    };
+}
+
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useMarketRadar() {
@@ -76,7 +95,7 @@ export function useMarketRadar() {
             const data = await res.json();
             setState((s) => ({
                 ...s,
-                globalRanking: data.ranking ?? [],
+                globalRanking: (data.ranking ?? []).map(normalize),
                 universeSize: data.universe_size ?? 0,
                 computedAt: data.computed_at ?? null,
                 status: "done",
@@ -92,7 +111,7 @@ export function useMarketRadar() {
             const res = await fetch(`${API}/ranking/top`);
             if (!res.ok) return;
             const data = await res.json();
-            setState((s) => ({ ...s, topOpportunities: data.top ?? [] }));
+            setState((s) => ({ ...s, topOpportunities: (data.top ?? []).map(normalize) }));
         } catch {
             // Silent — non-critical
         }
@@ -125,8 +144,8 @@ export function useMarketRadar() {
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
             setState({
-                globalRanking: data.global_ranking ?? [],
-                topOpportunities: data.top_n ?? [],
+                globalRanking: (data.global_ranking ?? []).map(normalize),
+                topOpportunities: (data.top_n ?? []).map(normalize),
                 sectorRankings: {},
                 sectors: data.sectors ?? [],
                 strategies: data.strategies ?? [],
