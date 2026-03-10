@@ -133,7 +133,7 @@ export default function TerminalView({
             <div className="space-y-5 bg-grid" style={{ animation: "fadeSlideIn 0.4s ease both" }}>
                 <div className="flex items-center justify-between">
                     <div>
-                        <InfoTooltip text="Activos que estás siguiendo. Selecciona uno para ejecutar el análisis completo del Comité de Inversión." position="bottom">
+                        <InfoTooltip text="Assets you are tracking. Select one to run the full Investment Committee analysis." position="bottom">
                             <h2 className="text-base font-black uppercase tracking-widest text-gray-300">Coverage List</h2>
                         </InfoTooltip>
                         <p className="text-xs text-gray-600 mt-0.5">Select an asset to convene the Investment Committee</p>
@@ -304,7 +304,7 @@ export default function TerminalView({
                 <div className="glass-card p-4 border-[#30363d]">
                     <div className="flex items-center gap-2 mb-3">
                         <Star size={11} className="text-[#d4af37]" />
-                        <InfoTooltip text="Tu watchlist de activos analizados. Haz clic en cualquiera para cambiar de activo y ver su análisis." position="bottom">
+                        <InfoTooltip text="Your watchlist of analyzed assets. Click any to switch and view its analysis." position="bottom">
                             <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">Coverage List</span>
                         </InfoTooltip>
                     </div>

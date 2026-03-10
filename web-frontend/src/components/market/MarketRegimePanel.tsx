@@ -31,7 +31,7 @@ export default function MarketRegimePanel({ regime = "neutral", universeSize = 0
         <div className={`glass-card p-5 border-[#30363d] ${className}`}>
             <div className="flex items-center gap-2 mb-4">
                 <Globe size={12} className="text-[#d4af37]" />
-                <InfoTooltip text="Régimen de mercado detectado automáticamente: alcista, bajista, neutral, lateral o volátil. Se basa en el análisis de clusters de señales del universo de activos." position="bottom">
+                <InfoTooltip text="Automatically detected market regime: bullish, bearish, neutral, sideways, or volatile. Based on signal cluster analysis across the asset universe." position="bottom">
                     <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Market Regime</span>
                 </InfoTooltip>
             </div>
@@ -46,14 +46,14 @@ export default function MarketRegimePanel({ regime = "neutral", universeSize = 0
 
             <div className="space-y-2">
                 <div className="flex items-center justify-between text-[10px]">
-                    <InfoTooltip text="Cantidad de activos incluidos en el análisis de mercado. Se alimenta del resultado del último Idea Scan." showIcon={false}>
+                    <InfoTooltip text="Number of assets included in the market analysis. Fed from the latest Idea Scan results." showIcon={false}>
                         <span className="text-gray-600">Universe Size</span>
                     </InfoTooltip>
                     <span className="font-mono text-gray-400">{universeSize} assets</span>
                 </div>
                 {computedAt && (
                     <div className="flex items-center justify-between text-[10px]">
-                        <InfoTooltip text="Fecha y hora del último cálculo de régimen y ranking de oportunidades." showIcon={false}>
+                        <InfoTooltip text="Date and time of the latest regime and opportunity ranking calculation." showIcon={false}>
                             <span className="text-gray-600">Last Computed</span>
                         </InfoTooltip>
                         <span className="font-mono text-gray-500">{new Date(computedAt).toLocaleString()}</span>

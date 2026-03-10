@@ -56,7 +56,7 @@ export default function TopSignalsList({
             <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                     <Radio size={12} className="text-[#d4af37]" />
-                    <InfoTooltip text="Señales alpha más fuertes activas para este activo, ordenadas por confianza. Cada señal proviene de factores cuantitativos como momentum, valor, calidad o crecimiento." position="bottom">
+                    <InfoTooltip text="Strongest active alpha signals for this asset, ranked by confidence. Each signal comes from quantitative factors like momentum, value, quality, or growth." position="bottom">
                         <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
                             Top Signals
                         </span>

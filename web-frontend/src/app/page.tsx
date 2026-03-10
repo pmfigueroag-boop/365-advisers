@@ -171,6 +171,7 @@ export default function Home() {
   const [activeView, setActiveView] = useState<ViewId>("terminal");
   const [ticker, setTicker] = useState("");
   const [cmdPaletteOpen, setCmdPaletteOpen] = useState(false);
+  const [rankingReady, setRankingReady] = useState(false);
   const { showOnboarding, dismiss: dismissOnboarding } = useOnboarding();
 
   // ── Hooks ─────────────────────────────────────────────────────────────────
@@ -284,7 +285,7 @@ export default function Home() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ideas: ideaDicts, case_scores: {}, opp_scores: oppScores }),
-      }).catch(() => { /* silent */ });
+      }).then(() => setRankingReady(true)).catch(() => { /* silent */ });
     }
   }, [ideasEngine.scanStatus, ideasEngine.ideas]);
 
@@ -335,7 +336,7 @@ export default function Home() {
     <>
       <style>{INLINE_STYLES}</style>
 
-      <div className={`flex flex-col min-h-screen ${useShell ? "p-4 md:p-6" : "p-0"} max-w-[1920px] mx-auto`}>
+      <div className={`flex flex-col min-h-screen ${useShell ? "p-4 md:p-6" : "p-0"} max-w-[1920px] mx-auto`} suppressHydrationWarning>
         {/* Top Navigation */}
         <TopNav
           activeView={activeView}
@@ -368,7 +369,7 @@ export default function Home() {
         )}
 
         {/* ── View Router with TerminalShell ── */}
-        <ErrorBoundary>
+        <ErrorBoundary key={activeView}>
           {useShell ? (
             <TerminalShell
               activeView={activeView}
@@ -388,73 +389,69 @@ export default function Home() {
               activeSignals={shellCtx.activeSignals}
               lastUpdate={shellCtx.lastUpdate}
             >
-              {activeView === "terminal" && (
-                <TerminalView
-                  combined={combined.state}
-                  alphaProfile={alphaSignals.profile}
-                  watchlistItems={watchlist.items}
-                  onAnalyze={handleAnalyze}
-                  onNavigateAnalysis={() => setActiveView("analysis")}
-                />
-              )}
-
-              {activeView === "market" && (
-                <MarketIntelligenceView
-                  onSelectTicker={(t) => handleAnalyze(t)}
-                />
-              )}
-
-              {activeView === "ideas" && (
-                <IdeaExplorerView
-                  ideas={ideasEngine.ideas}
-                  scanStatus={ideasEngine.scanStatus}
-                  error={ideasEngine.error}
-                  onScan={() => {
-                    const tickers = watchlist.items.map((i) => i.ticker);
-                    if (tickers.length > 0) ideasEngine.scan(tickers);
-                  }}
-                  onAnalyze={(t) => handleAnalyze(t)}
-                  onDismiss={(id) => ideasEngine.dismiss(id)}
-                />
-              )}
-
-              {activeView === "analysis" && (
-                <DeepAnalysisView
-                  combined={combined.state}
-                  alphaProfile={alphaSignals.profile}
-                  alphaStatus={alphaSignals.status}
-                  alphaError={alphaSignals.error}
-                  onEvaluateSignals={() => {
-                    const t = combined.state.ticker || ticker;
-                    if (t) alphaSignals.evaluate(t);
-                  }}
-                  onBack={() => setActiveView("terminal")}
-                />
-              )}
-
-              {activeView === "portfolio" && (
-                <PortfolioView historyEntries={history.entries} />
-              )}
-
-              {activeView === "system" && (
-                <SystemView />
-              )}
-
-              {activeView === "pilot" && (
-                <PilotDashboardView />
-              )}
-
-              {activeView === "marketplace" && (
-                <MarketplaceView />
-              )}
-
-              {activeView === "ai-assistant" && (
-                <AIAssistantView />
-              )}
-
-              {activeView === "alpha-engine" && (
-                <SuperAlphaView />
-              )}
+              {(() => {
+                switch (activeView) {
+                  case "terminal":
+                    return (
+                      <TerminalView
+                        combined={combined.state}
+                        alphaProfile={alphaSignals.profile}
+                        watchlistItems={watchlist.items}
+                        onAnalyze={handleAnalyze}
+                        onNavigateAnalysis={() => setActiveView("analysis")}
+                      />
+                    );
+                  case "market":
+                    return (
+                      <MarketIntelligenceView
+                        onSelectTicker={(t) => handleAnalyze(t)}
+                        rankingReady={rankingReady}
+                      />
+                    );
+                  case "ideas":
+                    return (
+                      <IdeaExplorerView
+                        ideas={ideasEngine.ideas}
+                        scanStatus={ideasEngine.scanStatus}
+                        error={ideasEngine.error}
+                        onScan={() => {
+                          const tickers = watchlist.items.map((i) => i.ticker);
+                          if (tickers.length > 0) ideasEngine.scan(tickers);
+                        }}
+                        onAnalyze={(t) => handleAnalyze(t)}
+                        onDismiss={(id) => ideasEngine.dismiss(id)}
+                      />
+                    );
+                  case "analysis":
+                    return (
+                      <DeepAnalysisView
+                        combined={combined.state}
+                        alphaProfile={alphaSignals.profile}
+                        alphaStatus={alphaSignals.status}
+                        alphaError={alphaSignals.error}
+                        onEvaluateSignals={() => {
+                          const t = combined.state.ticker || ticker;
+                          if (t) alphaSignals.evaluate(t);
+                        }}
+                        onBack={() => setActiveView("terminal")}
+                      />
+                    );
+                  case "portfolio":
+                    return <PortfolioView historyEntries={history.entries} />;
+                  case "system":
+                    return <SystemView />;
+                  case "pilot":
+                    return <PilotDashboardView />;
+                  case "marketplace":
+                    return <MarketplaceView />;
+                  case "ai-assistant":
+                    return <AIAssistantView />;
+                  case "alpha-engine":
+                    return <SuperAlphaView />;
+                  default:
+                    return null;
+                }
+              })()}
             </TerminalShell>
           ) : (
             /* Strategy Lab has its own shell */

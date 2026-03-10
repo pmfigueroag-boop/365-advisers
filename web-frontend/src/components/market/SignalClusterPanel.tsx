@@ -44,7 +44,7 @@ export default function SignalClusterPanel({ ranking, className = "" }: SignalCl
         <div className={`glass-card p-5 border-[#30363d] ${className}`}>
             <div className="flex items-center gap-2 mb-4">
                 <Radio size={12} className="text-purple-400" />
-                <InfoTooltip text="Agrupación de activos por tipo de señal dominante (valor, calidad, momentum, crecimiento, etc.). Muestra qué estrategias tienen más oportunidades activas." position="bottom">
+                <InfoTooltip text="Asset grouping by dominant signal type (value, quality, momentum, growth, etc.). Shows which strategies have the most active opportunities." position="bottom">
                     <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Signal Clusters</span>
                 </InfoTooltip>
             </div>

@@ -55,8 +55,8 @@ interface TopNavProps {
 
 const TABS: { id: ViewId; label: string; icon: React.ReactNode; title: string }[] = [
     { id: "terminal", label: "Terminal", icon: <Monitor size={13} />, title: "Investment decisions — score, verdict, allocation" },
-    { id: "market", label: "Market", icon: <Map size={13} />, title: "Market regime, sector heatmap, signal clusters" },
     { id: "ideas", label: "Ideas", icon: <Lightbulb size={13} />, title: "AI-ranked investment opportunities" },
+    { id: "market", label: "Market", icon: <Map size={13} />, title: "Market regime, sector heatmap, signal clusters" },
     { id: "analysis", label: "Analysis", icon: <Microscope size={13} />, title: "Full fundamental + technical evidence" },
     { id: "portfolio", label: "Portfolio", icon: <Briefcase size={13} />, title: "Risk analysis & position sizing" },
     { id: "system", label: "System", icon: <Brain size={13} />, title: "Signal health, drift alerts, providers" },

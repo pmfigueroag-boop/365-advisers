@@ -24,6 +24,14 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
     }
 
     static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+        // Google Translate (and similar browser extensions) modify the DOM,
+        // which causes React reconciliation to fail with insertBefore/removeChild
+        // errors. These are cosmetic — ignore them and keep rendering normally.
+        const msg = error?.message || "";
+        if (msg.includes("insertBefore") || msg.includes("removeChild") || msg.includes("appendChild")) {
+            console.warn("[ErrorBoundary] Ignoring DOM mutation error (likely browser extension):", msg);
+            return { hasError: false, error: null };
+        }
         return { hasError: true, error };
     }
 

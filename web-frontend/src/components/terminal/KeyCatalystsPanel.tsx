@@ -30,7 +30,7 @@ export default function KeyCatalystsPanel({ cioMemo, className = "" }: KeyCataly
                 <div className="mb-4">
                     <div className="flex items-center gap-2 mb-3">
                         <Zap size={12} className="text-emerald-400" />
-                        <InfoTooltip text="Eventos o factores que podrían impulsar el precio al alza: resultados trimestrales, lanzamientos de productos, cambios regulatorios, etc." position="bottom">
+                        <InfoTooltip text="Events or factors that could drive the price higher: quarterly earnings, product launches, regulatory changes, etc." position="bottom">
                             <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">
                                 Key Catalysts
                             </span>
@@ -52,7 +52,7 @@ export default function KeyCatalystsPanel({ cioMemo, className = "" }: KeyCataly
                 <div className={catalysts.length > 0 ? "pt-3 border-t border-[#30363d]" : ""}>
                     <div className="flex items-center gap-2 mb-3">
                         <AlertTriangle size={12} className="text-red-400" />
-                        <InfoTooltip text="Riesgos principales identificados por el comité de inversión: amenazas competitivas, macroeconómicas, regulatorias o de ejecución." position="bottom">
+                        <InfoTooltip text="Key risks identified by the investment committee: competitive threats, macroeconomic, regulatory, or execution risks." position="bottom">
                             <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">
                                 Key Risks
                             </span>

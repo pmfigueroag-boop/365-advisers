@@ -33,7 +33,7 @@ export default function TopOpportunitiesList({ items, onSelect, limit = 10, clas
             <div className={`glass-card p-5 border-[#30363d] ${className}`}>
                 <div className="flex items-center gap-2 mb-3">
                     <Trophy size={12} className="text-[#d4af37]" />
-                    <InfoTooltip text="Ranking de las mejores oportunidades de inversión según puntaje compuesto (fundamental + técnico + señales alpha). Haz clic en un activo para analizarlo." position="bottom">
+                    <InfoTooltip text="Ranking of the best investment opportunities by composite score (fundamental + technical + alpha signals). Click an asset to analyze it." position="bottom">
                         <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Top Opportunities</span>
                     </InfoTooltip>
                 </div>
@@ -47,7 +47,7 @@ export default function TopOpportunitiesList({ items, onSelect, limit = 10, clas
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                     <Trophy size={12} className="text-[#d4af37]" />
-                    <InfoTooltip text="Ranking de las mejores oportunidades de inversión según puntaje compuesto (fundamental + técnico + señales alpha). Haz clic en un activo para analizarlo." position="bottom">
+                    <InfoTooltip text="Ranking of the best investment opportunities by composite score (fundamental + technical + alpha signals). Click an asset to analyze it." position="bottom">
                         <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Top Opportunities</span>
                     </InfoTooltip>
                 </div>

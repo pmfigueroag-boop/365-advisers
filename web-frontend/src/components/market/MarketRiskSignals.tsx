@@ -28,7 +28,7 @@ export default function MarketRiskSignals({ alerts, crowdingAssessments, classNa
         <div className={`glass-card p-5 border-[#30363d] ${className}`}>
             <div className="flex items-center gap-2 mb-4">
                 <Shield size={12} className={hasRisks ? "text-orange-400" : "text-green-400"} />
-                <InfoTooltip text="Alertas de riesgo a nivel de mercado: señales de crowding excesivo, drift de modelos, y alertas críticas del sistema de monitoreo." position="bottom">
+                <InfoTooltip text="Market-level risk alerts: excessive crowding signals, model drift, and critical alerts from the monitoring system." position="bottom">
                     <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Market Risk Signals</span>
                 </InfoTooltip>
             </div>

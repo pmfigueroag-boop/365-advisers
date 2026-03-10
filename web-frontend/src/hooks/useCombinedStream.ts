@@ -128,7 +128,7 @@ export function useCombinedStream() {
             setState((prev) => {
                 if (prev.status === "fetching_data") {
                     _close();
-                    return { ...prev, status: "error", error: `No se pudo obtener datos para ${symbol}. Verifica el ticker e intenta de nuevo.` };
+                    return { ...prev, status: "error", error: `Could not fetch data for ${symbol}. Please verify the ticker and try again.` };
                 }
                 return prev;
             });

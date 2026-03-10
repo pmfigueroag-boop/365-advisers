@@ -52,7 +52,7 @@ export default function SectorHeatmap({ globalRanking, onSectorClick, className 
             <div className={`glass-card p-5 border-[#30363d] ${className}`}>
                 <div className="flex items-center gap-2 mb-3">
                     <BarChart3 size={12} className="text-[#d4af37]" />
-                    <InfoTooltip text="Puntaje promedio de oportunidad por sector. Identifica los sectores con mayores oportunidades de inversión en tu universo." position="bottom">
+                    <InfoTooltip text="Average opportunity score by sector. Identifies sectors with the best investment opportunities in your universe." position="bottom">
                         <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Sector Opportunities</span>
                     </InfoTooltip>
                 </div>

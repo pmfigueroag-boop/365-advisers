@@ -7,8 +7,8 @@
  * Designed for section headers and metric labels in the Terminal view.
  *
  * Usage:
- *   <InfoTooltip text="Explicación del panel">
- *       <span>Label visible</span>
+ *   <InfoTooltip text="Explanation of this panel">
+ *       <span>Visible label</span>
  *   </InfoTooltip>
  */
 

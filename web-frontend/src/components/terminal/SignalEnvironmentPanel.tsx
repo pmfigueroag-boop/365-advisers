@@ -48,7 +48,7 @@ export default function SignalEnvironmentPanel({ alphaProfile, crowding, classNa
         <div className={`glass-card p-5 border-[#30363d] ${className}`}>
             <div className="flex items-center gap-2 mb-4">
                 <Radio size={12} className="text-[#d4af37]" />
-                <InfoTooltip text="Resumen del entorno de señales alpha activas. Muestra la fuerza del mercado de señales cuantitativas para este activo." position="bottom">
+                <InfoTooltip text="Overview of active alpha signals. Shows the quantitative signal market strength for this asset." position="bottom">
                     <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">
                         Signal Environment
                     </span>
@@ -59,7 +59,7 @@ export default function SignalEnvironmentPanel({ alphaProfile, crowding, classNa
                 {/* CASE Score */}
                 <div>
                     <div className="flex items-center justify-between mb-1">
-                        <InfoTooltip text="Puntaje CASE (Composite Alpha Score Engine): agregado ponderado de más de 50 señales alpha en 8 categorías." showIcon={false}>
+                        <InfoTooltip text="CASE Score (Composite Alpha Score Engine): weighted aggregate of 50+ alpha signals across 8 categories." showIcon={false}>
                             <span className="text-[9px] uppercase text-gray-600">Composite Alpha</span>
                         </InfoTooltip>
                         <span className="text-lg font-black text-[#d4af37]" style={{ fontFamily: "var(--font-data)" }}>
@@ -76,7 +76,7 @@ export default function SignalEnvironmentPanel({ alphaProfile, crowding, classNa
 
                 {/* Environment Badge */}
                 <div className="flex items-center justify-between">
-                    <InfoTooltip text="Régimen de mercado actual para las señales: fuerte, moderado, transicional, débil o negativo. Define la calidad del entorno de inversión." showIcon={false}>
+                    <InfoTooltip text="Current market regime for signals: strong, moderate, transitional, weak, or negative. Defines investment environment quality." showIcon={false}>
                         <span className="text-[9px] uppercase text-gray-600">Regime</span>
                     </InfoTooltip>
                     <span className={`text-[9px] font-black px-2 py-0.5 rounded border ${envCfg.color} ${envCfg.bg} ${envCfg.border}`}>
@@ -88,7 +88,7 @@ export default function SignalEnvironmentPanel({ alphaProfile, crowding, classNa
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
                         <Activity size={10} className="text-emerald-400" />
-                        <InfoTooltip text="Cantidad de señales alpha que se activaron vs. el total disponible. Mayor porcentaje = más factores alineados a favor." showIcon={false}>
+                        <InfoTooltip text="Number of alpha signals fired vs. total available. Higher percentage = more factors aligned in favor." showIcon={false}>
                             <span className="text-[9px] uppercase text-gray-600">Signals Active</span>
                         </InfoTooltip>
                     </div>
@@ -101,7 +101,7 @@ export default function SignalEnvironmentPanel({ alphaProfile, crowding, classNa
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
                         <Layers size={10} className="text-blue-400" />
-                        <InfoTooltip text="Categorías de señales con al menos una señal activa (ej: momentum, valor, calidad, crecimiento, volatilidad)." showIcon={false}>
+                        <InfoTooltip text="Signal categories with at least one active signal (e.g., momentum, value, quality, growth, volatility)." showIcon={false}>
                             <span className="text-[9px] uppercase text-gray-600">Categories</span>
                         </InfoTooltip>
                     </div>
@@ -118,7 +118,7 @@ export default function SignalEnvironmentPanel({ alphaProfile, crowding, classNa
                                 ? <AlertTriangle size={10} className="text-orange-400" />
                                 : <Shield size={10} className="text-green-400" />
                             }
-                            <InfoTooltip text="Riesgo de crowding: mide si demasiados inversores están posicionados igual. Alto crowding = mayor riesgo de reversión abrupta." showIcon={false}>
+                            <InfoTooltip text="Crowding risk: measures if too many investors hold the same position. High crowding = greater risk of abrupt reversal." showIcon={false}>
                                 <span className="text-[9px] uppercase text-gray-600">Crowding</span>
                             </InfoTooltip>
                         </div>
@@ -131,7 +131,7 @@ export default function SignalEnvironmentPanel({ alphaProfile, crowding, classNa
                 {/* Freshness */}
                 {composite?.decay && (
                     <div className="flex items-center justify-between">
-                        <InfoTooltip text="Frescura de las señales alpha. 'Fresh' = datos recientes y confiables. 'Stale' = señales envejecidas que pierden poder predictivo." showIcon={false}>
+                        <InfoTooltip text="Alpha signal freshness. 'Fresh' = recent and reliable data. 'Stale' = aged signals that lose predictive power." showIcon={false}>
                             <span className="text-[9px] uppercase text-gray-600">Freshness</span>
                         </InfoTooltip>
                         <span className={`text-[9px] font-black uppercase ${composite.decay.freshness_level === "fresh" ? "text-green-400" :
