@@ -233,6 +233,9 @@ function StructureCard({ data }: { data: TechnicalAnalysisResult }) {
     const s = data.indicators.structure;
     const score = data.summary.subscores.structure;
     const dir = s.breakout_direction;
+    const ms = (s as any).market_structure as string | undefined;
+    const patterns = ((s as any).patterns || []) as string[];
+    const levelStrength = ((s as any).level_strength || {}) as Record<string, { touches: number; strong: boolean }>;
     return (
         <div className={`glass-card p-4 border flex flex-col gap-3 ${statusBg(dir)}`}>
             <div className="flex items-center justify-between">
@@ -246,6 +249,30 @@ function StructureCard({ data }: { data: TechnicalAnalysisResult }) {
             </div>
 
             <div className="text-2xl font-black text-white">{score.toFixed(1)}<span className="text-xs font-normal text-gray-600">/10</span></div>
+
+            {/* V2: Market Structure badge */}
+            {ms && ms !== "MIXED" && (
+                <span className={`text-[8px] font-black px-2 py-0.5 rounded border uppercase tracking-wider self-start ${
+                    ms === "HH_HL" ? "bg-green-500/10 border-green-500/30 text-green-400" :
+                    "bg-red-500/10 border-red-500/30 text-red-400"
+                }`}>
+                    {ms === "HH_HL" ? "↗ HH / HL" : "↘ LH / LL"}
+                </span>
+            )}
+
+            {/* V2: Pattern badges */}
+            {patterns.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                    {patterns.map((p: string) => (
+                        <span key={p} className={`text-[7px] font-black px-1.5 py-0.5 rounded border uppercase ${
+                            p.includes("BOTTOM") || p.includes("HIGHER") ? "bg-green-500/10 border-green-500/30 text-green-400" :
+                            "bg-red-500/10 border-red-500/30 text-red-400"
+                        }`}>
+                            {p.replace(/_/g, " ")}
+                        </span>
+                    ))}
+                </div>
+            )}
 
             <div className="space-y-1.5 text-[9px]">
                 <div className="flex justify-between">
@@ -265,6 +292,23 @@ function StructureCard({ data }: { data: TechnicalAnalysisResult }) {
                     </div>
                 )}
             </div>
+
+            {/* V2: Level Strength */}
+            {Object.keys(levelStrength).length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                    {Object.entries(levelStrength).map(([level, info]) => (
+                        <span key={level} className={`text-[7px] px-1.5 py-0.5 rounded border ${
+                            info.strong ? "border-yellow-500/40 bg-yellow-500/10" : "border-[#30363d] bg-[#161b22]"
+                        }`}>
+                            <span className="text-gray-400">${level}</span>
+                            <span className={`ml-0.5 font-bold ${info.strong ? "text-yellow-400" : "text-gray-600"}`}>
+                                {info.touches}×
+                            </span>
+                            {info.strong && <span className="ml-0.5 text-yellow-500">★</span>}
+                        </span>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }
@@ -304,12 +348,73 @@ export default function IndicatorGrid({ data }: IndicatorGridProps) {
                             {summary.signal_strength}
                         </span>
                     </div>
+                    {/* Regime badges */}
+                    {(data as any).regime?.trend_regime && (
+                        <div className="flex items-center gap-2">
+                            <span className={`text-[8px] font-black px-2 py-0.5 rounded border uppercase tracking-wider ${
+                                (data as any).regime.trend_regime === "TRENDING" ? "bg-green-500/10 border-green-500/30 text-green-400" :
+                                (data as any).regime.trend_regime === "RANGING" ? "bg-blue-500/10 border-blue-500/30 text-blue-400" :
+                                (data as any).regime.trend_regime === "VOLATILE" ? "bg-red-500/10 border-red-500/30 text-red-400" :
+                                "bg-gray-500/10 border-gray-500/30 text-gray-400"
+                            }`}>
+                                ◆ {(data as any).regime.trend_regime}
+                            </span>
+                            <span className={`text-[8px] font-black px-2 py-0.5 rounded border uppercase tracking-wider ${
+                                (data as any).regime.volatility_regime === "COMPRESSION" ? "bg-yellow-500/10 border-yellow-500/30 text-yellow-400" :
+                                (data as any).regime.volatility_regime === "EXPANSION" ? "bg-orange-500/10 border-orange-500/30 text-orange-400" :
+                                (data as any).regime.volatility_regime === "MEAN_REVERTING" ? "bg-purple-500/10 border-purple-500/30 text-purple-400" :
+                                "bg-gray-500/10 border-gray-500/30 text-gray-400"
+                            }`}>
+                                ◆ {(data as any).regime.volatility_regime?.replace("_", " ")}
+                            </span>
+                            <span className="text-[7px] font-mono text-gray-600">ADX {(data as any).regime.adx?.toFixed(1)}</span>
+                        </div>
+                    )}
                     <div className="flex gap-4 text-[9px] text-gray-600">
                         <span>Trend: <b className={statusColor(summary.trend_status)}>{summary.trend_status.replace(/_/g, " ")}</b></span>
                         <span>Momentum: <b className={statusColor(summary.momentum_status)}>{summary.momentum_status.replace(/_/g, " ")}</b></span>
                     </div>
                 </div>
             </div>
+
+            {/* ── TradingView Rating (reference) ──────────────────────────────── */}
+            {(data as any).tradingview_rating && (
+                <div className="glass-card p-4 border-[#30363d]">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-3">
+                        TradingView Rating <span className="text-gray-700 font-normal">(26 indicators)</span>
+                    </p>
+                    <div className="grid grid-cols-3 gap-3">
+                        {[
+                            { label: "Overall", data: (data as any).tradingview_rating },
+                            { label: "Oscillators", data: (data as any).tradingview_rating?.oscillators },
+                            { label: "Moving Avgs", data: (data as any).tradingview_rating?.moving_averages },
+                        ].map(({ label, data: d }) => {
+                            const rec = d?.recommendation || "UNKNOWN";
+                            const buy = d?.buy || 0;
+                            const sell = d?.sell || 0;
+                            const neutral = d?.neutral || 0;
+                            const total = buy + sell + neutral || 1;
+                            const recColor = rec.includes("BUY") ? "text-green-400" : rec.includes("SELL") ? "text-red-400" : "text-gray-400";
+                            return (
+                                <div key={label} className="text-center">
+                                    <p className="text-[8px] text-gray-600 uppercase tracking-widest mb-1">{label}</p>
+                                    <p className={`text-xs font-black uppercase ${recColor}`}>{rec.replace("_", " ")}</p>
+                                    <div className="flex h-1.5 rounded-full overflow-hidden mt-1.5 bg-[#21262d]">
+                                        {buy > 0 && <div className="bg-green-500 transition-all" style={{ width: `${(buy / total) * 100}%` }} />}
+                                        {neutral > 0 && <div className="bg-gray-500 transition-all" style={{ width: `${(neutral / total) * 100}%` }} />}
+                                        {sell > 0 && <div className="bg-red-500 transition-all" style={{ width: `${(sell / total) * 100}%` }} />}
+                                    </div>
+                                    <div className="flex justify-between text-[7px] mt-0.5 text-gray-700">
+                                        <span className="text-green-600">{buy}B</span>
+                                        <span>{neutral}N</span>
+                                        <span className="text-red-600">{sell}S</span>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
 
             {/* ── Subscore bars ────────────────────────────────────────────────────── */}
             <div className="glass-card p-4 border-[#30363d]">
@@ -332,10 +437,67 @@ export default function IndicatorGrid({ data }: IndicatorGridProps) {
                 <StructureCard data={data} />
             </div>
 
+            {/* ── MTF Heatmap ────────────────────────────────────────────────────── */}
+            {(data as any).mtf?.timeframe_scores && (
+                <div className="glass-card p-4 border-[#30363d]">
+                    <div className="flex items-center justify-between mb-3">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-gray-500">
+                            Multi-Timeframe Analysis
+                        </p>
+                        <div className="flex items-center gap-2">
+                            <span className={`text-[8px] font-black px-2 py-0.5 rounded border uppercase ${
+                                (data as any).mtf.agreement_level === "STRONG" ? "bg-green-500/10 border-green-500/30 text-green-400" :
+                                (data as any).mtf.agreement_level === "MODERATE" ? "bg-yellow-500/10 border-yellow-500/30 text-yellow-400" :
+                                "bg-red-500/10 border-red-500/30 text-red-400"
+                            }`}>
+                                {(data as any).mtf.agreement_level} ({(data as any).mtf.agreement_count}/4)
+                            </span>
+                            <span className={`text-sm font-black ${signalColor((data as any).mtf.mtf_signal)}`}>
+                                {(data as any).mtf.mtf_aggregate.toFixed(1)}
+                            </span>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-4 gap-2">
+                        {((data as any).mtf.timeframe_scores as any[]).map((tf: any) => {
+                            const bg = tf.score >= 7 ? "bg-green-500/15 border-green-500/30" :
+                                       tf.score >= 5 ? "bg-yellow-500/10 border-yellow-500/25" :
+                                       "bg-red-500/10 border-red-500/25";
+                            return (
+                                <div key={tf.timeframe} className={`rounded-lg border p-3 text-center ${bg}`}>
+                                    <p className="text-[8px] font-black uppercase tracking-wider text-gray-400 mb-1">
+                                        {tf.timeframe}
+                                    </p>
+                                    <p className={`text-xl font-black ${
+                                        tf.score >= 7 ? "text-green-400" : tf.score >= 5 ? "text-yellow-400" : "text-red-400"
+                                    }`}>
+                                        {tf.score.toFixed(1)}
+                                    </p>
+                                    <div className="flex justify-center gap-1 mt-1">
+                                        <span className={`text-[6px] font-bold uppercase ${statusColor(tf.trend)}`}>
+                                            {tf.trend?.replace(/_/g, " ")}
+                                        </span>
+                                    </div>
+                                    <p className="text-[7px] text-gray-600 mt-0.5">{tf.signal?.replace("_", " ")}</p>
+                                </div>
+                            );
+                        })}
+                    </div>
+                    {(data as any).mtf.bonus_applied !== 0 && (
+                        <p className="text-[7px] text-gray-600 mt-2 text-right">
+                            Agreement adjustment: <b className={`${(data as any).mtf.bonus_applied > 0 ? "text-green-500" : "text-red-500"}`}>
+                                {(data as any).mtf.bonus_applied > 0 ? "+" : ""}{(data as any).mtf.bonus_applied}
+                            </b>
+                        </p>
+                    )}
+                </div>
+            )}
+
+
+
             {/* ── Footer meta ──────────────────────────────────────────────────────── */}
             <div className="flex items-center justify-between text-[8px] text-gray-700 px-1">
                 <span>
-                    TV Recommendation: <b className="text-gray-500">{data.tv_recommendation}</b>
+                    Source: <b className="text-gray-500">yfinance + tradingview-ta</b>
                 </span>
                 <span>
                     {data.from_cache ? "⚡ Cached" : "Live"} ·{" "}

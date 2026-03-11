@@ -377,6 +377,13 @@ def fetch_technical_data(ticker: str) -> dict:
             # Volume
             "volume":     _get_tv_indicator(inds, "volume"),
             "obv":        _get_tv_indicator(inds, "OBV"),
+            # Regime detection (ADX + Directional)
+            "adx":        _get_tv_indicator(inds, ["ADX", "ADX+DI[14]"], 20.0),
+            "plus_di":    _get_tv_indicator(inds, ["ADX+DI", "DI.plus"], 20.0),
+            "minus_di":   _get_tv_indicator(inds, ["ADX-DI", "DI.minus"], 20.0),
+            # Extra oscillators
+            "cci":        _get_tv_indicator(inds, ["CCI20", "CCI"], 0.0),
+            "williams_r": _get_tv_indicator(inds, ["W.R", "W%R"], -50.0),
             # TV recommendation
             "tv_recommendation": analysis.summary.get("RECOMMENDATION", "UNKNOWN"),
         }
@@ -395,6 +402,8 @@ def fetch_technical_data(ticker: str) -> dict:
             "bb_upper": 0.0, "bb_lower": 0.0, "bb_basis": 0.0,
             "atr": 0.0, "obv": 0.0, "volume": 0.0,
             "stoch_k": 50.0, "stoch_d": 50.0,
+            "adx": 20.0, "plus_di": 20.0, "minus_di": 20.0,
+            "cci": 0.0, "williams_r": -50.0,
             "tv_recommendation": "UNKNOWN",
             "_tv_error": str(exc),
         }

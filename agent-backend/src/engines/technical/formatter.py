@@ -24,6 +24,8 @@ def build_technical_summary(
     score: TechnicalScore,
     active_indicators: list[str] | None = None,
     processing_start_ms: float | None = None,
+    trend_regime=None,
+    vol_regime=None,
 ) -> dict:
     """
     Builds the complete TechnicalSummary dict matching the schema defined in
@@ -102,6 +104,9 @@ def build_technical_summary(
             "distance_to_support_pct":       struct.distance_to_support_pct,
             "breakout_probability":          struct.breakout_probability,
             "breakout_direction":            struct.breakout_direction,
+            "market_structure":              struct.market_structure,
+            "level_strength":                struct.level_strength,
+            "patterns":                      struct.patterns,
         },
     }
 
@@ -125,6 +130,47 @@ def build_technical_summary(
         },
     }
 
+    # ── TradingView Rating (reference benchmark) ────────────────────────────
+    tv_sum = tech_data.get("tv_summary", {})
+    tv_osc = tech_data.get("tv_oscillators", {})
+    tv_mas = tech_data.get("tv_moving_averages", {})
+
+    tradingview_rating: dict = {
+        "recommendation": tv_sum.get("RECOMMENDATION", "UNKNOWN"),
+        "buy":     tv_sum.get("BUY", 0),
+        "sell":    tv_sum.get("SELL", 0),
+        "neutral": tv_sum.get("NEUTRAL", 0),
+        "oscillators": {
+            "recommendation": (tv_osc.get("RECOMMENDATION", "UNKNOWN")
+                               if isinstance(tv_osc, dict) else "UNKNOWN"),
+            "buy":     tv_osc.get("BUY", 0) if isinstance(tv_osc, dict) else 0,
+            "sell":    tv_osc.get("SELL", 0) if isinstance(tv_osc, dict) else 0,
+            "neutral": tv_osc.get("NEUTRAL", 0) if isinstance(tv_osc, dict) else 0,
+        },
+        "moving_averages": {
+            "recommendation": (tv_mas.get("RECOMMENDATION", "UNKNOWN")
+                               if isinstance(tv_mas, dict) else "UNKNOWN"),
+            "buy":     tv_mas.get("BUY", 0) if isinstance(tv_mas, dict) else 0,
+            "sell":    tv_mas.get("SELL", 0) if isinstance(tv_mas, dict) else 0,
+            "neutral": tv_mas.get("NEUTRAL", 0) if isinstance(tv_mas, dict) else 0,
+        },
+    }
+    # ── Regime data (V2) ───────────────────────────────────────────────────
+    from src.engines.technical.regime_detector import combine_regime_adjustments
+    regime_block: dict = {}
+    if trend_regime and vol_regime:
+        regime_block = {
+            "trend_regime": trend_regime.regime,
+            "volatility_regime": vol_regime.regime,
+            "adx": trend_regime.adx,
+            "di_spread": trend_regime.di_spread,
+            "plus_di": trend_regime.plus_di,
+            "minus_di": trend_regime.minus_di,
+            "bb_width_ratio": vol_regime.bb_width_ratio,
+            "atr_trend": vol_regime.atr_trend,
+            "weight_adjustments": combine_regime_adjustments(trend_regime, vol_regime),
+        }
+
     return sanitize_data({
         "ticker":           ticker.upper(),
         "analysis_type":    "technical",
@@ -135,7 +181,9 @@ def build_technical_summary(
         "exchange":         tech_data.get("exchange", ""),
         "indicators":       indicators,
         "summary":          summary,
+        "regime":           regime_block,
         "tv_recommendation":tech_data.get("indicators", {}).get("tv_recommendation", "UNKNOWN"),
+        "tradingview_rating": tradingview_rating,
         "active_indicators": active_indicators or [
             "SMA50", "SMA200", "EMA20", "MACD",
             "RSI", "Stochastic",

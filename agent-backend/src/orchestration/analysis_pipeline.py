@@ -22,6 +22,11 @@ from src.data.market_data import fetch_technical_data
 from src.engines.technical.indicators import IndicatorEngine
 from src.engines.technical.scoring import ScoringEngine as TechScoringModule
 from src.engines.technical.formatter import build_technical_summary
+from src.engines.technical.regime_detector import (
+    TrendRegimeDetector,
+    VolatilityRegimeDetector,
+    combine_regime_adjustments,
+)
 from src.engines.scoring.opportunity_model import OpportunityModel
 from src.engines.portfolio.position_sizing import PositionSizingModel
 from src.engines.decision.classifier import DecisionMatrix
@@ -104,10 +109,29 @@ class AnalysisPipeline:
             try:
                 raw = await asyncio.to_thread(fetch_technical_data, symbol)
                 indicators = await asyncio.to_thread(IndicatorEngine.compute, raw)
-                scores = await asyncio.to_thread(TechScoringModule.compute, indicators)
+
+                # Regime detection
+                raw_inds = raw.get("indicators", {})
+                trend_regime = TrendRegimeDetector.detect(
+                    adx=raw_inds.get("adx", 20.0),
+                    plus_di=raw_inds.get("plus_di", 20.0),
+                    minus_di=raw_inds.get("minus_di", 20.0),
+                )
+                vol_regime = VolatilityRegimeDetector.detect(
+                    ohlcv=raw.get("ohlcv", []),
+                    current_bb_upper=raw_inds.get("bb_upper", 0.0),
+                    current_bb_lower=raw_inds.get("bb_lower", 0.0),
+                    current_atr=raw_inds.get("atr", 0.0),
+                )
+                regime_adj = combine_regime_adjustments(trend_regime, vol_regime)
+
+                scores = await asyncio.to_thread(
+                    TechScoringModule.compute, indicators, None, regime_adj
+                )
                 tech_data = build_technical_summary(
                     ticker=symbol, tech_data=raw, result=indicators,
                     score=scores, processing_start_ms=start,
+                    trend_regime=trend_regime, vol_regime=vol_regime,
                 )
                 self.tech_cache.set(symbol, tech_data)
             except Exception as exc:
@@ -115,6 +139,42 @@ class AnalysisPipeline:
                 yield sse("technical_ready", {"error": str(exc)})
                 yield sse("done", {"from_cache": is_from_cache})
                 return
+
+        # ── Part 2b: Multi-Timeframe scoring (non-blocking) ──────────────
+        try:
+            from src.data.providers.market_metrics import fetch_multi_timeframe
+            from src.engines.technical.mtf_scorer import MultiTimeframeScorer
+
+            mtf_data = await asyncio.to_thread(fetch_multi_timeframe, symbol)
+            if mtf_data and len(mtf_data) >= 2:
+                mtf_result = MultiTimeframeScorer.compute(
+                    mtf_data,
+                    regime_adjustments=tech_data.get("regime", {}).get("weight_adjustments"),
+                )
+                tech_data["mtf"] = {
+                    "mtf_aggregate": mtf_result.mtf_aggregate,
+                    "mtf_signal": mtf_result.mtf_signal,
+                    "agreement_level": mtf_result.agreement_level,
+                    "agreement_count": mtf_result.agreement_count,
+                    "bonus_applied": mtf_result.bonus_applied,
+                    "timeframe_scores": [
+                        {
+                            "timeframe": ts.timeframe,
+                            "score": ts.score,
+                            "signal": ts.signal,
+                            "trend": ts.trend_status,
+                            "momentum": ts.momentum_status,
+                        }
+                        for ts in mtf_result.timeframe_scores
+                    ],
+                }
+                logger.info(
+                    f"PIPELINE: MTF for {symbol}: agg={mtf_result.mtf_aggregate}, "
+                    f"agreement={mtf_result.agreement_level} ({mtf_result.agreement_count}/4)"
+                )
+        except Exception as exc:
+            logger.warning(f"PIPELINE: MTF scoring failed for {symbol}: {exc}")
+            # Non-fatal: single-TF analysis is still valid
 
         yield sse("technical_ready", tech_data)
         await asyncio.sleep(0)

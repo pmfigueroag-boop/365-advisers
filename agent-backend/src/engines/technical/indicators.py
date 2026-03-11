@@ -77,6 +77,10 @@ class StructureResult:
     nearest_support: float | None = None
     distance_to_resistance_pct: float | None = None
     distance_to_support_pct: float | None = None
+    # ── V2 fields ──
+    market_structure: Literal["HH_HL", "LH_LL", "MIXED"] = "MIXED"
+    level_strength: dict = field(default_factory=dict)  # {"level": touches}
+    patterns: list[str] = field(default_factory=list)   # detected patterns
 
 
 @dataclass
@@ -292,34 +296,35 @@ class StructureModule:
     def compute(price: float, ohlcv: list[dict]) -> StructureResult:
         """
         Detect support / resistance via pivot highs and lows.
-        Breakout probability is estimated from proximity to resistance
-        and volume strength.
+        V2: Adds market structure (HH/HL), level strength, and pattern detection.
         """
         if len(ohlcv) < 20:
             return StructureResult()
 
-        highs  = [b["high"] for b in ohlcv if "high" in b]
-        lows   = [b["low"] for b in ohlcv if "low" in b]
         recent = ohlcv[-60:]  # last 60 days for pivot detection
 
-        # Simple pivot detection: local maxima / minima with a 5-bar window
+        # ── Pivot detection ────────────────────────────────────────────────
+        window = 5
+        pivot_highs: list[tuple[int, float]] = []  # (index, price)
+        pivot_lows: list[tuple[int, float]] = []
         resistance_levels: list[float] = []
         support_levels: list[float] = []
-        window = 5
 
         for i in range(window, len(recent) - window):
             h = recent[i].get("high", 0)
             l = recent[i].get("low", 0)
             # Pivot high: highest in window
             if h == max(b.get("high", 0) for b in recent[i - window: i + window + 1]):
+                pivot_highs.append((i, h))
                 if h > price:
                     resistance_levels.append(round(h, 2))
             # Pivot low: lowest in window
             if l == min(b.get("low", float("inf")) for b in recent[i - window: i + window + 1]):
+                pivot_lows.append((i, l))
                 if l < price:
                     support_levels.append(round(l, 2))
 
-        # Deduplicate within 1% band
+        # ── Cluster S/R within 1% band ─────────────────────────────────────
         def cluster(levels: list[float], threshold=0.01) -> list[float]:
             if not levels:
                 return []
@@ -334,8 +339,8 @@ class StructureModule:
             clustered.append(round(sum(group) / len(group), 2))
             return clustered
 
-        res = cluster(resistance_levels)[:3]   # top 3 closest above
-        sup = cluster(support_levels)[-3:]     # top 3 closest below
+        res = cluster(resistance_levels)[:3]
+        sup = cluster(support_levels)[-3:]
 
         nearest_res = min(res, default=None)
         nearest_sup = max(sup, default=None)
@@ -343,17 +348,41 @@ class StructureModule:
         dist_res = ((nearest_res - price) / price) if nearest_res and price else None
         dist_sup = ((price - nearest_sup) / price) if nearest_sup and price else None
 
-        # Breakout probability heuristic
-        # Higher probability if: price near resistance + strong volume trend
+        # ── V2: Market Structure (HH/HL vs LH/LL) ──────────────────────────
+        market_structure = _detect_market_structure(pivot_highs, pivot_lows)
+
+        # ── V2: Key Level Strength ──────────────────────────────────────────
+        all_levels = res + sup
+        level_strength = _compute_level_strength(all_levels, ohlcv[-60:], price)
+
+        # ── V2: Pattern Recognition ─────────────────────────────────────────
+        patterns = _detect_patterns(pivot_highs, pivot_lows, price)
+
+        # ── Breakout probability (enhanced with V2 data) ────────────────────
         bp = 0.3  # baseline
         if dist_res is not None:
-            if dist_res < 0.02:   # within 2% of resistance
+            if dist_res < 0.02:
                 bp += 0.25
-            elif dist_res < 0.05: # within 5%
+            elif dist_res < 0.05:
                 bp += 0.10
 
+        # Market structure bonus
+        if market_structure == "HH_HL":
+            bp += 0.10
+        elif market_structure == "LH_LL":
+            bp -= 0.05
+
+        # Strong level support bonus
+        if nearest_sup and any(s.get("touches", 0) >= 3 for s in level_strength.values()):
+            bp += 0.05
+
+        # Pattern bonus
+        if "DOUBLE_BOTTOM" in patterns or "HIGHER_LOWS" in patterns:
+            bp += 0.10
+        if "DOUBLE_TOP" in patterns or "LOWER_HIGHS" in patterns:
+            bp -= 0.05
+
         if dist_sup is not None and dist_res is not None:
-            # Price closer to resistance than support → bullish breakout
             if dist_res < dist_sup:
                 direction = "BULLISH"
             elif dist_sup < dist_res:
@@ -375,7 +404,110 @@ class StructureModule:
             nearest_support=nearest_sup,
             distance_to_resistance_pct=round(dist_res * 100, 2) if dist_res is not None else None,
             distance_to_support_pct=round(dist_sup * 100, 2) if dist_sup is not None else None,
+            market_structure=market_structure,
+            level_strength=level_strength,
+            patterns=patterns,
         )
+
+
+# ─── Structure V2 helpers ─────────────────────────────────────────────────────
+
+def _detect_market_structure(
+    pivot_highs: list[tuple[int, float]],
+    pivot_lows: list[tuple[int, float]],
+) -> Literal["HH_HL", "LH_LL", "MIXED"]:
+    """
+    Analyze the last 3+ swing points to determine if the market is making
+    Higher Highs & Higher Lows (uptrend), Lower Highs & Lower Lows (downtrend),
+    or a mixed/choppy structure.
+    """
+    if len(pivot_highs) < 2 or len(pivot_lows) < 2:
+        return "MIXED"
+
+    # Take last 3 of each
+    last_highs = [p for _, p in pivot_highs[-3:]]
+    last_lows = [p for _, p in pivot_lows[-3:]]
+
+    # Check for Higher Highs
+    hh = all(last_highs[i] > last_highs[i-1] for i in range(1, len(last_highs)))
+    # Check for Higher Lows
+    hl = all(last_lows[i] > last_lows[i-1] for i in range(1, len(last_lows)))
+    # Check for Lower Highs
+    lh = all(last_highs[i] < last_highs[i-1] for i in range(1, len(last_highs)))
+    # Check for Lower Lows
+    ll = all(last_lows[i] < last_lows[i-1] for i in range(1, len(last_lows)))
+
+    if hh and hl:
+        return "HH_HL"
+    elif lh and ll:
+        return "LH_LL"
+    return "MIXED"
+
+
+def _compute_level_strength(
+    levels: list[float],
+    ohlcv: list[dict],
+    current_price: float,
+    touch_band: float = 0.005,  # 0.5% proximity counts as a "touch"
+) -> dict:
+    """
+    Count how many times price came within `touch_band` of each S/R level.
+    Returns {"level": {"touches": N, "strong": bool}}.
+    """
+    result = {}
+    for level in levels:
+        touches = 0
+        for bar in ohlcv:
+            h = bar.get("high", 0)
+            l = bar.get("low", 0)
+            if h > 0 and l > 0:
+                if abs(h - level) / level <= touch_band or abs(l - level) / level <= touch_band:
+                    touches += 1
+        result[str(round(level, 2))] = {
+            "touches": touches,
+            "strong": touches >= 3,
+        }
+    return result
+
+
+def _detect_patterns(
+    pivot_highs: list[tuple[int, float]],
+    pivot_lows: list[tuple[int, float]],
+    price: float,
+) -> list[str]:
+    """
+    Detect basic chart patterns from swing points.
+    Returns list of pattern names.
+    """
+    patterns: list[str] = []
+
+    # Double Top: 2 pivot highs at same level (within 1%) in last N pivots
+    if len(pivot_highs) >= 2:
+        last_two_h = pivot_highs[-2:]
+        h1, h2 = last_two_h[0][1], last_two_h[1][1]
+        if h1 > 0 and abs(h1 - h2) / h1 < 0.01 and price < h1:
+            patterns.append("DOUBLE_TOP")
+
+    # Double Bottom: 2 pivot lows at same level (within 1%)
+    if len(pivot_lows) >= 2:
+        last_two_l = pivot_lows[-2:]
+        l1, l2 = last_two_l[0][1], last_two_l[1][1]
+        if l1 > 0 and abs(l1 - l2) / l1 < 0.01 and price > l1:
+            patterns.append("DOUBLE_BOTTOM")
+
+    # Higher Lows: last 3 pivot lows are ascending
+    if len(pivot_lows) >= 3:
+        lasts = [p for _, p in pivot_lows[-3:]]
+        if all(lasts[i] > lasts[i-1] for i in range(1, len(lasts))):
+            patterns.append("HIGHER_LOWS")
+
+    # Lower Highs: last 3 pivot highs are descending
+    if len(pivot_highs) >= 3:
+        lasts = [p for _, p in pivot_highs[-3:]]
+        if all(lasts[i] < lasts[i-1] for i in range(1, len(lasts))):
+            patterns.append("LOWER_HIGHS")
+
+    return patterns
 
 
 # ─── IndicatorEngine (façade) ─────────────────────────────────────────────────

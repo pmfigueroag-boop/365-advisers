@@ -71,6 +71,11 @@ def extract_technical_features(
         # Raw bars for structure analysis
         ohlcv=bars,
 
+        # Regime detection
+        adx=getattr(ind, "adx", 20.0) or 20.0,
+        plus_di=getattr(ind, "plus_di", 20.0) or 20.0,
+        minus_di=getattr(ind, "minus_di", 20.0) or 20.0,
+
         # TradingView consensus
         tv_recommendation=ind.tv_recommendation,
     )

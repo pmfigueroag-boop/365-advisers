@@ -102,5 +102,10 @@ class TechnicalFeatureSet(BaseModel):
     # OHLCV bars (for structure analysis)
     ohlcv: list[dict] = Field(default_factory=list)
 
+    # Regime detection (ADX + Directional Indicators)
+    adx: float = 20.0
+    plus_di: float = 20.0
+    minus_di: float = 20.0
+
     # TradingView consensus
     tv_recommendation: str = "UNKNOWN"

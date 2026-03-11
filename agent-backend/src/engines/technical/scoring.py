@@ -40,9 +40,9 @@ class TechnicalScore:
 DEFAULT_WEIGHTS = {
     "trend":      0.30,
     "momentum":   0.25,
-    "volatility": 0.15,
+    "volatility": 0.20,
     "volume":     0.15,
-    "structure":  0.15,
+    "structure":  0.10,
 }
 
 
@@ -119,7 +119,7 @@ def _score_volume(result) -> float:
 
 
 def _score_structure(result) -> float:
-    """Score based on breakout probability and direction."""
+    """Score based on breakout probability, direction, and V2 data."""
     bp = result.breakout_probability   # 0–1.0
     direction = result.breakout_direction
 
@@ -129,6 +129,27 @@ def _score_structure(result) -> float:
         base = 5.0 - bp * 4.0        # 1.0 – 5.0
     else:
         base = 4.5 + bp * 1.5        # 4.5 – 6.0 neutral zone
+
+    # V2: Market structure alignment bonus
+    ms = getattr(result, "market_structure", "MIXED")
+    if ms == "HH_HL" and direction == "BULLISH":
+        base += 1.0   # uptrend structure confirms bullish breakout
+    elif ms == "LH_LL" and direction == "BEARISH":
+        base += 0.5   # downtrend confirmed
+    elif ms == "LH_LL" and direction == "BULLISH":
+        base -= 1.0   # structure conflicts with breakout direction
+
+    # V2: Strong level support
+    level_str = getattr(result, "level_strength", {})
+    if any(v.get("strong", False) for v in level_str.values()):
+        base += 0.5   # strong levels add confidence
+
+    # V2: Pattern signals
+    patterns = getattr(result, "patterns", [])
+    if "DOUBLE_BOTTOM" in patterns or "HIGHER_LOWS" in patterns:
+        base += 0.5
+    if "DOUBLE_TOP" in patterns or "LOWER_HIGHS" in patterns:
+        base -= 0.5
 
     return round(max(0.0, min(10.0, base)), 2)
 
@@ -164,8 +185,15 @@ class ScoringEngine:
     def compute(
         result: IndicatorResult,
         weights: dict[str, float] | None = None,
+        regime_adjustments: dict[str, float] | None = None,
     ) -> TechnicalScore:
-        w = weights or DEFAULT_WEIGHTS
+        w = dict(weights or DEFAULT_WEIGHTS)  # copy to avoid mutation
+
+        # Apply regime-based weight adjustments if provided
+        if regime_adjustments:
+            for module, multiplier in regime_adjustments.items():
+                if module in w:
+                    w[module] = w[module] * multiplier
 
         modules = ModuleScores(
             trend      = _score_trend(result.trend),

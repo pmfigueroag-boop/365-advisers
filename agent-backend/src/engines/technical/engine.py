@@ -17,6 +17,11 @@ from src.contracts.analysis import TechnicalResult, ModuleScore
 from src.engines.technical.indicators import IndicatorEngine
 from src.engines.technical.scoring import ScoringEngine as TechScoringModule
 from src.engines.technical.formatter import build_technical_summary
+from src.engines.technical.regime_detector import (
+    TrendRegimeDetector,
+    VolatilityRegimeDetector,
+    combine_regime_adjustments,
+)
 
 logger = logging.getLogger("365advisers.engines.technical")
 
@@ -36,8 +41,9 @@ class TechnicalEngine:
         Execute the full technical analysis pipeline:
           1. Build raw indicator dict from features
           2. Run IndicatorEngine (5 modules: trend, momentum, volatility, volume, structure)
-          3. Run ScoringEngine (deterministic 0–10 scoring)
-          4. Package into TechnicalResult contract
+          3. Run RegimeDetectors (trend + volatility regime)
+          4. Run ScoringEngine (deterministic 0–10 scoring, regime-adjusted)
+          5. Package into TechnicalResult contract
 
         Args:
             features: Normalised TechnicalFeatureSet from the Feature Layer.
@@ -75,19 +81,46 @@ class TechnicalEngine:
         # ── Step 1: Compute indicators ────────────────────────────────────
         indicator_result = IndicatorEngine.compute(tech_data)
 
-        # ── Step 2: Score indicators ──────────────────────────────────────
-        tech_score = TechScoringModule.compute(indicator_result)
+        # ── Step 2: Detect regimes ────────────────────────────────────────
+        adx = getattr(features, "adx", None) or 20.0
+        plus_di = getattr(features, "plus_di", None) or 20.0
+        minus_di = getattr(features, "minus_di", None) or 20.0
 
-        # ── Step 3: Build full summary (backward compat) ──────────────────
+        trend_regime = TrendRegimeDetector.detect(
+            adx=adx, plus_di=plus_di, minus_di=minus_di,
+        )
+        vol_regime = VolatilityRegimeDetector.detect(
+            ohlcv=features.ohlcv or [],
+            current_bb_upper=features.bb_upper or 0.0,
+            current_bb_lower=features.bb_lower or 0.0,
+            current_atr=features.atr or 0.0,
+        )
+        regime_adjustments = combine_regime_adjustments(trend_regime, vol_regime)
+
+        logger.info(
+            f"TECH: Regimes for {features.ticker}: "
+            f"trend={trend_regime.regime} (ADX={trend_regime.adx}), "
+            f"vol={vol_regime.regime} (ratio={vol_regime.bb_width_ratio})"
+        )
+
+        # ── Step 3: Score indicators (regime-adjusted) ────────────────────
+        tech_score = TechScoringModule.compute(
+            indicator_result,
+            regime_adjustments=regime_adjustments,
+        )
+
+        # ── Step 4: Build full summary (backward compat) ──────────────────
         summary = build_technical_summary(
             ticker=features.ticker,
             tech_data=tech_data,
             result=indicator_result,
             score=tech_score,
             processing_start_ms=start_ms,
+            trend_regime=trend_regime,
+            vol_regime=vol_regime,
         )
 
-        # ── Step 4: Map to TechnicalResult contract ───────────────────────
+        # ── Step 5: Map to TechnicalResult contract ───────────────────────
         module_scores = [
             ModuleScore(name="trend", score=tech_score.modules.trend,
                         signal=indicator_result.trend.status,
@@ -107,7 +140,10 @@ class TechnicalEngine:
                                  "volume_vs_avg": indicator_result.volume.volume_vs_avg}),
             ModuleScore(name="structure", score=tech_score.modules.structure,
                         signal=indicator_result.structure.breakout_direction,
-                        details={"breakout_probability": indicator_result.structure.breakout_probability}),
+                        details={"breakout_probability": indicator_result.structure.breakout_probability,
+                                 "market_structure": indicator_result.structure.market_structure,
+                                 "patterns": indicator_result.structure.patterns,
+                                 "level_strength": indicator_result.structure.level_strength}),
         ]
 
         return TechnicalResult(

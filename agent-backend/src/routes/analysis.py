@@ -31,6 +31,11 @@ from src.data.market_data import fetch_technical_data
 from src.engines.technical.indicators import IndicatorEngine
 from src.engines.technical.scoring import ScoringEngine
 from src.engines.technical.formatter import build_technical_summary
+from src.engines.technical.regime_detector import (
+    TrendRegimeDetector,
+    VolatilityRegimeDetector,
+    combine_regime_adjustments,
+)
 from src.utils.helpers import sanitize_data
 
 logger = logging.getLogger("365advisers.routes.analysis")
@@ -112,7 +117,7 @@ async def fundamental_analysis_stream(ticker: str, force: bool = False):
 
 @router.get("/analysis/technical")
 async def get_technical_analysis(ticker: str, force: bool = False):
-    """Run the full Technical Engine. Cache TTL: 15 minutes."""
+    """Run the full Technical Engine + MTF analysis. Cache TTL: 15 minutes."""
     if not ticker:
         raise HTTPException(status_code=400, detail="ticker parameter is required")
 
@@ -128,11 +133,66 @@ async def get_technical_analysis(ticker: str, force: bool = False):
     try:
         tech_data = await asyncio.to_thread(fetch_technical_data, symbol)
         indicators = await asyncio.to_thread(IndicatorEngine.compute, tech_data)
-        score = await asyncio.to_thread(ScoringEngine.compute, indicators)
+
+        # ── Regime detection ──────────────────────────────────────────────
+        raw_inds = tech_data.get("indicators", {})
+        trend_regime = TrendRegimeDetector.detect(
+            adx=raw_inds.get("adx", 20.0),
+            plus_di=raw_inds.get("plus_di", 20.0),
+            minus_di=raw_inds.get("minus_di", 20.0),
+        )
+        vol_regime = VolatilityRegimeDetector.detect(
+            ohlcv=tech_data.get("ohlcv", []),
+            current_bb_upper=raw_inds.get("bb_upper", 0.0),
+            current_bb_lower=raw_inds.get("bb_lower", 0.0),
+            current_atr=raw_inds.get("atr", 0.0),
+        )
+        regime_adj = combine_regime_adjustments(trend_regime, vol_regime)
+
+        score = await asyncio.to_thread(
+            ScoringEngine.compute, indicators, None, regime_adj
+        )
         summary = build_technical_summary(
             ticker=symbol, tech_data=tech_data, result=indicators,
             score=score, processing_start_ms=start,
+            trend_regime=trend_regime, vol_regime=vol_regime,
         )
+
+        # ── Multi-Timeframe Analysis ──────────────────────────────────────
+        mtf_block = None
+        try:
+            from src.data.providers.market_metrics import fetch_multi_timeframe
+            from src.engines.technical.mtf_scorer import MultiTimeframeScorer
+
+            exchange = tech_data.get("exchange", "NASDAQ")
+            mtf_data = await asyncio.to_thread(fetch_multi_timeframe, symbol, exchange)
+            if mtf_data:
+                mtf_result = MultiTimeframeScorer.compute(mtf_data, regime_adjustments=regime_adj)
+                mtf_block = {
+                    "mtf_aggregate": mtf_result.mtf_aggregate,
+                    "mtf_signal": mtf_result.mtf_signal,
+                    "agreement_level": mtf_result.agreement_level,
+                    "agreement_count": mtf_result.agreement_count,
+                    "bonus_applied": mtf_result.bonus_applied,
+                    "timeframe_scores": [
+                        {
+                            "timeframe": ts.timeframe,
+                            "score": ts.score,
+                            "signal": ts.signal,
+                            "trend": ts.trend_status,
+                            "momentum": ts.momentum_status,
+                        }
+                        for ts in mtf_result.timeframe_scores
+                    ],
+                }
+                logger.info(
+                    f"MTF: {symbol} — aggregate={mtf_result.mtf_aggregate}, "
+                    f"agreement={mtf_result.agreement_level} ({mtf_result.agreement_count}/4)"
+                )
+        except Exception as mtf_exc:
+            logger.warning(f"MTF analysis failed for {symbol}: {mtf_exc}")
+
+        summary["mtf"] = mtf_block
         summary["from_cache"] = False
         tech_cache.set(symbol, summary)
         return summary

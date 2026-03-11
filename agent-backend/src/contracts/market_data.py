@@ -109,6 +109,10 @@ class RawIndicators(BaseModel):
     atr: float = 0.0
     volume: float = 0.0
     obv: float = 0.0
+    # Regime detection
+    adx: float = 20.0
+    plus_di: float = 20.0
+    minus_di: float = 20.0
     tv_recommendation: str = "UNKNOWN"
 
 
