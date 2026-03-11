@@ -137,8 +137,8 @@ def synthesize_investment_memo(
     investment_position: str,
     fundamental_verdict: dict,
     technical_summary: dict,
-    opportunity_data: dict = {},
-    position_data: dict = {},
+    opportunity_data: dict | None = None,
+    position_data: dict | None = None,
     # ─── NEW: optional EDPL enrichment contexts ───
     filing_context: dict | None = None,
     geopolitical_context: dict | None = None,
@@ -152,6 +152,8 @@ def synthesize_investment_memo(
     Now enriched with optional context from SEC EDGAR, GDELT, FRED, and
     news/sentiment when available.
     """
+    opportunity_data = opportunity_data or {}
+    position_data = position_data or {}
     
     # Extract context safely
     fund_score = fundamental_verdict.get("score", 0.0)
@@ -159,8 +161,11 @@ def synthesize_investment_memo(
     fund_risks = fundamental_verdict.get("key_risks", [])
     fund_catalysts = fundamental_verdict.get("key_catalysts", [])
     
-    tech_score = technical_summary.get("technical_score", 0.0)
-    tech_signal = technical_summary.get("signal", "")
+    _summary = technical_summary.get("summary", {})
+    tech_score = _summary.get("technical_score",
+                    technical_summary.get("technical_score", 5.0))
+    tech_signal = _summary.get("signal",
+                    technical_summary.get("signal", ""))
 
     # Opportunity Matrix Context (if available)
     opp_score = opportunity_data.get("opportunity_score", "N/A")

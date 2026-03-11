@@ -126,9 +126,9 @@ async def get_technical_analysis(ticker: str, force: bool = False):
 
     start = _time.monotonic_ns() / 1e6
     try:
-        tech_data = fetch_technical_data(symbol)
-        indicators = IndicatorEngine.compute(tech_data)
-        score = ScoringEngine.compute(indicators)
+        tech_data = await asyncio.to_thread(fetch_technical_data, symbol)
+        indicators = await asyncio.to_thread(IndicatorEngine.compute, tech_data)
+        score = await asyncio.to_thread(ScoringEngine.compute, indicators)
         summary = build_technical_summary(
             ticker=symbol, tech_data=tech_data, result=indicators,
             score=score, processing_start_ms=start,
@@ -251,6 +251,7 @@ async def compare_tickers(tickers: str):
 @router.get("/analyze/stream")
 async def analyze_stream(ticker: str, force: bool = False):
     """Legacy SSE endpoint. Serves from cache when available."""
+    logger.warning(f"DEPRECATED: /analyze/stream called for {ticker} — migrate to /analysis/combined/stream")
     if not ticker:
         raise HTTPException(status_code=400, detail="ticker parameter is required")
     symbol = ticker.upper().strip()

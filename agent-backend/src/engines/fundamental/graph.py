@@ -126,6 +126,7 @@ def _safe_agent_call(ticker: str, agent_name: str, framework: str, focus: str, d
         "key_metrics_used": [],
         "catalysts": [],
         "risks": [],
+        "is_fallback": True,
     }
     try:
         prompt = _agent_prompt(ticker, agent_name, framework, focus, data, extra)
@@ -142,6 +143,7 @@ def _safe_agent_call(ticker: str, agent_name: str, framework: str, focus: str, d
             "key_metrics_used": list(parsed.get("key_metrics_used", [])),
             "catalysts":        list(parsed.get("catalysts", [])),
             "risks":            list(parsed.get("risks", [])),
+            "is_fallback":      False,
         }
     except Exception as exc:
         print(f"[FundamentalEngine] {agent_name} error: {exc}")

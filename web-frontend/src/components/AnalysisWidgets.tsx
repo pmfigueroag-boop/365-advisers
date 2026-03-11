@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Zap, CheckCircle2, Loader2, Clock } from "lucide-react";
-import type { AgentSignal } from "../hooks/useAnalysisStream";
+import type { AgentMemo } from "../hooks/useFundamentalStream";
 
 // ─── Cache Badge ─────────────────────────────────────────────────────────────
 export function CacheBadge({ cachedAt }: { cachedAt: string | null }) {
@@ -80,7 +80,7 @@ export const FundamentalTable = ({ engine }: { engine: Record<string, Record<str
 };
 
 // ─── Agent Card ──────────────────────────────────────────────────────────────
-export const AgentCard = ({ agent, index }: { agent: AgentSignal; index: number }) => {
+export const AgentCard = ({ agent, index }: { agent: AgentMemo & { is_fallback?: boolean }; index: number }) => {
     const isBuy = ["BUY", "AGGRESSIVE"].includes(agent.signal?.toUpperCase());
     const isSell = ["SELL", "DEFENSIVE"].includes(agent.signal?.toUpperCase());
     return (
@@ -91,19 +91,22 @@ export const AgentCard = ({ agent, index }: { agent: AgentSignal; index: number 
             <div className="flex justify-between items-start mb-3">
                 <div className="flex items-center gap-2">
                     <CheckCircle2 size={12} className="text-[#d4af37]" />
-                    <h3 className="font-black text-base group-hover:text-[#d4af37] transition-colors">{agent.agent_name}</h3>
+                    <h3 className="font-black text-base group-hover:text-[#d4af37] transition-colors">{agent.agent}</h3>
+                    {agent.is_fallback && (
+                        <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-yellow-500/10 text-yellow-400 border border-yellow-500/30">⚠ Fallback</span>
+                    )}
                 </div>
                 <span className={`px-2 py-0.5 rounded text-[9px] font-black tracking-tighter ${isBuy ? "bg-green-500/10 text-green-400" : isSell ? "bg-red-500/10 text-red-400" : "bg-gray-500/10 text-gray-400"}`}>
                     {agent.signal}
                 </span>
             </div>
             <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                <p className="text-[11px] text-gray-400 leading-relaxed text-pretty mb-3">{agent.analysis}</p>
-                {agent.selected_metrics && agent.selected_metrics.length > 0 && (
+                <p className="text-[11px] text-gray-400 leading-relaxed text-pretty mb-3">{agent.memo}</p>
+                {agent.key_metrics_used && agent.key_metrics_used.length > 0 && (
                     <div className="space-y-1">
                         <span className="text-[8px] font-black text-[#d4af37] uppercase tracking-widest">Métricas Priorizadas</span>
                         <div className="flex flex-wrap gap-1">
-                            {agent.selected_metrics.map((m: unknown, idx: number) => {
+                            {agent.key_metrics_used.map((m: unknown, idx: number) => {
                                 const label = typeof m === "string" ? m : (m as Record<string, string>).metric || (m as Record<string, string>).name || `Metric ${idx}`;
                                 const tooltip = typeof m === "object" && m !== null ? (m as Record<string, string>).justification || (m as Record<string, string>).reason : undefined;
                                 return (
@@ -117,12 +120,12 @@ export const AgentCard = ({ agent, index }: { agent: AgentSignal; index: number 
                 )}
             </div>
             <div className="mt-4 pt-3 border-t border-[#30363d] flex justify-between items-center bg-[#0d1117]/50 -mx-5 -mb-5 p-4 rounded-b-xl">
-                <span className="text-[9px] text-gray-500 uppercase font-bold tracking-widest">Confidence</span>
+                <span className="text-[9px] text-gray-500 uppercase font-bold tracking-widest">Conviction</span>
                 <div className="flex items-center gap-2">
                     <div className="w-12 h-1 bg-[#161b22] rounded-full overflow-hidden">
-                        <div className="h-full bg-[#d4af37]" style={{ width: `${(agent.confidence || 0) * 100}%` }} />
+                        <div className="h-full bg-[#d4af37]" style={{ width: `${(agent.conviction || 0) * 100}%` }} />
                     </div>
-                    <span className="text-[9px] font-mono text-[#d4af37]">{((agent.confidence || 0) * 100).toFixed(0)}%</span>
+                    <span className="text-[9px] font-mono text-[#d4af37]">{((agent.conviction || 0) * 100).toFixed(0)}%</span>
                 </div>
             </div>
         </div>

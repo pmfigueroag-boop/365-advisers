@@ -14,6 +14,7 @@ import asyncio
 import logging
 import time as _time
 import json
+import uuid
 
 from src.orchestration.sse_streamer import sse
 from src.engines.fundamental.graph import run_fundamental_stream
@@ -60,9 +61,12 @@ class AnalysisPipeline:
          10. done
         """
         symbol = ticker.upper().strip()
+        analysis_id = str(uuid.uuid4())
         fund_events: list[dict] = []
         tech_data: dict | None = None
         is_from_cache = False
+
+        logger.info(f"[{analysis_id[:8]}] PIPELINE: Starting analysis for {symbol}")
 
         # ── Part 1: Fundamental Engine ──────────────────────────────────
         cached_fund = self.fund_cache.get(symbol) if not force else None
@@ -175,7 +179,9 @@ class AnalysisPipeline:
 
         # ── Part 3: Institutional Opportunity Score ─────────────────────
         opportunity_data = None
-        if not is_from_cache or force:
+        # Always recalculate scoring — even when fundamentals came from
+        # cache, technical data may be fresh and scoring is cheap.
+        if fund_events:
             logger.info(f"PIPELINE: Calculating Opportunity Score for {symbol}")
             try:
                 fund_ratios = next(
@@ -254,7 +260,9 @@ class AnalysisPipeline:
             try:
                 fund_score = fund_committee.get("score", 5.0)
                 tech_score = (
-                    tech_data.get("technical_score", 5.0) if tech_data else 5.0
+                    tech_data.get("summary", {}).get("technical_score",
+                        tech_data.get("technical_score", 5.0))
+                    if tech_data else 5.0
                 )
                 fund_confidence = fund_committee.get("confidence", 0.5)
 
@@ -313,7 +321,7 @@ class AnalysisPipeline:
         if decision_data:
             yield sse("decision_ready", decision_data)
 
-        yield sse("done", {"from_cache": is_from_cache})
+        yield sse("done", {"from_cache": is_from_cache, "analysis_id": analysis_id})
 
     # ── EDPL Enrichment Helper ────────────────────────────────────────────
 

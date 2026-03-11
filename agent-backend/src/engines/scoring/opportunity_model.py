@@ -54,9 +54,24 @@ class OpportunityModel:
         marks_signal_conf = 5.0
         icahn_signal_conf = 5.0
 
+        # Map graph agent names → scoring roles
+        _AGENT_ROLE_MAP: dict[str, str] = {
+            # New fundamental graph names
+            "Value & Margin of Safety": "Buffett",
+            "Quality & Moat": "Lynch",
+            "Capital Allocation": "Icahn",
+            "Risk & Macro Stress": "Marks",
+            # Legacy names (backward compatible)
+            "Lynch": "Lynch",
+            "Buffett": "Buffett",
+            "Marks": "Marks",
+            "Icahn": "Icahn",
+        }
+
         for agent in fundamental_agents:
-            name = agent.get("agent_name", "")
-            conf = agent.get("confidence", 0.5)
+            raw_name = agent.get("agent", agent.get("agent_name", ""))
+            name = _AGENT_ROLE_MAP.get(raw_name, "")
+            conf = agent.get("conviction", agent.get("confidence", 0.5))
             sig = agent.get("signal", "HOLD")
             base_score = 5.0 + (conf * 5.0 if sig == "BUY" else -conf * 5.0 if sig == "SELL" else 0)
 
@@ -82,27 +97,37 @@ class OpportunityModel:
         # 2. Financial Metrics Extraction
         profitability = fundamental_metrics.get("profitability", {})
         valuation = fundamental_metrics.get("valuation", {})
-        
-        # F6. Free Cash Flow Yield (Proxy from ROIC or general profitability if raw FCF isn't available)
+        leverage = fundamental_metrics.get("leverage", {})
+
+        # F6. Free Cash Flow Yield (Proxy from ROIC, capped to 0-10)
         fcf_yield_score = 5.0 
         roic = profitability.get("roic")
         if isinstance(roic, (int, float)):
-            fcf_yield_score = min(10.0, max(0.0, (roic * 100) / 2)) # Rough mapping, 20% ROIC = 10 score
+            fcf_yield_score = min(10.0, max(0.0, (roic * 100) / 2))
 
-        # F7. Balance Sheet Strength (Proxy from Debt/Equity if we add it, otherwise fallback to Mark's risk modifier)
+        # F7. Balance Sheet Strength — use debt/equity if available, else agent conf
         balance_sheet_score = marks_signal_conf
+        de = leverage.get("debt_to_equity")
+        if isinstance(de, (int, float)) and de >= 0:
+            # D/E 0 → 10 (pristine), D/E 1 → 5 (moderate), D/E 3+ → 0 (overleveraged)
+            balance_sheet_score = min(10.0, max(0.0, 10.0 - (de * 10.0 / 3.0)))
 
-        # F8. Earnings Stability
+        # F8. Earnings Stability — use operating margin if available, else agent conf
         earnings_stability_score = lynch_signal_conf
+        op_margin = profitability.get("operating_margin")
+        if isinstance(op_margin, (int, float)):
+            # op_margin 30%+ → 10, 15% → 5, 0% → 0, negative → 0
+            earnings_stability_score = min(10.0, max(0.0, op_margin * 100.0 / 3.0))
 
-        # 3. Technical Engine Metrics
-        # F10, F11, F12 from technical summary
-        tech_score = technical_summary.get("technical_score", 5.0)
-        
-        # We need to extract the raw module scores if available, otherwise proxy from tech_score
-        trend_score = tech_score
-        momentum_score = tech_score
-        inst_flow_score = tech_score
+        # 3. Technical Engine Metrics — use real module subscores when available
+        subscores = technical_summary.get("summary", {}).get("subscores", {})
+        tech_score = technical_summary.get("technical_score",
+                        technical_summary.get("summary", {}).get("technical_score", 5.0))
+
+        trend_score = subscores.get("trend", tech_score)
+        momentum_score = subscores.get("momentum", tech_score)
+        # Institutional flow proxied by volume module (OBV + vol ratio)
+        inst_flow_score = subscores.get("volume", tech_score)
 
         # 4. Map the 12 Factors
         factors = {

@@ -14,11 +14,12 @@ logger = logging.getLogger("365advisers.cache")
 
 
 class _MemoryTTLCache:
-    """Generic in-memory TTL cache with lazy eviction."""
+    """Generic in-memory TTL cache with lazy eviction and max-size cap."""
 
-    def __init__(self, name: str, ttl_seconds: int):
+    def __init__(self, name: str, ttl_seconds: int, max_size: int = 500):
         self.name = name
         self.ttl = ttl_seconds
+        self.max_size = max_size
         self._store: dict[str, dict] = {}
 
     def get(self, key: str) -> dict | None:
@@ -30,6 +31,11 @@ class _MemoryTTLCache:
         return None
 
     def set(self, key: str, data: dict):
+        # Evict oldest entry if at capacity
+        if len(self._store) >= self.max_size and key.upper() not in self._store:
+            oldest_key = min(self._store, key=lambda k: self._store[k].get("_ts", 0))
+            del self._store[oldest_key]
+            logger.debug(f"[{self.name}] Evicted {oldest_key} (max_size={self.max_size})")
         data["_ts"] = time.time()
         data["_cached_at"] = datetime.fromtimestamp(time.time(), tz=timezone.utc).isoformat()
         self._store[key.upper()] = data

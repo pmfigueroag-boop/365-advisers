@@ -1,66 +1,55 @@
 """
 src/contracts/analysis.py
 ──────────────────────────────────────────────────────────────────────────────
-Layer 3 output contracts — results produced by the Fundamental and
-Technical Analysis Engines.
+Pydantic contracts for the Analysis module.
+
+These contracts describe the actual data structures flowing through the
+fundamental graph and combined pipeline. Field names match the LangGraph
+engine output (graph.py) — not aspirational schemas.
 """
 
-from __future__ import annotations
-
 from pydantic import BaseModel, Field
-from typing import Literal
 
-
-# ─── Agent Memo (individual analyst output) ───────────────────────────────────
 
 class AgentMemo(BaseModel):
-    """Output of a single fundamental analyst agent."""
-    agent_name: str
-    signal: Literal["BUY", "HOLD", "SELL"] = "HOLD"
-    confidence: float = 0.5  # 0.0 – 1.0
-    analysis: str = ""
-    selected_metrics: list[str] = Field(default_factory=list)
-    # Institutional subscores for the Scoring Engine
-    opportunity_subscores: dict[str, float] = Field(default_factory=dict)
+    """One analyst's output from the fundamental LangGraph engine."""
+    agent: str = Field(description="Agent name (e.g. 'Value & Margin of Safety')")
+    framework: str = Field(description="Investment framework used")
+    signal: str = Field(description="BUY | SELL | HOLD | AVOID")
+    conviction: float = Field(ge=0.0, le=1.0, description="0.0–1.0 confidence")
+    memo: str = Field(description="Short analysis memo in Spanish")
+    key_metrics_used: list[str] = Field(default_factory=list)
+    catalysts: list[str] = Field(default_factory=list)
+    risks: list[str] = Field(default_factory=list)
+    is_fallback: bool = Field(default=False, description="True if LLM call failed")
 
-
-# ─── Fundamental Result ───────────────────────────────────────────────────────
 
 class CommitteeVerdict(BaseModel):
-    """Synthesised verdict from the investment committee."""
-    score: float = 5.0                    # 0.0 – 10.0
-    confidence: float = 0.5              # 0.0 – 1.0
-    signal: Literal["BUY", "HOLD", "SELL"] = "HOLD"
-    consensus_narrative: str = ""
+    """Committee Supervisor output — synthesized from 4 agent memos."""
+    signal: str
+    score: float = Field(ge=0, le=10)
+    confidence: float = Field(ge=0, le=1)
+    risk_adjusted_score: float = Field(ge=0, le=10)
+    consensus_narrative: str
     key_catalysts: list[str] = Field(default_factory=list)
     key_risks: list[str] = Field(default_factory=list)
+    allocation_recommendation: str = ""
 
 
 class FundamentalResult(BaseModel):
-    """Complete output of the Fundamental Analysis Engine (Layer 3a)."""
+    """Envelope for a complete fundamental analysis."""
     ticker: str
-    data_ready: dict = Field(default_factory=dict)       # raw ratios + company info for frontend
-    agent_memos: list[AgentMemo] = Field(default_factory=list)
-    committee_verdict: CommitteeVerdict = Field(default_factory=CommitteeVerdict)
-    research_memo: str = ""                              # markdown 1-pager
-
-
-# ─── Technical Result ─────────────────────────────────────────────────────────
-
-class ModuleScore(BaseModel):
-    """Score output of a single technical module."""
-    name: str
-    score: float = 5.0       # 0.0 – 10.0
-    signal: str = "NEUTRAL"
-    details: dict = Field(default_factory=dict)
+    agents: list[AgentMemo]
+    committee: CommitteeVerdict
+    research_memo: str = ""
 
 
 class TechnicalResult(BaseModel):
-    """Complete output of the Technical Analysis Engine (Layer 3b)."""
+    """Summary output from the technical analysis engine."""
     ticker: str
-    technical_score: float = 5.0   # aggregate 0.0 – 10.0
-    signal: str = "NEUTRAL"        # STRONG_BUY → STRONG_SELL
-    strength: str = "Moderate"
-    volatility_condition: str = "NORMAL"  # LOW, NORMAL, ELEVATED, HIGH
-    module_scores: list[ModuleScore] = Field(default_factory=list)
-    summary: dict = Field(default_factory=dict)   # full summary dict for backward compat
+    technical_score: float
+    signal: str
+    from_cache: bool = False
+    modules: dict = Field(default_factory=dict)
+    indicators: dict = Field(default_factory=dict)
+    summary: dict = Field(default_factory=dict)

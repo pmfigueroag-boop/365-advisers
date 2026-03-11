@@ -20,11 +20,8 @@ import OnboardingOverlay, { useOnboarding } from "@/components/OnboardingOverlay
 import ReportHeader from "@/components/ReportHeader";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
-import { useAnalysisStream } from "@/hooks/useAnalysisStream";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { useAnalysisHistory } from "@/hooks/useAnalysisHistory";
-import { useTechnicalAnalysis } from "@/hooks/useTechnicalAnalysis";
-import { useFundamentalStream } from "@/hooks/useFundamentalStream";
 import { useCombinedStream } from "@/hooks/useCombinedStream";
 import { useIdeasEngine } from "@/hooks/useIdeasEngine";
 import { useAlphaSignals } from "@/hooks/useAlphaSignals";
@@ -188,9 +185,6 @@ export default function Home() {
   const { showOnboarding, dismiss: dismissOnboarding } = useOnboarding();
 
   // ── Hooks ─────────────────────────────────────────────────────────────────
-  const { state, analyze: legacyAnalyze, forceRefresh: legacyForceRefresh } = useAnalysisStream();
-  const technical = useTechnicalAnalysis();
-  const fundamental = useFundamentalStream();
   const combined = useCombinedStream();
   const watchlist = useWatchlist();
   const history = useAnalysisHistory();
@@ -199,7 +193,7 @@ export default function Home() {
 
   // ── Derived state ─────────────────────────────────────────────────────────
   const isLoading = combined.state.status === "fetching_data" || combined.state.status === "fundamental" || combined.state.status === "technical" || combined.state.status === "decision";
-  const dataReady = state.dataReady;
+  const dataReady = combined.state.fundamentalDataReady;
 
   // ── Shell context ─────────────────────────────────────────────────────────
   const shellCtx = useShellContext(activeView, combined, alphaSignals, watchlist, ideasEngine);
@@ -319,17 +313,13 @@ export default function Home() {
       setActiveView("terminal");
     }
 
-    legacyAnalyze(t);
-    technical.analyze(t);
-    fundamental.analyze(t);
     combined.analyze(t);
-  }, [ticker, legacyAnalyze, technical, fundamental, combined, ideasEngine]);
+  }, [ticker, combined, ideasEngine]);
 
   const handleForceRefresh = useCallback(() => {
     if (!dataReady?.ticker) return;
-    legacyForceRefresh(dataReady.ticker);
     combined.forceRefresh(dataReady.ticker);
-  }, [dataReady, legacyForceRefresh, combined]);
+  }, [dataReady, combined]);
 
   const handleToggleWatchlist = useCallback(() => {
     if (!dataReady?.ticker) return;
@@ -369,8 +359,7 @@ export default function Home() {
           onTickerChange={setTicker}
           onAnalyze={() => handleAnalyze()}
           isLoading={isLoading}
-          showCacheBadge={state.fromCache}
-          cachedAt={state.cachedAt}
+          showCacheBadge={combined.state.fromCache ?? false}
           onForceRefresh={handleForceRefresh}
           showExport={combined.state.status === "complete" && !!dataReady}
           onExport={handleExport}
@@ -388,7 +377,7 @@ export default function Home() {
           <ReportHeader
             ticker={dataReady.ticker}
             name={dataReady.name}
-            price={typeof dataReady.fundamental_metrics?.price === "number" ? dataReady.fundamental_metrics.price as number : undefined}
+            price={undefined}
           />
         )}
 
