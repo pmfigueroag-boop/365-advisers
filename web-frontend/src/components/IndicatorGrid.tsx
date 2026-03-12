@@ -252,10 +252,9 @@ function StructureCard({ data }: { data: TechnicalAnalysisResult }) {
 
             {/* V2: Market Structure badge */}
             {ms && ms !== "MIXED" && (
-                <span className={`text-[8px] font-black px-2 py-0.5 rounded border uppercase tracking-wider self-start ${
-                    ms === "HH_HL" ? "bg-green-500/10 border-green-500/30 text-green-400" :
-                    "bg-red-500/10 border-red-500/30 text-red-400"
-                }`}>
+                <span className={`text-[8px] font-black px-2 py-0.5 rounded border uppercase tracking-wider self-start ${ms === "HH_HL" ? "bg-green-500/10 border-green-500/30 text-green-400" :
+                        "bg-red-500/10 border-red-500/30 text-red-400"
+                    }`}>
                     {ms === "HH_HL" ? "↗ HH / HL" : "↘ LH / LL"}
                 </span>
             )}
@@ -264,10 +263,9 @@ function StructureCard({ data }: { data: TechnicalAnalysisResult }) {
             {patterns.length > 0 && (
                 <div className="flex flex-wrap gap-1">
                     {patterns.map((p: string) => (
-                        <span key={p} className={`text-[7px] font-black px-1.5 py-0.5 rounded border uppercase ${
-                            p.includes("BOTTOM") || p.includes("HIGHER") ? "bg-green-500/10 border-green-500/30 text-green-400" :
-                            "bg-red-500/10 border-red-500/30 text-red-400"
-                        }`}>
+                        <span key={p} className={`text-[7px] font-black px-1.5 py-0.5 rounded border uppercase ${p.includes("BOTTOM") || p.includes("HIGHER") ? "bg-green-500/10 border-green-500/30 text-green-400" :
+                                "bg-red-500/10 border-red-500/30 text-red-400"
+                            }`}>
                             {p.replace(/_/g, " ")}
                         </span>
                     ))}
@@ -297,9 +295,8 @@ function StructureCard({ data }: { data: TechnicalAnalysisResult }) {
             {Object.keys(levelStrength).length > 0 && (
                 <div className="flex flex-wrap gap-1">
                     {Object.entries(levelStrength).map(([level, info]) => (
-                        <span key={level} className={`text-[7px] px-1.5 py-0.5 rounded border ${
-                            info.strong ? "border-yellow-500/40 bg-yellow-500/10" : "border-[#30363d] bg-[#161b22]"
-                        }`}>
+                        <span key={level} className={`text-[7px] px-1.5 py-0.5 rounded border ${info.strong ? "border-yellow-500/40 bg-yellow-500/10" : "border-[#30363d] bg-[#161b22]"
+                            }`}>
                             <span className="text-gray-400">${level}</span>
                             <span className={`ml-0.5 font-bold ${info.strong ? "text-yellow-400" : "text-gray-600"}`}>
                                 {info.touches}×
@@ -361,24 +358,31 @@ export default function IndicatorGrid({ data, technicalMemo }: IndicatorGridProp
                         <span className="text-[9px] font-bold text-gray-500 px-2 py-1 rounded border border-[#30363d] bg-[#161b22]">
                             {summary.signal_strength}
                         </span>
+                        {(summary as any).confirmation_level && (
+                            <span className={`text-[8px] font-black px-2 py-0.5 rounded border uppercase tracking-wider ${
+                                (summary as any).confirmation_level === "HIGH" ? "bg-green-500/10 border-green-500/30 text-green-400" :
+                                (summary as any).confirmation_level === "MEDIUM" ? "bg-yellow-500/10 border-yellow-500/30 text-yellow-400" :
+                                    "bg-gray-500/10 border-gray-500/30 text-gray-400"
+                            }`}>
+                                ◎ {(summary as any).confirmation_level} CONF
+                            </span>
+                        )}
                     </div>
                     {/* Regime badges */}
                     {(data as any).regime?.trend_regime && (
                         <div className="flex items-center gap-2">
-                            <span className={`text-[8px] font-black px-2 py-0.5 rounded border uppercase tracking-wider ${
-                                (data as any).regime.trend_regime === "TRENDING" ? "bg-green-500/10 border-green-500/30 text-green-400" :
-                                (data as any).regime.trend_regime === "RANGING" ? "bg-blue-500/10 border-blue-500/30 text-blue-400" :
-                                (data as any).regime.trend_regime === "VOLATILE" ? "bg-red-500/10 border-red-500/30 text-red-400" :
-                                "bg-gray-500/10 border-gray-500/30 text-gray-400"
-                            }`}>
+                            <span className={`text-[8px] font-black px-2 py-0.5 rounded border uppercase tracking-wider ${(data as any).regime.trend_regime === "TRENDING" ? "bg-green-500/10 border-green-500/30 text-green-400" :
+                                    (data as any).regime.trend_regime === "RANGING" ? "bg-blue-500/10 border-blue-500/30 text-blue-400" :
+                                        (data as any).regime.trend_regime === "VOLATILE" ? "bg-red-500/10 border-red-500/30 text-red-400" :
+                                            "bg-gray-500/10 border-gray-500/30 text-gray-400"
+                                }`}>
                                 ◆ {(data as any).regime.trend_regime}
                             </span>
-                            <span className={`text-[8px] font-black px-2 py-0.5 rounded border uppercase tracking-wider ${
-                                (data as any).regime.volatility_regime === "COMPRESSION" ? "bg-yellow-500/10 border-yellow-500/30 text-yellow-400" :
-                                (data as any).regime.volatility_regime === "EXPANSION" ? "bg-orange-500/10 border-orange-500/30 text-orange-400" :
-                                (data as any).regime.volatility_regime === "MEAN_REVERTING" ? "bg-purple-500/10 border-purple-500/30 text-purple-400" :
-                                "bg-gray-500/10 border-gray-500/30 text-gray-400"
-                            }`}>
+                            <span className={`text-[8px] font-black px-2 py-0.5 rounded border uppercase tracking-wider ${(data as any).regime.volatility_regime === "COMPRESSION" ? "bg-yellow-500/10 border-yellow-500/30 text-yellow-400" :
+                                    (data as any).regime.volatility_regime === "EXPANSION" ? "bg-orange-500/10 border-orange-500/30 text-orange-400" :
+                                        (data as any).regime.volatility_regime === "MEAN_REVERTING" ? "bg-purple-500/10 border-purple-500/30 text-purple-400" :
+                                            "bg-gray-500/10 border-gray-500/30 text-gray-400"
+                                }`}>
                                 ◆ {(data as any).regime.volatility_regime?.replace("_", " ")}
                             </span>
                             <span className="text-[7px] font-mono text-gray-600">ADX {(data as any).regime.adx?.toFixed(1)}</span>
@@ -440,7 +444,42 @@ export default function IndicatorGrid({ data, technicalMemo }: IndicatorGridProp
                     <ScoreBar value={summary.subscores.volume} label="Volume" />
                     <ScoreBar value={summary.subscores.structure} label="Structure" />
                 </div>
+                {(summary as any).strongest_module && (
+                    <div className="flex items-center gap-3 mt-3 pt-3 border-t border-[#30363d]/50 text-[8px]">
+                        <span className="text-gray-600">Strongest: <b className="text-green-400 uppercase">{(summary as any).strongest_module}</b></span>
+                        <span className="text-gray-600">Weakest: <b className="text-red-400 uppercase">{(summary as any).weakest_module}</b></span>
+                        {(summary as any).technical_confidence != null && (
+                            <span className="text-gray-600 ml-auto font-mono">Confidence: <b className="text-gray-300">{((summary as any).technical_confidence * 100).toFixed(0)}%</b></span>
+                        )}
+                    </div>
+                )}
             </div>
+
+            {/* ── Evidence Trail ────────────────────────────────────────────────────── */}
+            {(summary as any).evidence && Object.values((summary as any).evidence).some((v: any) => Array.isArray(v) && v.length > 0) && (
+                <div className="glass-card p-4 border-[#30363d]">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-3">Deterministic Evidence Trail</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                        {["trend", "momentum", "volatility", "volume", "structure"].map((mod) => {
+                            const ev = ((summary as any).evidence?.[mod] || []) as string[];
+                            if (!ev.length) return null;
+                            return (
+                                <div key={mod} className="p-2.5 rounded-lg bg-[#161b22] border border-[#30363d]">
+                                    <p className="text-[8px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{mod}</p>
+                                    <ul className="space-y-0.5">
+                                        {ev.map((e, i) => (
+                                            <li key={i} className="text-[8px] text-gray-400 flex items-start gap-1">
+                                                <span className="text-[#d4af37] mt-0.5">▸</span>
+                                                <span>{e}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
 
             {/* ── 5 module cards ───────────────────────────────────────────────────── */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -459,11 +498,10 @@ export default function IndicatorGrid({ data, technicalMemo }: IndicatorGridProp
                             Multi-Timeframe Analysis
                         </p>
                         <div className="flex items-center gap-2">
-                            <span className={`text-[8px] font-black px-2 py-0.5 rounded border uppercase ${
-                                (data as any).mtf.agreement_level === "STRONG" ? "bg-green-500/10 border-green-500/30 text-green-400" :
-                                (data as any).mtf.agreement_level === "MODERATE" ? "bg-yellow-500/10 border-yellow-500/30 text-yellow-400" :
-                                "bg-red-500/10 border-red-500/30 text-red-400"
-                            }`}>
+                            <span className={`text-[8px] font-black px-2 py-0.5 rounded border uppercase ${(data as any).mtf.agreement_level === "STRONG" ? "bg-green-500/10 border-green-500/30 text-green-400" :
+                                    (data as any).mtf.agreement_level === "MODERATE" ? "bg-yellow-500/10 border-yellow-500/30 text-yellow-400" :
+                                        "bg-red-500/10 border-red-500/30 text-red-400"
+                                }`}>
                                 {(data as any).mtf.agreement_level} ({(data as any).mtf.agreement_count}/4)
                             </span>
                             <span className={`text-sm font-black ${signalColor((data as any).mtf.mtf_signal)}`}>
@@ -474,16 +512,15 @@ export default function IndicatorGrid({ data, technicalMemo }: IndicatorGridProp
                     <div className="grid grid-cols-4 gap-2">
                         {((data as any).mtf.timeframe_scores as any[]).map((tf: any) => {
                             const bg = tf.score >= 7 ? "bg-green-500/15 border-green-500/30" :
-                                       tf.score >= 5 ? "bg-yellow-500/10 border-yellow-500/25" :
-                                       "bg-red-500/10 border-red-500/25";
+                                tf.score >= 5 ? "bg-yellow-500/10 border-yellow-500/25" :
+                                    "bg-red-500/10 border-red-500/25";
                             return (
                                 <div key={tf.timeframe} className={`rounded-lg border p-3 text-center ${bg}`}>
                                     <p className="text-[8px] font-black uppercase tracking-wider text-gray-400 mb-1">
                                         {tf.timeframe}
                                     </p>
-                                    <p className={`text-xl font-black ${
-                                        tf.score >= 7 ? "text-green-400" : tf.score >= 5 ? "text-yellow-400" : "text-red-400"
-                                    }`}>
+                                    <p className={`text-xl font-black ${tf.score >= 7 ? "text-green-400" : tf.score >= 5 ? "text-yellow-400" : "text-red-400"
+                                        }`}>
                                         {tf.score.toFixed(1)}
                                     </p>
                                     <div className="flex justify-center gap-1 mt-1">
@@ -506,7 +543,7 @@ export default function IndicatorGrid({ data, technicalMemo }: IndicatorGridProp
                 </div>
             )}
 
-            {/* ── Technical Analyst Memo ─────────────────────────────────────────── */}
+            {/* ── Technical Analyst Memo (LLM Interpretation) ───────────────────── */}
             {technicalMemo && (() => {
                 const signalBadge = (sig: string) => {
                     const s = sig.toUpperCase();

@@ -44,12 +44,30 @@ class FundamentalResult(BaseModel):
     research_memo: str = ""
 
 
+class ModuleScore(BaseModel):
+    """Per-module deterministic score with evidence trail."""
+    name: str = Field(description="Module name: trend, momentum, volatility, volume, structure")
+    score: float = Field(ge=0, le=10, description="Normalised 0–10 score")
+    signal: str = Field(description="Module-level signal status")
+    evidence: list[str] = Field(default_factory=list, description="Evidence explaining this score")
+    details: dict = Field(default_factory=dict, description="Raw indicator values for audit")
+
+
 class TechnicalResult(BaseModel):
     """Summary output from the technical analysis engine."""
     ticker: str
     technical_score: float
     signal: str
+    strength: str = "Weak"
+    technical_confidence: float = Field(default=0.5, ge=0, le=1,
+                                        description="Inter-module agreement metric 0–1")
     from_cache: bool = False
-    modules: dict = Field(default_factory=dict)
-    indicators: dict = Field(default_factory=dict)
+    module_scores: list[ModuleScore] = Field(default_factory=list)
+    volatility_condition: str = "NORMAL"
     summary: dict = Field(default_factory=dict)
+    evidence: list[str] = Field(default_factory=list,
+                                description="Aggregated evidence from all modules")
+    strongest_module: str = ""
+    weakest_module: str = ""
+    confirmation_level: str = Field(default="LOW",
+                                    description="HIGH / MEDIUM / LOW based on module agreement")

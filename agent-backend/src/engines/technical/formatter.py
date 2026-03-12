@@ -128,6 +128,17 @@ def build_technical_summary(
             "volume":     score.modules.volume,
             "structure":  score.modules.structure,
         },
+        "technical_confidence": score.confidence,
+        "strongest_module":     score.strongest_module,
+        "weakest_module":       score.weakest_module,
+        "confirmation_level":   score.confirmation_level,
+        "evidence": {
+            "trend":      score.evidence.trend,
+            "momentum":   score.evidence.momentum,
+            "volatility": score.evidence.volatility,
+            "volume":     score.evidence.volume,
+            "structure":  score.evidence.structure,
+        },
     }
 
     # ── TradingView Rating (reference benchmark) ────────────────────────────

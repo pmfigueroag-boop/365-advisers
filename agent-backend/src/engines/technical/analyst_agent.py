@@ -70,6 +70,20 @@ def synthesize_technical_memo(
     structure = indicators.get("structure", {})
     subscores = summary.get("subscores", {})
 
+    # Evidence from deterministic engine (V2)
+    det_evidence = summary.get("evidence", {})
+    confidence_level = summary.get("confirmation_level", "N/A")
+    det_confidence = summary.get("technical_confidence", "N/A")
+    strongest_mod = summary.get("strongest_module", "N/A")
+    weakest_mod = summary.get("weakest_module", "N/A")
+
+    # Build evidence block for prompt
+    evidence_block = ""
+    if isinstance(det_evidence, dict):
+        for mod_name, ev_list in det_evidence.items():
+            if ev_list:
+                evidence_block += f"\n  {mod_name.upper()}: " + "; ".join(ev_list)
+
     # Regime info
     regime = regime or technical_summary.get("regime", {})
     trend_regime = regime.get("trend_regime", "N/A")
@@ -172,10 +186,24 @@ DATOS TÉCNICOS DE {ticker} (PRECIO ACTUAL: ${price}):
 {mtf_block}
 {tv_block}
 
+[DETERMINISTIC ENGINE EVIDENCE]
+- Confidence: {det_confidence} (Level: {confidence_level})
+- Strongest Module: {strongest_mod}
+- Weakest Module: {weakest_mod}
+- Evidence Trail:{evidence_block if evidence_block else ' None available'}
+
 INSTRUCCIONES DE OUTPUT:
 Responde SOLO con JSON válido (sin markdown, sin code blocks). TODO en ESPAÑOL.
 Cada especialidad emite: signal (BULLISH/BEARISH/NEUTRAL), conviction (HIGH/MEDIUM/LOW), narrative (2-3 oraciones con datos), key_data (2-3 datos clave citados).
 El consensus sintetiza las 5 opiniones en una tesis unificada.
+
+REGLA CRÍTICA DE CONSISTENCIA:
+El motor determinista ha producido la señal: {summary.get('signal', 'N/A')} con score {summary.get('technical_score', 'N/A')}/10.
+Tu consensus_signal NO PUEDE contradecir esta señal determinista:
+- Si el motor dice STRONG_BUY o BUY, tu consensus_signal DEBE ser BULLISH.
+- Si el motor dice STRONG_SELL o SELL, tu consensus_signal DEBE ser BEARISH.
+- Si el motor dice NEUTRAL, puedes emitir BULLISH, BEARISH o NEUTRAL según la evidencia.
+Si no estás de acuerdo con el motor, explica en el consensus POR QUÉ hay matices, pero MANTÉN la dirección del motor.
 tradingview_comparison: Compara tu veredicto con TradingView. Si concuerdan, menciona la validación cruzada. Si difieren, explica QUÉ ve nuestro motor (régimen, MTF, structure V2) que TradingView no captura.
 
 {{
@@ -249,6 +277,33 @@ tradingview_comparison: Compara tu veredicto con TradingView. Si concuerdan, men
         "risk_factors": ["Análisis de riesgos técnicos no disponible."],
     }
 
+    def _validate_signal_consistency(
+        llm_signal: str,
+        engine_signal: str,
+    ) -> str:
+        """
+        Guardrail: ensure LLM consensus does not contradict the deterministic engine.
+        Returns the corrected signal.
+        """
+        engine_upper = engine_signal.upper()
+        llm_upper = llm_signal.upper()
+
+        engine_bullish = engine_upper in ("STRONG_BUY", "BUY")
+        engine_bearish = engine_upper in ("STRONG_SELL", "SELL")
+
+        if engine_bullish and llm_upper == "BEARISH":
+            logger.warning(
+                f"GUARDRAIL: LLM said BEARISH but engine says {engine_upper} for {ticker}. Correcting to BULLISH."
+            )
+            return "BULLISH"
+        if engine_bearish and llm_upper == "BULLISH":
+            logger.warning(
+                f"GUARDRAIL: LLM said BULLISH but engine says {engine_upper} for {ticker}. Correcting to BEARISH."
+            )
+            return "BEARISH"
+
+        return llm_upper
+
     try:
         raw_response = _llm_analyst.invoke(prompt).content
         parsed = extract_json(raw_response)
@@ -257,6 +312,10 @@ tradingview_comparison: Compara tu veredicto con TradingView. Si concuerdan, men
             logger.warning(f"Technical Analyst: Could not parse LLM response for {ticker}")
             return fallback
 
+        engine_signal = summary.get("signal", "NEUTRAL")
+        raw_consensus_signal = str(parsed.get("consensus_signal", fallback["consensus_signal"])).upper()
+        validated_signal = _validate_signal_consistency(raw_consensus_signal, engine_signal)
+
         return {
             "trend": _parse_opinion(parsed.get("trend", {}), "Trend"),
             "momentum": _parse_opinion(parsed.get("momentum", {}), "Momentum"),
@@ -264,7 +323,7 @@ tradingview_comparison: Compara tu veredicto con TradingView. Si concuerdan, men
             "volume": _parse_opinion(parsed.get("volume", {}), "Volume"),
             "structure": _parse_opinion(parsed.get("structure", {}), "Structure"),
             "consensus": str(parsed.get("consensus", fallback["consensus"])),
-            "consensus_signal": str(parsed.get("consensus_signal", fallback["consensus_signal"])).upper(),
+            "consensus_signal": validated_signal,
             "consensus_conviction": str(parsed.get("consensus_conviction", fallback["consensus_conviction"])).upper(),
             "tradingview_comparison": str(parsed.get("tradingview_comparison", fallback["tradingview_comparison"])),
             "key_levels": str(parsed.get("key_levels", fallback["key_levels"])),

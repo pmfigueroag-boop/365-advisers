@@ -204,8 +204,8 @@ class TestStructureScoring:
         """HH_HL + BULLISH direction → +1.0 bonus."""
         base = self._make_result(market_structure="MIXED")
         enhanced = self._make_result(market_structure="HH_HL")
-        score_base = _score_structure(base)
-        score_enhanced = _score_structure(enhanced)
+        score_base, _ = _score_structure(base)
+        score_enhanced, _ = _score_structure(enhanced)
         assert score_enhanced > score_base
         assert score_enhanced - score_base == pytest.approx(1.0, abs=0.01)
 
@@ -213,7 +213,9 @@ class TestStructureScoring:
         """LH_LL + BULLISH direction → -1.0 penalty (structure conflicts)."""
         base = self._make_result(market_structure="MIXED")
         penalized = self._make_result(market_structure="LH_LL")
-        assert _score_structure(penalized) < _score_structure(base)
+        score_pen, _ = _score_structure(penalized)
+        score_base, _ = _score_structure(base)
+        assert score_pen < score_base
 
     def test_strong_levels_bonus(self):
         """Strong level (3+ touches) → +0.5."""
@@ -221,19 +223,25 @@ class TestStructureScoring:
         with_strong = self._make_result(
             level_strength={"100.0": {"touches": 4, "strong": True}}
         )
-        assert _score_structure(with_strong) - _score_structure(base) == pytest.approx(0.5, abs=0.01)
+        score_strong, _ = _score_structure(with_strong)
+        score_base, _ = _score_structure(base)
+        assert score_strong - score_base == pytest.approx(0.5, abs=0.01)
 
     def test_bullish_patterns_bonus(self):
         """DOUBLE_BOTTOM or HIGHER_LOWS → +0.5."""
         base = self._make_result()
         with_pattern = self._make_result(patterns=["DOUBLE_BOTTOM"])
-        assert _score_structure(with_pattern) - _score_structure(base) == pytest.approx(0.5, abs=0.01)
+        score_pat, _ = _score_structure(with_pattern)
+        score_base, _ = _score_structure(base)
+        assert score_pat - score_base == pytest.approx(0.5, abs=0.01)
 
     def test_bearish_patterns_penalty(self):
         """DOUBLE_TOP or LOWER_HIGHS → -0.5."""
         base = self._make_result()
         with_pattern = self._make_result(patterns=["DOUBLE_TOP"])
-        assert _score_structure(with_pattern) < _score_structure(base)
+        score_pat, _ = _score_structure(with_pattern)
+        score_base, _ = _score_structure(base)
+        assert score_pat < score_base
 
     def test_score_capped_at_10(self):
         """Score should never exceed 10.0."""
@@ -244,7 +252,8 @@ class TestStructureScoring:
             level_strength={"100": {"touches": 5, "strong": True}},
             patterns=["DOUBLE_BOTTOM", "HIGHER_LOWS"],
         )
-        assert _score_structure(maxed) <= 10.0
+        score, _ = _score_structure(maxed)
+        assert score <= 10.0
 
     def test_score_floored_at_0(self):
         """Score should never go below 0.0."""
@@ -254,7 +263,8 @@ class TestStructureScoring:
             market_structure="LH_LL",
             patterns=["DOUBLE_TOP", "LOWER_HIGHS"],
         )
-        assert _score_structure(minimal) >= 0.0
+        score, _ = _score_structure(minimal)
+        assert score >= 0.0
 
 
 # ─── TestStructureIntegration ────────────────────────────────────────────────

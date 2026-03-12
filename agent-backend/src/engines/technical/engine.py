@@ -49,7 +49,7 @@ class TechnicalEngine:
             features: Normalised TechnicalFeatureSet from the Feature Layer.
 
         Returns:
-            TechnicalResult with score, signal, and per-module breakdown.
+            TechnicalResult with score, signal, evidence, and per-module breakdown.
         """
         start_ms = time.monotonic_ns() / 1e6
 
@@ -124,34 +124,53 @@ class TechnicalEngine:
         module_scores = [
             ModuleScore(name="trend", score=tech_score.modules.trend,
                         signal=indicator_result.trend.status,
+                        evidence=tech_score.evidence.trend,
                         details={"golden_cross": indicator_result.trend.golden_cross,
                                  "death_cross": indicator_result.trend.death_cross}),
             ModuleScore(name="momentum", score=tech_score.modules.momentum,
                         signal=indicator_result.momentum.status,
+                        evidence=tech_score.evidence.momentum,
                         details={"rsi": indicator_result.momentum.rsi,
                                  "rsi_zone": indicator_result.momentum.rsi_zone}),
             ModuleScore(name="volatility", score=tech_score.modules.volatility,
                         signal=indicator_result.volatility.condition,
+                        evidence=tech_score.evidence.volatility,
                         details={"atr_pct": indicator_result.volatility.atr_pct,
                                  "bb_position": indicator_result.volatility.bb_position}),
             ModuleScore(name="volume", score=tech_score.modules.volume,
                         signal=indicator_result.volume.status,
+                        evidence=tech_score.evidence.volume,
                         details={"obv_trend": indicator_result.volume.obv_trend,
                                  "volume_vs_avg": indicator_result.volume.volume_vs_avg}),
             ModuleScore(name="structure", score=tech_score.modules.structure,
                         signal=indicator_result.structure.breakout_direction,
+                        evidence=tech_score.evidence.structure,
                         details={"breakout_probability": indicator_result.structure.breakout_probability,
                                  "market_structure": indicator_result.structure.market_structure,
                                  "patterns": indicator_result.structure.patterns,
                                  "level_strength": indicator_result.structure.level_strength}),
         ]
 
+        # Aggregate all evidence
+        all_evidence = (
+            tech_score.evidence.trend +
+            tech_score.evidence.momentum +
+            tech_score.evidence.volatility +
+            tech_score.evidence.volume +
+            tech_score.evidence.structure
+        )
+
         return TechnicalResult(
             ticker=features.ticker,
             technical_score=tech_score.aggregate,
             signal=tech_score.signal,
             strength=tech_score.strength,
+            technical_confidence=tech_score.confidence,
             volatility_condition=indicator_result.volatility.condition,
             module_scores=module_scores,
             summary=summary,
+            evidence=all_evidence,
+            strongest_module=tech_score.strongest_module,
+            weakest_module=tech_score.weakest_module,
+            confirmation_level=tech_score.confirmation_level,
         )
