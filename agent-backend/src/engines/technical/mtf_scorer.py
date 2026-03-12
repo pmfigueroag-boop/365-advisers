@@ -87,7 +87,8 @@ class MultiTimeframeScorer:
 
             # Run ScoringEngine (with regime adjustments for 1D only)
             adj = regime_adjustments if tf_key == "1d" else None
-            score = ScoringEngine.compute(indicators, regime_adjustments=adj)
+            tf_price = td.get("current_price", 0.0) or 0.0
+            score = ScoringEngine.compute(indicators, regime_adjustments=adj, price=tf_price)
 
             tf_scores.append(TimeframeScore(
                 timeframe=tf_key,
@@ -146,14 +147,14 @@ class MultiTimeframeScorer:
         else:
             agreement_level = "WEAK"
 
-        # Derive signal from MTF aggregate
-        if mtf_aggregate >= 8.0:
+        # Derive signal from MTF aggregate (aligned with V2 thresholds)
+        if mtf_aggregate >= 7.5:
             mtf_signal = "STRONG_BUY"
-        elif mtf_aggregate >= 6.5:
+        elif mtf_aggregate >= 6.0:
             mtf_signal = "BUY"
-        elif mtf_aggregate >= 4.5:
+        elif mtf_aggregate >= 4.0:
             mtf_signal = "NEUTRAL"
-        elif mtf_aggregate >= 3.0:
+        elif mtf_aggregate >= 2.5:
             mtf_signal = "SELL"
         else:
             mtf_signal = "STRONG_SELL"

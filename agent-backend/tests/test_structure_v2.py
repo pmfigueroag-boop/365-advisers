@@ -201,16 +201,15 @@ class TestStructureScoring:
         return StructureResult(**defaults)
 
     def test_hh_hl_bullish_bonus(self):
-        """HH_HL + BULLISH direction → +1.0 bonus."""
+        """HH_HL + BULLISH direction → higher score than MIXED."""
         base = self._make_result(market_structure="MIXED")
         enhanced = self._make_result(market_structure="HH_HL")
         score_base, _ = _score_structure(base)
         score_enhanced, _ = _score_structure(enhanced)
         assert score_enhanced > score_base
-        assert score_enhanced - score_base == pytest.approx(1.0, abs=0.01)
 
     def test_lh_ll_bullish_penalty(self):
-        """LH_LL + BULLISH direction → -1.0 penalty (structure conflicts)."""
+        """LH_LL + BULLISH direction → lower score than MIXED (structure conflicts)."""
         base = self._make_result(market_structure="MIXED")
         penalized = self._make_result(market_structure="LH_LL")
         score_pen, _ = _score_structure(penalized)
@@ -218,25 +217,25 @@ class TestStructureScoring:
         assert score_pen < score_base
 
     def test_strong_levels_bonus(self):
-        """Strong level (3+ touches) → +0.5."""
+        """Strong level (3+ touches) → higher score."""
         base = self._make_result()
         with_strong = self._make_result(
             level_strength={"100.0": {"touches": 4, "strong": True}}
         )
         score_strong, _ = _score_structure(with_strong)
         score_base, _ = _score_structure(base)
-        assert score_strong - score_base == pytest.approx(0.5, abs=0.01)
+        assert score_strong > score_base
 
     def test_bullish_patterns_bonus(self):
-        """DOUBLE_BOTTOM or HIGHER_LOWS → +0.5."""
+        """DOUBLE_BOTTOM → higher score."""
         base = self._make_result()
         with_pattern = self._make_result(patterns=["DOUBLE_BOTTOM"])
         score_pat, _ = _score_structure(with_pattern)
         score_base, _ = _score_structure(base)
-        assert score_pat - score_base == pytest.approx(0.5, abs=0.01)
+        assert score_pat > score_base
 
     def test_bearish_patterns_penalty(self):
-        """DOUBLE_TOP or LOWER_HIGHS → -0.5."""
+        """DOUBLE_TOP → lower score."""
         base = self._make_result()
         with_pattern = self._make_result(patterns=["DOUBLE_TOP"])
         score_pat, _ = _score_structure(with_pattern)

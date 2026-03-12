@@ -63,8 +63,11 @@ class VolumeResult:
     obv: float
     obv_trend: Literal["RISING", "FLAT", "FALLING"]
     current_volume: float
-    volume_vs_avg: float    # ratio: current / 20-period avg (proxy)
+    volume_vs_avg: float    # ratio: current / 20-period avg
     status: Literal["STRONG", "NORMAL", "WEAK"]
+    # V2: institutional fields
+    volume_price_confirmation: Literal["CONFIRMED", "DIVERGENT", "NEUTRAL"] = "NEUTRAL"
+    obv_computed: bool = False     # True if OBV was computed from OHLCV
 
 
 @dataclass
@@ -251,7 +254,7 @@ class VolatilityModule:
 class VolumeModule:
     @staticmethod
     def compute(inds: dict, ohlcv: list[dict]) -> VolumeResult:
-        obv     = inds.get("obv", 0.0) or 0.0
+        obv_from_provider = inds.get("obv", 0.0) or 0.0
         cur_vol = inds.get("volume", 0.0) or 0.0
 
         # Volume vs 20-period average from OHLCV
@@ -263,17 +266,69 @@ class VolumeModule:
 
         vol_ratio = (cur_vol / vol_avg) if vol_avg > 0 else 1.0
 
-        # OBV trend: compare last 5 OBV readings (we only have current — proxy via price trend)
-        # Without OBV series, use TV obv value sign as a rough indicator
+        # ── Compute real OBV from OHLCV series ────────────────────────────
+        obv_computed = False
+        obv_series: list[float] = []
+        if len(ohlcv) >= 10:
+            obv_val = 0.0
+            for i in range(1, len(ohlcv)):
+                close_curr = ohlcv[i].get("close", 0)
+                close_prev = ohlcv[i - 1].get("close", 0)
+                vol_i = ohlcv[i].get("volume", 0)
+                if close_curr > close_prev:
+                    obv_val += vol_i
+                elif close_curr < close_prev:
+                    obv_val -= vol_i
+                obv_series.append(obv_val)
+            obv_from_provider = obv_val  # use computed OBV
+            obv_computed = True
+
+        # ── OBV trend via slope of last 10 values ─────────────────────────
         obv_trend: Literal["RISING", "FLAT", "FALLING"] = "FLAT"
-        if len(ohlcv) >= 5:
+        if len(obv_series) >= 10:
+            window = obv_series[-10:]
+            # Simple linear regression slope
+            n = len(window)
+            x_mean = (n - 1) / 2
+            y_mean = sum(window) / n
+            num = sum((i - x_mean) * (y - y_mean) for i, y in enumerate(window))
+            den = sum((i - x_mean) ** 2 for i in range(n))
+            slope = num / den if den > 0 else 0
+            # Normalise slope relative to avg volume
+            slope_pct = slope / (vol_avg if vol_avg > 0 else 1)
+            if slope_pct > 0.02:
+                obv_trend = "RISING"
+            elif slope_pct < -0.02:
+                obv_trend = "FALLING"
+            else:
+                obv_trend = "FLAT"
+        elif len(ohlcv) >= 5:
+            # Fallback: compare last 5 closes + OBV sign
             recent_closes = [b["close"] for b in ohlcv[-5:] if "close" in b]
             if len(recent_closes) >= 5:
                 price_up = recent_closes[-1] > recent_closes[0]
-                if obv > 0:
+                if obv_from_provider > 0:
                     obv_trend = "RISING" if price_up else "FLAT"
-                elif obv < 0:
+                elif obv_from_provider < 0:
                     obv_trend = "FALLING" if not price_up else "FLAT"
+
+        # ── Volume-price confirmation ─────────────────────────────────────
+        vp_confirmation: Literal["CONFIRMED", "DIVERGENT", "NEUTRAL"] = "NEUTRAL"
+        if len(ohlcv) >= 5:
+            recent_5 = ohlcv[-5:]
+            price_change = recent_5[-1].get("close", 0) - recent_5[0].get("close", 0)
+            avg_vol_recent = sum(b.get("volume", 0) for b in recent_5) / 5
+            vol_increasing = avg_vol_recent > vol_avg * 1.1 if vol_avg > 0 else False
+            vol_decreasing = avg_vol_recent < vol_avg * 0.8 if vol_avg > 0 else False
+
+            if price_change > 0 and vol_increasing:
+                vp_confirmation = "CONFIRMED"   # price up + volume up = strong
+            elif price_change < 0 and vol_increasing:
+                vp_confirmation = "CONFIRMED"   # price down + volume up = capitulation
+            elif price_change > 0 and vol_decreasing:
+                vp_confirmation = "DIVERGENT"   # price up + volume down = weak rally
+            elif price_change < 0 and vol_decreasing:
+                vp_confirmation = "DIVERGENT"   # price down + volume down = weak selling
 
         strength: Literal["STRONG", "NORMAL", "WEAK"] = (
             "STRONG" if vol_ratio >= 1.5
@@ -282,10 +337,12 @@ class VolumeModule:
         )
 
         return VolumeResult(
-            obv=round(obv, 2), obv_trend=obv_trend,
+            obv=round(obv_from_provider, 2), obv_trend=obv_trend,
             current_volume=round(cur_vol, 0),
             volume_vs_avg=round(vol_ratio, 2),
             status=strength,
+            volume_price_confirmation=vp_confirmation,
+            obv_computed=obv_computed,
         )
 
 

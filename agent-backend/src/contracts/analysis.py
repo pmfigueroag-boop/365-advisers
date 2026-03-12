@@ -53,6 +53,18 @@ class ModuleScore(BaseModel):
     details: dict = Field(default_factory=dict, description="Raw indicator values for audit")
 
 
+class TechnicalBiasResult(BaseModel):
+    """Professional-grade technical bias assessment."""
+    primary_bias: str = "NEUTRAL"
+    bias_strength: float = Field(default=0.0, ge=0, le=1,
+                                  description="Continuous bias magnitude 0–1")
+    trend_alignment: str = "NEUTRAL"
+    risk_reward_ratio: float = Field(default=1.0, description="R/R ratio from structure levels")
+    key_levels: dict = Field(default_factory=dict)
+    actionable_zone: str = "NEUTRAL_ZONE"
+    time_horizon: str = "MEDIUM"
+
+
 class TechnicalResult(BaseModel):
     """Summary output from the technical analysis engine."""
     ticker: str
@@ -71,3 +83,4 @@ class TechnicalResult(BaseModel):
     weakest_module: str = ""
     confirmation_level: str = Field(default="LOW",
                                     description="HIGH / MEDIUM / LOW based on module agreement")
+    bias: TechnicalBiasResult = Field(default_factory=TechnicalBiasResult)

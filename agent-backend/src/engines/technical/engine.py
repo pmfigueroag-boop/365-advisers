@@ -13,7 +13,7 @@ import time
 import logging
 
 from src.contracts.features import TechnicalFeatureSet
-from src.contracts.analysis import TechnicalResult, ModuleScore
+from src.contracts.analysis import TechnicalResult, ModuleScore, TechnicalBiasResult
 from src.engines.technical.indicators import IndicatorEngine
 from src.engines.technical.scoring import ScoringEngine as TechScoringModule
 from src.engines.technical.formatter import build_technical_summary
@@ -103,10 +103,12 @@ class TechnicalEngine:
             f"vol={vol_regime.regime} (ratio={vol_regime.bb_width_ratio})"
         )
 
-        # ── Step 3: Score indicators (regime-adjusted) ────────────────────
+        # ── Step 3: Score indicators (regime-adjusted, continuous) ─────────
         tech_score = TechScoringModule.compute(
             indicator_result,
             regime_adjustments=regime_adjustments,
+            trend_regime=trend_regime.regime,
+            price=features.current_price or 0.0,
         )
 
         # ── Step 4: Build full summary (backward compat) ──────────────────
@@ -160,6 +162,18 @@ class TechnicalEngine:
             tech_score.evidence.structure
         )
 
+        # Build TechnicalBiasResult Pydantic model from dataclass
+        bias_data = tech_score.bias
+        bias_result = TechnicalBiasResult(
+            primary_bias=bias_data.primary_bias,
+            bias_strength=bias_data.bias_strength,
+            trend_alignment=bias_data.trend_alignment,
+            risk_reward_ratio=bias_data.risk_reward_ratio,
+            key_levels=bias_data.key_levels,
+            actionable_zone=bias_data.actionable_zone,
+            time_horizon=bias_data.time_horizon,
+        )
+
         return TechnicalResult(
             ticker=features.ticker,
             technical_score=tech_score.aggregate,
@@ -173,4 +187,5 @@ class TechnicalEngine:
             strongest_module=tech_score.strongest_module,
             weakest_module=tech_score.weakest_module,
             confirmation_level=tech_score.confirmation_level,
+            bias=bias_result,
         )

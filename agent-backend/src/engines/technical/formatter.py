@@ -139,6 +139,15 @@ def build_technical_summary(
             "volume":     score.evidence.volume,
             "structure":  score.evidence.structure,
         },
+        "bias": {
+            "primary_bias":      score.bias.primary_bias,
+            "bias_strength":     score.bias.bias_strength,
+            "trend_alignment":   score.bias.trend_alignment,
+            "risk_reward_ratio": score.bias.risk_reward_ratio,
+            "key_levels":        score.bias.key_levels,
+            "actionable_zone":   score.bias.actionable_zone,
+            "time_horizon":      score.bias.time_horizon,
+        },
     }
 
     # ── TradingView Rating (reference benchmark) ────────────────────────────
