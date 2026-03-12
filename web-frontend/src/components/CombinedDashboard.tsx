@@ -343,7 +343,7 @@ export default function CombinedDashboard({ state, onForceRefresh }: CombinedDas
 
             {/* ── Technical detail ── */}
             {activeView === "technical" && technical && (
-                <IndicatorGrid data={technical} />
+                <IndicatorGrid data={technical} technicalMemo={state.technicalMemo} />
             )}
 
             {/* ── History chart ── */}

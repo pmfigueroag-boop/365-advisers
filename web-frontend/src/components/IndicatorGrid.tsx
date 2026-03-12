@@ -1,6 +1,6 @@
 "use client";
 
-import { TrendingUp, Activity, Zap, BarChart3, Layers } from "lucide-react";
+import { TrendingUp, Activity, Zap, BarChart3, Layers, Brain, Target, AlertTriangle, Clock } from "lucide-react";
 import { TechnicalAnalysisResult } from "@/hooks/useTechnicalAnalysis";
 import GlossaryTooltip from "./GlossaryTooltip";
 
@@ -317,9 +317,23 @@ function StructureCard({ data }: { data: TechnicalAnalysisResult }) {
 
 interface IndicatorGridProps {
     data: TechnicalAnalysisResult;
+    technicalMemo?: {
+        trend: { signal: string; conviction: string; narrative: string; key_data: string[] };
+        momentum: { signal: string; conviction: string; narrative: string; key_data: string[] };
+        volatility: { signal: string; conviction: string; narrative: string; key_data: string[] };
+        volume: { signal: string; conviction: string; narrative: string; key_data: string[] };
+        structure: { signal: string; conviction: string; narrative: string; key_data: string[] };
+        consensus: string;
+        consensus_signal: string;
+        consensus_conviction: string;
+        tradingview_comparison: string;
+        key_levels: string;
+        timing: string;
+        risk_factors: string[];
+    } | null;
 }
 
-export default function IndicatorGrid({ data }: IndicatorGridProps) {
+export default function IndicatorGrid({ data, technicalMemo }: IndicatorGridProps) {
     const { summary } = data;
 
     return (
@@ -492,7 +506,136 @@ export default function IndicatorGrid({ data }: IndicatorGridProps) {
                 </div>
             )}
 
+            {/* ── Technical Analyst Memo ─────────────────────────────────────────── */}
+            {technicalMemo && (() => {
+                const signalBadge = (sig: string) => {
+                    const s = sig.toUpperCase();
+                    if (s === "BULLISH") return "bg-green-500/15 border-green-500/30 text-green-400";
+                    if (s === "BEARISH") return "bg-red-500/15 border-red-500/30 text-red-400";
+                    return "bg-gray-500/10 border-gray-500/30 text-gray-400";
+                };
+                const convictionDot = (c: string) => {
+                    const v = c.toUpperCase();
+                    if (v === "HIGH") return "text-green-400";
+                    if (v === "MEDIUM") return "text-yellow-400";
+                    return "text-gray-500";
+                };
 
+                const OPINIONS = [
+                    { key: "trend" as const, label: "Tendencia", icon: <TrendingUp size={11} />, color: "text-blue-400" },
+                    { key: "momentum" as const, label: "Momentum", icon: <Activity size={11} />, color: "text-green-400" },
+                    { key: "volatility" as const, label: "Volatilidad", icon: <Zap size={11} />, color: "text-yellow-400" },
+                    { key: "volume" as const, label: "Volumen", icon: <BarChart3 size={11} />, color: "text-blue-300" },
+                    { key: "structure" as const, label: "Estructura", icon: <Layers size={11} />, color: "text-orange-400" },
+                ];
+
+                return (
+                    <div className="glass-card p-5 border-[#30363d]" style={{ animation: "fadeSlideIn 0.5s ease both" }}>
+                        {/* Header */}
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-2">
+                                <Brain size={16} className="text-purple-400" />
+                                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                                    Technical Analyst
+                                    <span className="text-gray-700 font-normal ml-1">(AI Committee)</span>
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className={`text-[9px] font-black px-2 py-0.5 rounded border uppercase ${signalBadge(technicalMemo.consensus_signal)}`}>
+                                    {technicalMemo.consensus_signal}
+                                </span>
+                                <span className={`text-[8px] font-bold ${convictionDot(technicalMemo.consensus_conviction)}`}>
+                                    ● {technicalMemo.consensus_conviction}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Consensus Thesis */}
+                        <div className="mb-4 p-3 rounded-lg bg-purple-500/5 border border-purple-500/15">
+                            <p className="text-[11px] text-gray-300 leading-relaxed">{technicalMemo.consensus}</p>
+                        </div>
+
+                        {/* TradingView Cross-Validation */}
+                        {technicalMemo.tradingview_comparison && (
+                            <div className="mb-5 p-3 rounded-lg bg-[#131722]/80 border border-[#2962ff]/20 flex items-start gap-2.5">
+                                <span className="text-[10px] font-black text-[#2962ff] whitespace-nowrap mt-0.5">TV</span>
+                                <p className="text-[10px] text-gray-400 leading-relaxed">{technicalMemo.tradingview_comparison}</p>
+                            </div>
+                        )}
+
+                        {/* 5 Specialty Opinion Cards */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
+                            {OPINIONS.map(({ key, label, icon, color }) => {
+                                const op = technicalMemo[key];
+                                return (
+                                    <div key={key} className="p-3 rounded-lg bg-[#161b22] border border-[#30363d] flex flex-col gap-2">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-1.5">
+                                                <span className={color}>{icon}</span>
+                                                <span className={`text-[8px] font-black uppercase tracking-widest ${color}`}>{label}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-1.5">
+                                            <span className={`text-[8px] font-black px-1.5 py-0.5 rounded border uppercase ${signalBadge(op.signal)}`}>
+                                                {op.signal}
+                                            </span>
+                                            <span className={`text-[7px] font-bold ${convictionDot(op.conviction)}`}>
+                                                ● {op.conviction}
+                                            </span>
+                                        </div>
+                                        <p className="text-[9px] text-gray-400 leading-relaxed flex-1">{op.narrative}</p>
+                                        {op.key_data.length > 0 && (
+                                            <div className="flex flex-wrap gap-1 mt-auto pt-1 border-t border-[#30363d]/50">
+                                                {op.key_data.map((d, i) => (
+                                                    <span key={i} className="text-[7px] bg-[#21262d] text-gray-500 px-1.5 py-0.5 rounded font-mono">
+                                                        {d}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Key Levels + Timing */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                            <div className="p-3 rounded-lg bg-[#161b22] border border-[#30363d]">
+                                <div className="flex items-center gap-1.5 mb-1.5">
+                                    <Target size={10} className="text-cyan-400" />
+                                    <span className="text-[8px] font-black uppercase tracking-widest text-cyan-400">Niveles Clave</span>
+                                </div>
+                                <p className="text-[10px] text-gray-400 leading-relaxed">{technicalMemo.key_levels}</p>
+                            </div>
+                            <div className="p-3 rounded-lg bg-[#161b22] border border-[#30363d]">
+                                <div className="flex items-center gap-1.5 mb-1.5">
+                                    <Clock size={10} className="text-emerald-400" />
+                                    <span className="text-[8px] font-black uppercase tracking-widest text-emerald-400">Timing</span>
+                                </div>
+                                <p className="text-[10px] text-gray-400 leading-relaxed">{technicalMemo.timing}</p>
+                            </div>
+                        </div>
+
+                        {/* Risk Factors */}
+                        {technicalMemo.risk_factors.length > 0 && (
+                            <div className="p-3 rounded-lg bg-red-500/5 border border-red-500/15">
+                                <div className="flex items-center gap-1.5 mb-2">
+                                    <AlertTriangle size={10} className="text-red-400" />
+                                    <span className="text-[8px] font-black uppercase tracking-widest text-red-400">Riesgos Técnicos</span>
+                                </div>
+                                <ul className="space-y-1">
+                                    {technicalMemo.risk_factors.map((risk, i) => (
+                                        <li key={i} className="text-[10px] text-gray-500 flex items-start gap-1.5">
+                                            <span className="text-red-500 mt-0.5">▸</span>
+                                            <span>{risk}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                    </div>
+                );
+            })()}
 
             {/* ── Footer meta ──────────────────────────────────────────────────────── */}
             <div className="flex items-center justify-between text-[8px] text-gray-700 px-1">

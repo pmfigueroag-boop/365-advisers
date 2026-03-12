@@ -225,7 +225,7 @@ export default function DeepAnalysisView({
                     )}
 
                     {section === "technical" && combined.technical && (
-                        <IndicatorGrid data={combined.technical} />
+                        <IndicatorGrid data={combined.technical} technicalMemo={combined.technicalMemo} />
                     )}
                     {section === "technical" && !combined.technical && (
                         <p className="text-gray-600 text-sm text-center py-8">Technical data not available yet.</p>

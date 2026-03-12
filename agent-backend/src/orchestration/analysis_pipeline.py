@@ -176,8 +176,31 @@ class AnalysisPipeline:
             logger.warning(f"PIPELINE: MTF scoring failed for {symbol}: {exc}")
             # Non-fatal: single-TF analysis is still valid
 
+        # ── Part 2c: Technical Analyst Agent (LLM memo, non-blocking) ─────
+        technical_memo = None
+        try:
+            from src.engines.technical.analyst_agent import synthesize_technical_memo
+
+            technical_memo = await asyncio.to_thread(
+                synthesize_technical_memo,
+                ticker=symbol,
+                technical_summary=tech_data,
+                regime=tech_data.get("regime"),
+                mtf=tech_data.get("mtf"),
+            )
+            tech_data["technical_memo"] = technical_memo
+            logger.info(f"PIPELINE: Technical Analyst memo generated for {symbol}")
+        except Exception as exc:
+            logger.warning(f"PIPELINE: Technical Analyst Agent failed for {symbol}: {exc}")
+            # Non-fatal: technical data is still complete without the memo
+
         yield sse("technical_ready", tech_data)
         await asyncio.sleep(0)
+
+        # Emit technical_memo as separate event for frontend streaming
+        if technical_memo:
+            yield sse("technical_memo", technical_memo)
+            await asyncio.sleep(0)
 
         # ── Part 2.5: EDPL Source Coverage ──────────────────────────────
         filing_data = None

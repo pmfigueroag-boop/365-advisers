@@ -37,6 +37,28 @@ export interface DecisionReady {
     source_coverage?: SourceCoverage;
 }
 
+export interface SpecialtyOpinion {
+    signal: string;
+    conviction: string;
+    narrative: string;
+    key_data: string[];
+}
+
+export interface TechnicalMemo {
+    trend: SpecialtyOpinion;
+    momentum: SpecialtyOpinion;
+    volatility: SpecialtyOpinion;
+    volume: SpecialtyOpinion;
+    structure: SpecialtyOpinion;
+    consensus: string;
+    consensus_signal: string;
+    consensus_conviction: string;
+    tradingview_comparison: string;
+    key_levels: string;
+    timing: string;
+    risk_factors: string[];
+}
+
 export interface OpportunityScore {
     opportunity_score: number;
     dimensions: Record<string, number>;
@@ -65,6 +87,7 @@ export interface CombinedState {
     researchMemo: string | null;
     // Technical track
     technical: TechnicalAnalysisResult | null;
+    technicalMemo: TechnicalMemo | null;
     // Coverage track
     sourceCoverage: SourceCoverage | null;
     // Portfolio track
@@ -90,6 +113,7 @@ const INITIAL: CombinedState = {
     committee: null,
     researchMemo: null,
     technical: null,
+    technicalMemo: null,
     sourceCoverage: null,
     opportunity: null,
     positionSizing: null,
@@ -163,6 +187,12 @@ export function useCombinedStream() {
         es.addEventListener("technical_ready", (e) => {
             const tech: TechnicalAnalysisResult = JSON.parse((e as MessageEvent).data);
             setState((prev) => ({ ...prev, technical: tech, status: "decision" }));
+        });
+
+        // technical_memo — LLM interpretive technical analysis
+        es.addEventListener("technical_memo", (e) => {
+            const memo: TechnicalMemo = JSON.parse((e as MessageEvent).data);
+            setState((prev) => ({ ...prev, technicalMemo: memo }));
         });
 
         // source_coverage — EDPL coverage report

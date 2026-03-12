@@ -180,7 +180,7 @@ export default function AnalyticsAccordion({
                     openId={openSection}
                     onToggle={toggle}
                 >
-                    <IndicatorGrid data={technical} />
+                    <IndicatorGrid data={technical} technicalMemo={combined.technicalMemo} />
                 </AccordionSection>
             )}
 
