@@ -26,11 +26,11 @@ class AgentMemo(BaseModel):
 
 class CommitteeVerdict(BaseModel):
     """Committee Supervisor output — synthesized from 4 agent memos."""
-    signal: str
-    score: float = Field(ge=0, le=10)
-    confidence: float = Field(ge=0, le=1)
-    risk_adjusted_score: float = Field(ge=0, le=10)
-    consensus_narrative: str
+    signal: str = "HOLD"
+    score: float = Field(default=5.0, ge=0, le=10)
+    confidence: float = Field(default=0.5, ge=0, le=1)
+    risk_adjusted_score: float = Field(default=4.5, ge=0, le=10)
+    consensus_narrative: str = ""
     key_catalysts: list[str] = Field(default_factory=list)
     key_risks: list[str] = Field(default_factory=list)
     allocation_recommendation: str = ""
@@ -39,9 +39,19 @@ class CommitteeVerdict(BaseModel):
 class FundamentalResult(BaseModel):
     """Envelope for a complete fundamental analysis."""
     ticker: str
-    agents: list[AgentMemo]
-    committee: CommitteeVerdict
+    agent_memos: list[AgentMemo] = Field(default_factory=list)
+    data_ready: dict = Field(default_factory=dict)
+    committee_verdict: CommitteeVerdict = Field(default_factory=CommitteeVerdict)
     research_memo: str = ""
+    # Deterministic scoring (added by FundamentalScoringEngine)
+    deterministic_score: float | None = Field(default=None, ge=0, le=10,
+                                               description="Deterministic score 0-10 from ratios")
+    deterministic_signal: str | None = Field(default=None,
+                                              description="Signal from deterministic scoring")
+    score_evidence: list[str] = Field(default_factory=list,
+                                       description="Evidence trail from deterministic scoring")
+    data_coverage: float = Field(default=0.0, ge=0, le=1,
+                                  description="Fraction of ratios available 0-1")
 
 
 class ModuleScore(BaseModel):

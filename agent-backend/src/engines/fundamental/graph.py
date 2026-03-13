@@ -31,10 +31,14 @@ from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import END, StateGraph
 
+import logging
+
 from src.data.market_data import fetch_fundamental_data
 from src.utils.helpers import extract_json, sanitize_data
 
 load_dotenv()
+
+logger = logging.getLogger("365advisers.engines.fundamental")
 
 # ─── LLM Configuration ────────────────────────────────────────────────────────
 
@@ -146,7 +150,7 @@ def _safe_agent_call(ticker: str, agent_name: str, framework: str, focus: str, d
             "is_fallback":      False,
         }
     except Exception as exc:
-        print(f"[FundamentalEngine] {agent_name} error: {exc}")
+        logger.error(f"Agent {agent_name} failed: {exc}")
         return fallback
 
 
@@ -156,7 +160,7 @@ def node_fetch_data(state: FundamentalState) -> dict:
     """Fetches fundamental data + web context for the ticker."""
     import concurrent.futures
     ticker = state["ticker"]
-    print(f"[FundamentalEngine] Fetching data for {ticker}")
+    logger.info(f"Fetching data for {ticker}")
 
     # Run blocking data fetches with a hard timeout to prevent hanging
     def _fetch_all():
@@ -165,7 +169,7 @@ def node_fetch_data(state: FundamentalState) -> dict:
             web_results = _tavily.invoke(f"{ticker} stock fundamental analysis recent earnings")
             web_context = [{"title": r.get("url", ""), "content": r.get("content", "")} for r in (web_results or [])]
         except Exception as exc:
-            print(f"[FundamentalEngine] Tavily error: {exc}")
+            logger.warning(f"Tavily search failed: {exc}")
             web_context = []
         return fund_data, web_context
 
@@ -174,11 +178,11 @@ def node_fetch_data(state: FundamentalState) -> dict:
             future = pool.submit(_fetch_all)
             fund_data, web_context = future.result(timeout=25)
     except concurrent.futures.TimeoutError:
-        print(f"[FundamentalEngine] Data fetch TIMEOUT for {ticker} (25s)")
+        logger.error(f"Data fetch TIMEOUT for {ticker} (25s)")
         fund_data = {"name": ticker, "sector": "", "industry": "", "ratios": {}, "cashflow_series": []}
         web_context = []
     except Exception as exc:
-        print(f"[FundamentalEngine] Data fetch error: {exc}")
+        logger.error(f"Data fetch error for {ticker}: {exc}")
         fund_data = {"name": ticker, "sector": "", "industry": "", "ratios": {}, "cashflow_series": []}
         web_context = []
 
@@ -187,7 +191,7 @@ def node_fetch_data(state: FundamentalState) -> dict:
 
 def node_value_agent(state: FundamentalState) -> dict:
     """Agent 1: Value & Margin of Safety (Graham / Buffett framework)."""
-    print(f"[FundamentalEngine] Value Agent running for {state['ticker']}")
+    logger.info(f"Value Agent running for {state['ticker']}")
     data = state["fundamental_data"]
     memo = _safe_agent_call(
         ticker=state["ticker"],
@@ -209,7 +213,7 @@ def node_value_agent(state: FundamentalState) -> dict:
 
 def node_quality_agent(state: FundamentalState) -> dict:
     """Agent 2: Quality & Moat (Munger / Fisher framework)."""
-    print(f"[FundamentalEngine] Quality Agent running for {state['ticker']}")
+    logger.info(f"Quality Agent running for {state['ticker']}")
     data = state["fundamental_data"]
     memo = _safe_agent_call(
         ticker=state["ticker"],
@@ -231,7 +235,7 @@ def node_quality_agent(state: FundamentalState) -> dict:
 
 def node_capital_agent(state: FundamentalState) -> dict:
     """Agent 3: Capital Allocation (Icahn / activist framework)."""
-    print(f"[FundamentalEngine] Capital Allocation Agent running for {state['ticker']}")
+    logger.info(f"Capital Allocation Agent running for {state['ticker']}")
     data = state["fundamental_data"]
     memo = _safe_agent_call(
         ticker=state["ticker"],
@@ -252,7 +256,7 @@ def node_capital_agent(state: FundamentalState) -> dict:
 
 def node_risk_agent(state: FundamentalState) -> dict:
     """Agent 4: Risk & Macro Stress (Marks / Dalio framework)."""
-    print(f"[FundamentalEngine] Risk Agent running for {state['ticker']}")
+    logger.info(f"Risk Agent running for {state['ticker']}")
     data = state["fundamental_data"]
     web_ctx = "\n".join(c.get("content", "")[:400] for c in state.get("web_context", []))
     memo = _safe_agent_call(
@@ -278,7 +282,7 @@ def node_risk_agent(state: FundamentalState) -> dict:
 
 def node_committee(state: FundamentalState) -> dict:
     """Committee Supervisor: synthesises 4 memos into a structured verdict."""
-    print(f"[FundamentalEngine] Committee Supervisor running for {state['ticker']}")
+    logger.info(f"Committee Supervisor running for {state['ticker']}")
     memos = state["agent_memos"]
     ticker = state["ticker"]
 
@@ -339,7 +343,7 @@ Respond ONLY with valid JSON:
         }
         return {"committee_output": verdict}
     except Exception as exc:
-        print(f"[FundamentalEngine] Committee error: {exc}")
+        logger.error(f"Committee synthesis failed: {exc}")
         return {"committee_output": fallback}
 
 
@@ -400,8 +404,9 @@ def node_formatter(state: FundamentalState) -> dict:
 | Ratio P/E | {fmt(val.get('pe_ratio', 'N/D'))} |
 | Ratio P/B | {fmt(val.get('pb_ratio', 'N/D'))} |
 | EV/EBITDA | {fmt(val.get('ev_ebitda', 'N/D'))} |
-| Rendimiento FCF | {fmt(prof.get('net_margin', 'N/D'))} |
+| Rendimiento FCF | {fmt(val.get('fcf_yield', 'N/D'))} |
 | Margen Bruto | {fmt(prof.get('gross_margin', 'N/D'))} |
+| Margen Neto | {fmt(prof.get('net_margin', 'N/D'))} |
 | ROIC | {fmt(prof.get('roic', 'N/D'))} |
 
 ---
@@ -521,6 +526,5 @@ async def run_fundamental_stream(ticker: str):
         yield {"event": "done", "data": {}}
 
     except Exception as exc:
-        import traceback
-        traceback.print_exc()
+        logger.error(f"Fundamental stream failed for {ticker}: {exc}", exc_info=True)
         yield {"event": "error", "data": {"message": str(exc)}}

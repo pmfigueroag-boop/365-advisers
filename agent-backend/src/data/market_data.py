@@ -138,6 +138,7 @@ def fetch_fundamental_data(ticker: str) -> dict:
         total_equity = _safe_get(bs, ["Stockholders Equity", "Total Stockholder Equity"])
         total_debt   = _safe_get(bs, ["Total Debt", "Long Term Debt"], 0.0)
         free_cash_flow = _safe_get(cf, ["Free Cash Flow"])
+        interest_expense = _safe_get(is_, ["Interest Expense", "Interest Expense Non Operating"])
 
         # ── Clean cashflow series for chart (last 4 years) ───────────────────
         # Strategy: Build from income statement columns (reliable) + info for FCF.
@@ -202,7 +203,9 @@ def fetch_fundamental_data(ticker: str) -> dict:
             },
             "leverage": {
                 "debt_to_equity":     pct_or_none(total_debt, total_equity),
-                "interest_coverage":  info.get("operatingCashflow") or "DATA_INCOMPLETE",
+                "interest_coverage":  (ebit / abs(interest_expense))
+                                     if ebit and interest_expense and abs(interest_expense) > 0
+                                     else "DATA_INCOMPLETE",
                 "current_ratio":      info.get("currentRatio") or "DATA_INCOMPLETE",
                 "quick_ratio":        info.get("quickRatio") or "DATA_INCOMPLETE",
             },
