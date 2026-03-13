@@ -20,6 +20,8 @@ from src.engines.technical.indicators import IndicatorEngine
 from src.engines.technical.scoring import ScoringEngine as TechScoringModule
 from src.engines.technical.formatter import build_technical_summary
 from src.engines.technical.position_sizing import compute_position_sizing
+from src.engines.technical.calibration import get_asset_context
+from src.engines.technical.signal_logger import SignalLogger, SignalRecord
 from src.engines.technical.regime_detector import (
     TrendRegimeDetector,
     VolatilityRegimeDetector,
@@ -27,6 +29,9 @@ from src.engines.technical.regime_detector import (
 )
 
 logger = logging.getLogger("365advisers.engines.technical")
+
+# Module-level signal logger singleton
+_signal_logger = SignalLogger()
 
 
 class TechnicalEngine:
@@ -107,12 +112,27 @@ class TechnicalEngine:
             f"vol={vol_regime.regime} (ratio={vol_regime.bb_width_ratio})"
         )
 
-        # ── Step 3: Score indicators (regime-adjusted, continuous) ─────────
+        # ── Step 3: Self-calibrate asset context ──────────────────────────
+        asset_ctx = get_asset_context(
+            ohlcv=features.ohlcv or [],
+            ticker=features.ticker,
+            price=features.current_price or 0.0,
+        )
+
+        logger.info(
+            f"TECH: AssetContext for {features.ticker}: "
+            f"optimal_atr={asset_ctx.optimal_atr_pct:.1f}%, "
+            f"adr={asset_ctx.avg_daily_range_pct:.1f}%, "
+            f"bars={asset_ctx.bars_available}"
+        )
+
+        # ── Step 4: Score indicators (regime-adjusted, calibrated) ─────────
         tech_score = TechScoringModule.compute(
             indicator_result,
             regime_adjustments=regime_adjustments,
             trend_regime=trend_regime.regime,
             price=features.current_price or 0.0,
+            asset_ctx=asset_ctx,
         )
 
         # ── Step 4: Build full summary (backward compat) ──────────────────
@@ -209,6 +229,34 @@ class TechnicalEngine:
             position_conviction=pos_sizing.position_conviction,
             rationale=pos_sizing.rationale,
         )
+
+        # ── Step 7: Log signal for backtesting ────────────────────────────
+        try:
+            _signal_logger.log(SignalRecord(
+                ticker=features.ticker,
+                timestamp=__import__('datetime').datetime.now(
+                    __import__('datetime').timezone.utc
+                ).isoformat(),
+                signal=tech_score.signal,
+                score=tech_score.aggregate,
+                setup_quality=bias_data.setup_quality,
+                confidence=tech_score.confidence,
+                regime=trend_regime.regime,
+                module_scores={
+                    "trend": tech_score.modules.trend,
+                    "momentum": tech_score.modules.momentum,
+                    "volatility": tech_score.modules.volatility,
+                    "volume": tech_score.modules.volume,
+                    "structure": tech_score.modules.structure,
+                },
+                price_at_signal=current_price,
+                bias=bias_data.primary_bias,
+                position_sizing_pct=pos_sizing.suggested_pct_of_portfolio,
+                stop_loss_price=pos_sizing.stop_loss_price,
+                take_profit_price=pos_sizing.take_profit_price,
+            ))
+        except Exception as exc:
+            logger.warning(f"TECH: Failed to log signal: {exc}")
 
         return TechnicalResult(
             ticker=features.ticker,

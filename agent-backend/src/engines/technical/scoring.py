@@ -23,6 +23,7 @@ from typing import Literal
 
 from src.engines.technical.indicators import IndicatorResult
 from src.engines.technical.math_utils import sigmoid, clamp, normalize_to_score
+from src.engines.technical.calibration import AssetContext
 
 
 # ─── Score types ─────────────────────────────────────────────────────────────
@@ -113,24 +114,31 @@ INDEPENDENCE_GROUPS = {
 
 # ─── Continuous score functions ───────────────────────────────────────────────
 
-def _score_trend(result, price: float = 0.0) -> tuple[float, list[str]]:
+def _score_trend(result, price: float = 0.0, asset_ctx: AssetContext | None = None) -> tuple[float, list[str]]:
     """
     Continuous trend scoring based on:
       - Price distance to SMA200 (normalised by SMA200 as ATR proxy)
       - Price distance to SMA50
       - MACD histogram magnitude
       - Cross bonuses with freshness decay
+
+    Sigmoid scales are calibrated from AssetContext.avg_daily_range_pct:
+      - High-vol assets (crypto) → wider scale → less sensitive to small moves
+      - Low-vol assets (ETF) → narrower scale → more sensitive
     """
     evidence: list[str] = []
     sma200 = result.sma_200 or 1.0
     sma50 = result.sma_50 or 1.0
     price = price or sma200  # fallback
 
+    # Calibrated sigmoid scales from asset context
+    adr = (asset_ctx.avg_daily_range_pct if asset_ctx else 2.0) or 2.0
+    scale_200 = adr * 1.5   # default: 2.0 * 1.5 = 3.0 (same as before for equities)
+    scale_50  = adr * 1.25  # default: 2.0 * 1.25 = 2.5
+
     # ── SMA200 distance component (35% weight) ────────────────────────────
-    # Distance as percentage of SMA200
     dist_200_pct = ((price - sma200) / sma200) * 100 if sma200 > 0 else 0
-    # sigmoid mapping: center=0, scale=3 → ±9% covers most of [0,10]
-    sma200_score = normalize_to_score(dist_200_pct, center=0, scale=3.0)
+    sma200_score = normalize_to_score(dist_200_pct, center=0, scale=scale_200)
     if dist_200_pct > 0:
         evidence.append(f"Price {dist_200_pct:+.1f}% above SMA200 (${sma200:.2f}) → score {sma200_score:.1f}")
     else:
@@ -138,21 +146,20 @@ def _score_trend(result, price: float = 0.0) -> tuple[float, list[str]]:
 
     # ── SMA50 distance component (30% weight) ────────────────────────────
     dist_50_pct = ((price - sma50) / sma50) * 100 if sma50 > 0 else 0
-    sma50_score = normalize_to_score(dist_50_pct, center=0, scale=2.5)
+    sma50_score = normalize_to_score(dist_50_pct, center=0, scale=scale_50)
     evidence.append(f"Price {dist_50_pct:+.1f}% vs SMA50 (${sma50:.2f}) → score {sma50_score:.1f}")
 
     # ── MACD histogram component (25% weight) ────────────────────────────
     macd_hist = result.macd_histogram
-    # Normalise by price magnitude to make cross-asset comparable
     macd_norm = (macd_hist / (price * 0.01)) if price > 0 else 0
     macd_score = normalize_to_score(macd_norm, center=0, scale=1.5)
     evidence.append(f"MACD histogram {macd_hist:+.2f} (norm={macd_norm:+.2f}) → score {macd_score:.1f}")
 
     # ── Cross bonus with freshness decay (10% weight) ──────────────────────
     import math
-    cross_score = 5.0  # neutral
+    cross_score = 5.0
     cross_age = getattr(result, "cross_age_bars", 0)
-    half_life = 10  # bars
+    half_life = 10
     decay = math.exp(-cross_age / half_life) if cross_age > 0 else 1.0
 
     if result.golden_cross:
@@ -243,17 +250,14 @@ def _score_momentum(result) -> tuple[float, list[str]]:
 def _score_volatility(
     result,
     regime: str = "TRANSITIONING",
+    asset_ctx: AssetContext | None = None,
 ) -> tuple[float, list[str]]:
     """
-    Regime-CONDITIONAL volatility scoring.
+    Regime-CONDITIONAL volatility scoring, calibrated from AssetContext.
 
-    Volatility is not directionally bullish/bearish — it describes market quality.
-    The score reflects how FAVOURABLE the current volatility is for the detected regime:
-
-      - TRENDING + Normal vol = high score (healthy trend)
-      - RANGING  + Low vol    = high score (stable range, tradeable)
-      - Any      + HIGH vol   = low score (unpredictable)
-      - COMPRESSION (BB squeeze) = moderate (potential breakout setup)
+    Replaces hard-coded optimal ATR% (0.018) with asset-specific median.
+    Replaces hard-coded squeeze threshold (3%) with calibrated BB width.
+    Replaces hard-coded regime thresholds with asset-relative ranges.
     """
     evidence: list[str] = []
     atr_pct = result.atr_pct
@@ -263,55 +267,66 @@ def _score_volatility(
     # BB width as % of price (squeeze detection)
     bb_width_pct = (bb_width / price) * 100 if price > 0 else 0
 
+    # ── Calibrated thresholds from AssetContext ───────────────────────────
+    ctx = asset_ctx or AssetContext()  # defaults if none
+    optimal_atr = ctx.optimal_atr_pct / 100       # e.g. 1.8% → 0.018
+    atr_iqr = max(ctx.atr_iqr / 100, 0.005)       # e.g. 1.0% → 0.010
+    bb_squeeze_threshold = ctx.bb_width_median * 0.75  # 75% of normal width
+
+    # Regime thresholds relative to asset's own volatility
+    vol_low  = optimal_atr * 0.55     # bottom of "normal" band
+    vol_high = optimal_atr * 1.67     # moderate-to-high boundary
+    vol_extreme = optimal_atr * 2.22  # extreme boundary
+
     # ── Base volatility quality score ─────────────────────────────────────
-    # Optimal ATR% is 1.5-2.5% for most equities
-    # Too high (>4%) = dangerous, too low (<0.5%) = dead
-    optimal_atr_pct = 0.018  # 1.8%
-    vol_deviation = abs(atr_pct - optimal_atr_pct)
-    vol_quality = clamp(10.0 - (vol_deviation / 0.01) * 2.5, 0, 10)
+    vol_deviation = abs(atr_pct - optimal_atr)
+    vol_quality = clamp(10.0 - (vol_deviation / atr_iqr) * 2.5, 0, 10)
 
-    evidence.append(f"ATR%={atr_pct:.3f} (optimal≈1.8%, deviation={vol_deviation:.3f}) → quality {vol_quality:.1f}")
+    evidence.append(
+        f"ATR%={atr_pct:.3f} (optimal≈{ctx.optimal_atr_pct:.1f}%, "
+        f"deviation={vol_deviation:.3f}, IQR={atr_iqr:.3f}) → quality {vol_quality:.1f}"
+    )
 
-    # ── Regime conditioning ───────────────────────────────────────────────
+    # ── Regime conditioning (calibrated thresholds) ───────────────────────
     regime_adj = 0.0
     if regime == "TRENDING":
-        # In trending markets, moderate-to-normal vol is ideal
-        if 0.01 <= atr_pct <= 0.03:
+        if vol_low <= atr_pct <= vol_high:
             regime_adj = +1.0
             evidence.append(f"TRENDING regime + moderate vol → favourable (+1.0)")
-        elif atr_pct > 0.04:
+        elif atr_pct > vol_extreme:
             regime_adj = -1.5
             evidence.append(f"TRENDING regime + extreme vol → destabilising (-1.5)")
     elif regime == "RANGING":
-        # In ranging markets, low vol is ideal (mean-reversion works)
-        if atr_pct < 0.015:
+        if atr_pct < optimal_atr * 0.83:
             regime_adj = +1.5
             evidence.append(f"RANGING regime + low vol → ideal for mean-reversion (+1.5)")
-        elif atr_pct > 0.03:
+        elif atr_pct > vol_high:
             regime_adj = -1.0
             evidence.append(f"RANGING regime + high vol → breakout risk (-1.0)")
     elif regime == "VOLATILE":
-        # Already volatile → penalise further
         regime_adj = -1.0
         evidence.append(f"VOLATILE regime → additional risk penalty (-1.0)")
 
     # ── BB position (directional color) ───────────────────────────────────
     bb_adj = {
-        "LOWER":      1.0,   # near support, potential bounce
+        "LOWER":      1.0,
         "LOWER_MID":  0.3,
         "MID":        0.0,
         "UPPER_MID": -0.3,
-        "UPPER":     -0.8,   # stretched, potential mean-reversion
+        "UPPER":     -0.8,
     }.get(result.bb_position, 0.0)
 
     if bb_adj != 0:
         evidence.append(f"BB position: {result.bb_position} (adj {bb_adj:+.1f})")
 
-    # ── BB squeeze detection ──────────────────────────────────────────────
+    # ── BB squeeze detection (calibrated threshold) ───────────────────────
     squeeze_bonus = 0.0
-    if bb_width_pct < 3.0 and result.condition != "HIGH":
+    if bb_width_pct < bb_squeeze_threshold and result.condition != "HIGH":
         squeeze_bonus = 0.5
-        evidence.append(f"BB squeeze detected (width={bb_width_pct:.1f}%) → potential breakout setup (+0.5)")
+        evidence.append(
+            f"BB squeeze detected (width={bb_width_pct:.1f}% < {bb_squeeze_threshold:.1f}%) "
+            f"→ potential breakout setup (+0.5)"
+        )
 
     score = vol_quality + regime_adj + bb_adj + squeeze_bonus
 
@@ -659,6 +674,7 @@ class ScoringEngine:
         regime_adjustments: dict[str, float] | None = None,
         trend_regime: str = "TRANSITIONING",
         price: float = 0.0,
+        asset_ctx: AssetContext | None = None,
     ) -> TechnicalScore:
         # Use regime-adaptive weights (Phase 3)
         w = dict(weights or _compute_adaptive_weights(trend_regime))
@@ -669,11 +685,11 @@ class ScoringEngine:
                 if module in w:
                     w[module] = w[module] * multiplier
 
-        # Compute scores with evidence (continuous)
-        trend_score, trend_ev = _score_trend(result.trend, price=price)
+        # Compute scores with evidence (continuous, calibrated)
+        trend_score, trend_ev = _score_trend(result.trend, price=price, asset_ctx=asset_ctx)
         momentum_score, momentum_ev = _score_momentum(result.momentum)
         volatility_score, volatility_ev = _score_volatility(
-            result.volatility, regime=trend_regime,
+            result.volatility, regime=trend_regime, asset_ctx=asset_ctx,
         )
         volume_score, volume_ev = _score_volume(result.volume)
         structure_score, structure_ev = _score_structure(result.structure)

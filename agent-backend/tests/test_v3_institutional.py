@@ -28,6 +28,7 @@ from src.engines.technical.scoring import (
     ScoringEngine,
     _score_trend,
     _score_momentum,
+    _score_volatility,
     _compute_adaptive_weights,
     _compute_setup_quality,
     DEFAULT_WEIGHTS,
@@ -36,7 +37,10 @@ from src.engines.technical.scoring import (
 )
 from src.engines.technical.calibration import (
     compute_asset_context,
+    get_asset_context,
+    infer_asset_class,
     AssetContext,
+    ASSET_CLASS_DEFAULTS,
     _percentile,
 )
 from src.engines.technical.position_sizing import (
@@ -410,3 +414,129 @@ class TestSetupQuality:
         result = IndicatorEngine.compute(tech_data)
         score = ScoringEngine.compute(result, price=150.0, trend_regime="TRENDING")
         assert 0.0 <= score.bias.setup_quality <= 1.0
+
+
+# ─── TestAssetClassInference ────────────────────────────────────────────────
+
+class TestAssetClassInference:
+
+    def test_crypto_ticker(self):
+        assert infer_asset_class("BTC-USD") == "CRYPTO"
+        assert infer_asset_class("ETH-USD") == "CRYPTO"
+        assert infer_asset_class("SOLUSDT") == "CRYPTO"
+
+    def test_etf_ticker(self):
+        assert infer_asset_class("SPY") == "ETF"
+        assert infer_asset_class("QQQ") == "ETF"
+        assert infer_asset_class("VTI") == "ETF"
+
+    def test_forex_ticker(self):
+        assert infer_asset_class("EUR/USD") == "FOREX"
+        assert infer_asset_class("EURUSD=X") == "FOREX"
+
+    def test_commodity_ticker(self):
+        assert infer_asset_class("GC=F") == "COMMODITY"
+        assert infer_asset_class("CL=F") == "COMMODITY"
+
+    def test_equity_default(self):
+        assert infer_asset_class("AAPL") == "EQUITY"
+        assert infer_asset_class("MSFT") == "EQUITY"
+        assert infer_asset_class("TSLA") == "EQUITY"
+
+    def test_all_defaults_exist(self):
+        for cls in ("EQUITY", "CRYPTO", "ETF", "FOREX", "COMMODITY"):
+            assert cls in ASSET_CLASS_DEFAULTS
+            ctx = ASSET_CLASS_DEFAULTS[cls]
+            assert ctx.optimal_atr_pct > 0
+            assert ctx.avg_daily_range_pct > 0
+
+
+# ─── TestCalibrationWiring ──────────────────────────────────────────────────
+
+class TestCalibrationWiring:
+
+    def test_get_asset_context_with_ohlcv(self):
+        """With enough OHLCV, get_asset_context returns self-calibrated context."""
+        ohlcv = _make_trending_ohlcv(100, 60, "up")
+        ctx = get_asset_context(ohlcv, "AAPL", 130.0)
+        assert ctx.bars_available >= 14  # self-calibrated
+
+    def test_get_asset_context_fallback_to_class(self):
+        """With insufficient OHLCV, falls back to asset-class defaults."""
+        ctx = get_asset_context([], "BTC-USD", 50000.0)
+        assert ctx.optimal_atr_pct == 4.5  # crypto default
+        assert ctx.avg_daily_range_pct == 5.0
+
+    def test_same_atr_different_context_different_vol_score(self):
+        """Same ATR% but EQUITY vs CRYPTO context → different vol scores."""
+        from src.engines.technical.indicators import VolatilityResult
+
+        # ATR% = 3% = normal for crypto, elevated for equity
+        vol_result = VolatilityResult(
+            bb_upper=155, bb_lower=145, bb_basis=150, bb_width=10,
+            bb_position="MID", atr=4.5, atr_pct=0.03, condition="NORMAL",
+        )
+
+        equity_ctx = ASSET_CLASS_DEFAULTS["EQUITY"]
+        crypto_ctx = ASSET_CLASS_DEFAULTS["CRYPTO"]
+
+        eq_score, _ = _score_volatility(vol_result, regime="TRANSITIONING", asset_ctx=equity_ctx)
+        cr_score, _ = _score_volatility(vol_result, regime="TRANSITIONING", asset_ctx=crypto_ctx)
+
+        # 3% ATR is far from equity optimal (1.8%) but closer to crypto optimal (4.5%)
+        assert cr_score > eq_score, \
+            f"Crypto context ({cr_score}) should score higher than equity ({eq_score}) at 3% ATR"
+
+    def test_calibrated_trend_scale_adapts(self):
+        """Crypto context uses wider sigmoid scale for trend scoring."""
+        from src.engines.technical.indicators import TrendResult
+
+        # 5% above SMA200 — big move for equity, normal for crypto
+        trend_result = TrendResult(
+            sma_50=145, sma_200=100, ema_20=148,
+            macd_value=2, macd_signal=1, macd_histogram=1,
+            price_vs_sma50="ABOVE", price_vs_sma200="ABOVE",
+            macd_crossover="BULLISH", golden_cross=True, death_cross=False,
+            status="STRONG_BULLISH",
+        )
+
+        equity_ctx = ASSET_CLASS_DEFAULTS["EQUITY"]   # adr=2.0 → scale_200=3.0
+        crypto_ctx = ASSET_CLASS_DEFAULTS["CRYPTO"]   # adr=5.0 → scale_200=7.5
+
+        eq_score, _ = _score_trend(trend_result, price=105, asset_ctx=equity_ctx)
+        cr_score, _ = _score_trend(trend_result, price=105, asset_ctx=crypto_ctx)
+
+        # Same 5% above SMA200: equity should react more (narrower scale)
+        assert eq_score >= cr_score, \
+            f"Equity ({eq_score}) should have >= score than crypto ({cr_score}) for 5% SMA200 distance"
+
+    def test_scoring_engine_accepts_asset_ctx(self):
+        """ScoringEngine.compute should accept and use asset_ctx."""
+        from src.engines.technical.indicators import IndicatorEngine
+
+        tech_data = {
+            "current_price": 150,
+            "indicators": {
+                "sma50": 145, "sma200": 130, "ema20": 148,
+                "rsi": 55, "stoch_k": 60, "stoch_d": 55,
+                "macd": 2, "macd_signal": 1, "macd_hist": 1,
+                "bb_upper": 154, "bb_lower": 146, "bb_basis": 150,
+                "atr": 2.25, "volume": 5_000_000, "obv": 1_000_000,
+            },
+            "ohlcv": _make_trending_ohlcv(100, 60, "up"),
+        }
+        result = IndicatorEngine.compute(tech_data)
+
+        # Score with crypto context vs equity context
+        crypto_ctx = ASSET_CLASS_DEFAULTS["CRYPTO"]
+        equity_ctx = ASSET_CLASS_DEFAULTS["EQUITY"]
+
+        sc_crypto = ScoringEngine.compute(result, price=150.0, asset_ctx=crypto_ctx)
+        sc_equity = ScoringEngine.compute(result, price=150.0, asset_ctx=equity_ctx)
+
+        # Both should be valid scores
+        assert 0 <= sc_crypto.aggregate <= 10
+        assert 0 <= sc_equity.aggregate <= 10
+        # They should differ because contexts are different
+        assert sc_crypto.aggregate != sc_equity.aggregate
+

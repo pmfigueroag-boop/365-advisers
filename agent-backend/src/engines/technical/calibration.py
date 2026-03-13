@@ -102,3 +102,74 @@ def _percentile(data: list[float], pct: float) -> float:
         return sorted_data[-1]
     d = k - f
     return sorted_data[f] + d * (sorted_data[c] - sorted_data[f])
+
+
+# ─── Asset-Class Defaults (Phase B) ─────────────────────────────────────────
+
+ASSET_CLASS_DEFAULTS: dict[str, AssetContext] = {
+    "EQUITY":    AssetContext(optimal_atr_pct=1.8, atr_iqr=1.0, volume_median=5_000_000,
+                              volume_iqr=3_000_000, bb_width_median=4.0, bb_width_iqr=2.0,
+                              avg_daily_range_pct=2.0),
+    "CRYPTO":    AssetContext(optimal_atr_pct=4.5, atr_iqr=3.0, volume_median=50_000_000,
+                              volume_iqr=30_000_000, bb_width_median=8.0, bb_width_iqr=4.0,
+                              avg_daily_range_pct=5.0),
+    "ETF":       AssetContext(optimal_atr_pct=1.2, atr_iqr=0.6, volume_median=20_000_000,
+                              volume_iqr=10_000_000, bb_width_median=3.0, bb_width_iqr=1.5,
+                              avg_daily_range_pct=1.5),
+    "FOREX":     AssetContext(optimal_atr_pct=0.6, atr_iqr=0.3, volume_median=1_000_000,
+                              volume_iqr=500_000, bb_width_median=1.5, bb_width_iqr=0.8,
+                              avg_daily_range_pct=0.8),
+    "COMMODITY": AssetContext(optimal_atr_pct=2.5, atr_iqr=1.5, volume_median=10_000_000,
+                              volume_iqr=5_000_000, bb_width_median=5.0, bb_width_iqr=2.5,
+                              avg_daily_range_pct=3.0),
+}
+
+_CRYPTO_TICKERS = {
+    "BTC", "ETH", "SOL", "ADA", "DOGE", "XRP", "DOT", "AVAX", "MATIC",
+    "LINK", "UNI", "AAVE", "SHIB", "LTC", "BNB", "ATOM",
+}
+_ETF_TICKERS = {
+    "SPY", "QQQ", "IWM", "DIA", "VTI", "VOO", "EEM", "XLF", "XLE",
+    "XLK", "GLD", "SLV", "TLT", "HYG", "ARKK", "VXX", "UVXY",
+}
+_COMMODITY_TICKERS = {
+    "GC=F", "SI=F", "CL=F", "NG=F", "ZW=F", "ZC=F",
+}
+
+
+def infer_asset_class(ticker: str) -> str:
+    """
+    Heuristic asset-class inference from ticker symbol.
+
+    Returns one of: EQUITY, CRYPTO, ETF, FOREX, COMMODITY.
+    """
+    upper = ticker.upper().replace("-USD", "").replace("USDT", "")
+
+    if upper in _CRYPTO_TICKERS or ticker.endswith("-USD") or ticker.endswith("USDT"):
+        return "CRYPTO"
+    if upper in _ETF_TICKERS:
+        return "ETF"
+    if "/" in ticker or upper.endswith("=X"):
+        return "FOREX"
+    if upper in _COMMODITY_TICKERS or upper.endswith("=F"):
+        return "COMMODITY"
+    return "EQUITY"
+
+
+def get_asset_context(
+    ohlcv: list[dict],
+    ticker: str = "",
+    price: float = 0.0,
+) -> AssetContext:
+    """
+    Get the best available asset context:
+    1. If enough OHLCV data (≥14 bars), self-calibrate from history
+    2. Otherwise, use asset-class defaults based on ticker heuristic
+    """
+    ctx = compute_asset_context(ohlcv, price)
+    if ctx.bars_available >= 14:
+        return ctx
+
+    asset_class = infer_asset_class(ticker)
+    return ASSET_CLASS_DEFAULTS.get(asset_class, ASSET_CLASS_DEFAULTS["EQUITY"])
+
