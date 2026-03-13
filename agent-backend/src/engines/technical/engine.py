@@ -13,10 +13,13 @@ import time
 import logging
 
 from src.contracts.features import TechnicalFeatureSet
-from src.contracts.analysis import TechnicalResult, ModuleScore, TechnicalBiasResult
+from src.contracts.analysis import (
+    TechnicalResult, ModuleScore, TechnicalBiasResult, PositionSizingResult,
+)
 from src.engines.technical.indicators import IndicatorEngine
 from src.engines.technical.scoring import ScoringEngine as TechScoringModule
 from src.engines.technical.formatter import build_technical_summary
+from src.engines.technical.position_sizing import compute_position_sizing
 from src.engines.technical.regime_detector import (
     TrendRegimeDetector,
     VolatilityRegimeDetector,
@@ -43,7 +46,8 @@ class TechnicalEngine:
           2. Run IndicatorEngine (5 modules: trend, momentum, volatility, volume, structure)
           3. Run RegimeDetectors (trend + volatility regime)
           4. Run ScoringEngine (deterministic 0–10 scoring, regime-adjusted)
-          5. Package into TechnicalResult contract
+          5. Compute position sizing
+          6. Package into TechnicalResult contract
 
         Args:
             features: Normalised TechnicalFeatureSet from the Feature Layer.
@@ -128,12 +132,15 @@ class TechnicalEngine:
                         signal=indicator_result.trend.status,
                         evidence=tech_score.evidence.trend,
                         details={"golden_cross": indicator_result.trend.golden_cross,
-                                 "death_cross": indicator_result.trend.death_cross}),
+                                 "death_cross": indicator_result.trend.death_cross,
+                                 "cross_age_bars": indicator_result.trend.cross_age_bars}),
             ModuleScore(name="momentum", score=tech_score.modules.momentum,
                         signal=indicator_result.momentum.status,
                         evidence=tech_score.evidence.momentum,
                         details={"rsi": indicator_result.momentum.rsi,
-                                 "rsi_zone": indicator_result.momentum.rsi_zone}),
+                                 "rsi_zone": indicator_result.momentum.rsi_zone,
+                                 "divergence": indicator_result.momentum.divergence,
+                                 "divergence_strength": indicator_result.momentum.divergence_strength}),
             ModuleScore(name="volatility", score=tech_score.modules.volatility,
                         signal=indicator_result.volatility.condition,
                         evidence=tech_score.evidence.volatility,
@@ -143,7 +150,8 @@ class TechnicalEngine:
                         signal=indicator_result.volume.status,
                         evidence=tech_score.evidence.volume,
                         details={"obv_trend": indicator_result.volume.obv_trend,
-                                 "volume_vs_avg": indicator_result.volume.volume_vs_avg}),
+                                 "volume_vs_avg": indicator_result.volume.volume_vs_avg,
+                                 "volume_price_confirmation": indicator_result.volume.volume_price_confirmation}),
             ModuleScore(name="structure", score=tech_score.modules.structure,
                         signal=indicator_result.structure.breakout_direction,
                         evidence=tech_score.evidence.structure,
@@ -172,6 +180,34 @@ class TechnicalEngine:
             key_levels=bias_data.key_levels,
             actionable_zone=bias_data.actionable_zone,
             time_horizon=bias_data.time_horizon,
+            setup_quality=bias_data.setup_quality,
+        )
+
+        # ── Step 6: Compute position sizing ───────────────────────────────
+        current_price = features.current_price or 0.0
+        atr_val = features.atr or 0.0
+        atr_pct_val = indicator_result.volatility.atr_pct
+        pos_sizing = compute_position_sizing(
+            price=current_price,
+            atr=atr_val,
+            atr_pct=atr_pct_val,
+            signal=tech_score.signal,
+            confidence=tech_score.confidence,
+            risk_reward_ratio=bias_data.risk_reward_ratio,
+            nearest_support=indicator_result.structure.nearest_support,
+            nearest_resistance=indicator_result.structure.nearest_resistance,
+        )
+        pos_sizing_result = PositionSizingResult(
+            method=pos_sizing.method,
+            suggested_pct_of_portfolio=pos_sizing.suggested_pct_of_portfolio,
+            stop_loss_price=pos_sizing.stop_loss_price,
+            stop_loss_pct=pos_sizing.stop_loss_pct,
+            take_profit_price=pos_sizing.take_profit_price,
+            take_profit_pct=pos_sizing.take_profit_pct,
+            risk_per_trade_pct=pos_sizing.risk_per_trade_pct,
+            risk_reward_ratio=pos_sizing.risk_reward_ratio,
+            position_conviction=pos_sizing.position_conviction,
+            rationale=pos_sizing.rationale,
         )
 
         return TechnicalResult(
@@ -188,4 +224,7 @@ class TechnicalEngine:
             weakest_module=tech_score.weakest_module,
             confirmation_level=tech_score.confirmation_level,
             bias=bias_result,
+            position_sizing=pos_sizing_result,
+            setup_quality=bias_data.setup_quality,
         )
+

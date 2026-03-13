@@ -59,6 +59,7 @@ class TechnicalBias:
         "STOP_LOSS_PROXIMITY", "NEUTRAL_ZONE"
     ] = "NEUTRAL_ZONE"
     time_horizon: Literal["SHORT", "MEDIUM", "LONG"] = "MEDIUM"
+    setup_quality: float = 0.0  # 0–1, proxy for historical reliability of this setup
 
 
 @dataclass
@@ -85,6 +86,19 @@ DEFAULT_WEIGHTS = {
     "structure":  0.10,
 }
 
+# Regime-adaptive weight profiles (Phase 3)
+REGIME_WEIGHT_PROFILES = {
+    "TRENDING":      {"trend": 0.35, "momentum": 0.25, "volatility": 0.15, "volume": 0.15, "structure": 0.10},
+    "RANGING":       {"trend": 0.15, "momentum": 0.30, "volatility": 0.15, "volume": 0.15, "structure": 0.25},
+    "VOLATILE":      {"trend": 0.20, "momentum": 0.20, "volatility": 0.30, "volume": 0.20, "structure": 0.10},
+    "TRANSITIONING": DEFAULT_WEIGHTS,
+}
+
+
+def _compute_adaptive_weights(regime: str = "TRANSITIONING") -> dict[str, float]:
+    """Select weight profile based on current market regime."""
+    return REGIME_WEIGHT_PROFILES.get(regime, DEFAULT_WEIGHTS).copy()
+
 
 # ─── Independence groups for correlation-aware confidence ─────────────────────
 
@@ -96,6 +110,7 @@ INDEPENDENCE_GROUPS = {
 }
 
 
+
 # ─── Continuous score functions ───────────────────────────────────────────────
 
 def _score_trend(result, price: float = 0.0) -> tuple[float, list[str]]:
@@ -104,7 +119,7 @@ def _score_trend(result, price: float = 0.0) -> tuple[float, list[str]]:
       - Price distance to SMA200 (normalised by SMA200 as ATR proxy)
       - Price distance to SMA50
       - MACD histogram magnitude
-      - Cross bonuses (golden/death)
+      - Cross bonuses with freshness decay
     """
     evidence: list[str] = []
     sma200 = result.sma_200 or 1.0
@@ -133,14 +148,21 @@ def _score_trend(result, price: float = 0.0) -> tuple[float, list[str]]:
     macd_score = normalize_to_score(macd_norm, center=0, scale=1.5)
     evidence.append(f"MACD histogram {macd_hist:+.2f} (norm={macd_norm:+.2f}) → score {macd_score:.1f}")
 
-    # ── Cross bonus (10% weight) ──────────────────────────────────────────
+    # ── Cross bonus with freshness decay (10% weight) ──────────────────────
+    import math
     cross_score = 5.0  # neutral
+    cross_age = getattr(result, "cross_age_bars", 0)
+    half_life = 10  # bars
+    decay = math.exp(-cross_age / half_life) if cross_age > 0 else 1.0
+
     if result.golden_cross:
-        cross_score = 8.5
-        evidence.append("Golden Cross detected (SMA50 > SMA200) → +8.5")
+        raw_bonus = 8.5
+        cross_score = 5.0 + (raw_bonus - 5.0) * decay
+        evidence.append(f"Golden Cross (age={cross_age} bars, decay={decay:.2f}) → {cross_score:.1f}")
     elif result.death_cross:
-        cross_score = 1.5
-        evidence.append("Death Cross detected (SMA50 < SMA200) → 1.5")
+        raw_penalty = 1.5
+        cross_score = 5.0 + (raw_penalty - 5.0) * decay
+        evidence.append(f"Death Cross (age={cross_age} bars, decay={decay:.2f}) → {cross_score:.1f}")
 
     # ── Weighted aggregate ────────────────────────────────────────────────
     score = (
@@ -158,13 +180,14 @@ def _score_momentum(result) -> tuple[float, list[str]]:
     Continuous momentum scoring:
       - RSI → non-linear sigmoid (oversold=bullish, overbought=bearish)
       - Stochastic → continuous %K position
+      - Divergence detection (bearish/bullish)
       - RSI-Stochastic agreement bonus
     """
     evidence: list[str] = []
     rsi = result.rsi
     stoch_k = result.stoch_k
 
-    # ── RSI component (55% weight) ────────────────────────────────────────
+    # ── RSI component (45% weight) ────────────────────────────────────────
     # RSI 50 = neutral (5.0), RSI 30 = bullish (8.0+), RSI 70 = bearish (2.0-)
     # Inverted sigmoid: lower RSI = higher bullish score
     rsi_score = clamp((1.0 - sigmoid((rsi - 50) / 12)) * 10)
@@ -180,7 +203,7 @@ def _score_momentum(result) -> tuple[float, list[str]]:
     else:
         evidence.append(f"RSI neutral at {rsi:.1f} → {rsi_score:.1f}")
 
-    # ── Stochastic component (35% weight) ─────────────────────────────────
+    # ── Stochastic component (30% weight) ─────────────────────────────────
     stoch_score = clamp((1.0 - sigmoid((stoch_k - 50) / 15)) * 10)
     if stoch_k <= 20:
         evidence.append(f"Stochastic oversold (%K={stoch_k:.1f}) → {stoch_score:.1f}")
@@ -189,8 +212,19 @@ def _score_momentum(result) -> tuple[float, list[str]]:
     else:
         evidence.append(f"Stochastic at %K={stoch_k:.1f} → {stoch_score:.1f}")
 
+    # ── Divergence component (15% weight) ───────────────────────────────
+    div_score = 5.0  # neutral default
+    div_type = getattr(result, "divergence", "NONE")
+    div_strength = getattr(result, "divergence_strength", 0.0)
+
+    if div_type == "BEARISH_DIV":
+        div_score = 5.0 - div_strength * 5.0  # strong bearish div → 0
+        evidence.append(f"⚠️ BEARISH DIVERGENCE (strength={div_strength:.2f}): price HH but RSI LH → {div_score:.1f}")
+    elif div_type == "BULLISH_DIV":
+        div_score = 5.0 + div_strength * 5.0  # strong bullish div → 10
+        evidence.append(f"✅ BULLISH DIVERGENCE (strength={div_strength:.2f}): price LL but RSI HL → {div_score:.1f}")
+
     # ── Agreement bonus (10% weight) ──────────────────────────────────────
-    # When RSI and Stochastic agree on zone, boost/penalize
     agree_score = 5.0
     both_oversold = rsi <= 35 and stoch_k <= 25
     both_overbought = rsi >= 65 and stoch_k >= 75
@@ -201,7 +235,7 @@ def _score_momentum(result) -> tuple[float, list[str]]:
         agree_score = 1.0
         evidence.append("Double overbought confirmation (RSI+Stoch) → strong bearish")
 
-    score = rsi_score * 0.55 + stoch_score * 0.35 + agree_score * 0.10
+    score = rsi_score * 0.45 + stoch_score * 0.30 + div_score * 0.15 + agree_score * 0.10
 
     return clamp(score), evidence
 
@@ -572,6 +606,47 @@ def _compute_bias(
     )
 
 
+# ─── Setup Quality Score (V3) ────────────────────────────────────────────
+
+def _compute_setup_quality(
+    confidence: float,
+    bias: TechnicalBias,
+    momentum_result,
+    trend_result,
+    regime: str,
+) -> float:
+    """
+    0–1 quality metric. High = conditions seen in reliable institutional setups.
+    Proxies what a backtested win-rate would show without historical data.
+    """
+    import math
+    quality = 0.0
+
+    # Multi-module alignment (25%)
+    quality += 0.25 * confidence
+
+    # Trend alignment (20%)
+    quality += 0.20 * (1.0 if bias.trend_alignment == "ALIGNED" else 0.3 if bias.trend_alignment == "NEUTRAL" else 0.0)
+
+    # No divergence warning (15%)
+    div_type = getattr(momentum_result, "divergence", "NONE")
+    quality += 0.15 * (1.0 if div_type == "NONE" else 0.3)
+
+    # Fresh signals (15%)
+    cross_age = getattr(trend_result, "cross_age_bars", 60)
+    freshness = math.exp(-cross_age / 10)
+    quality += 0.15 * freshness
+
+    # Good R/R ratio (15%)
+    rr = bias.risk_reward_ratio
+    quality += 0.15 * min(rr / 2.0, 1.0)
+
+    # Regime clarity (10%)
+    quality += 0.10 * (1.0 if regime != "TRANSITIONING" else 0.3)
+
+    return round(min(quality, 1.0), 2)
+
+
 # ─── ScoringEngine ───────────────────────────────────────────────────────────
 
 class ScoringEngine:
@@ -585,7 +660,8 @@ class ScoringEngine:
         trend_regime: str = "TRANSITIONING",
         price: float = 0.0,
     ) -> TechnicalScore:
-        w = dict(weights or DEFAULT_WEIGHTS)  # copy to avoid mutation
+        # Use regime-adaptive weights (Phase 3)
+        w = dict(weights or _compute_adaptive_weights(trend_regime))
 
         # Apply regime-based weight adjustments if provided
         if regime_adjustments:
@@ -647,6 +723,11 @@ class ScoringEngine:
             modules, aggregate, signal,
             result.structure,
             regime=trend_regime,
+        )
+
+        # Compute setup quality (Phase 7)
+        bias.setup_quality = _compute_setup_quality(
+            confidence, bias, result.momentum, result.trend, trend_regime,
         )
 
         return TechnicalScore(

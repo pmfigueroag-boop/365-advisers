@@ -34,6 +34,9 @@ class TrendResult:
     golden_cross:    bool   # SMA50 > SMA200
     death_cross:     bool   # SMA50 < SMA200
     status: Literal["STRONG_BULLISH", "BULLISH", "NEUTRAL", "BEARISH", "STRONG_BEARISH"]
+    # V3: Signal freshness
+    cross_age_bars: int = 0         # bars since last SMA golden/death cross (0 = current)
+    macd_cross_age_bars: int = 0    # bars since last MACD crossover
 
 
 @dataclass
@@ -44,6 +47,9 @@ class MomentumResult:
     stoch_d: float
     stoch_zone: Literal["OVERBOUGHT", "NEUTRAL", "OVERSOLD"]
     status: Literal["STRONG_BULLISH", "BULLISH", "NEUTRAL", "BEARISH", "STRONG_BEARISH"]
+    # V3: Divergence detection
+    divergence: Literal["BULLISH_DIV", "BEARISH_DIV", "NONE"] = "NONE"
+    divergence_strength: float = 0.0  # 0–1, magnitude of the divergence
 
 
 @dataclass
@@ -99,7 +105,7 @@ class IndicatorResult:
 
 class TrendModule:
     @staticmethod
-    def compute(price: float, inds: dict) -> TrendResult:
+    def compute(price: float, inds: dict, ohlcv: list[dict] | None = None) -> TrendResult:
         sma50  = inds.get("sma50", 0.0) or 0.0
         sma200 = inds.get("sma200", 0.0) or 0.0
         ema20  = inds.get("ema20", 0.0) or 0.0
@@ -146,6 +152,14 @@ class TrendModule:
         else:
             status = "NEUTRAL"
 
+        # ── V3: Signal freshness — detect cross age ───────────────────────
+        cross_age = 0
+        macd_cross_age = 0
+        if ohlcv and len(ohlcv) >= 50 and sma50 > 0 and sma200 > 0:
+            cross_age = _detect_cross_age(ohlcv, sma50, sma200)
+        if ohlcv and len(ohlcv) >= 14:
+            macd_cross_age = _detect_macd_cross_age(ohlcv)
+
         return TrendResult(
             sma_50=sma50, sma_200=sma200, ema_20=ema20,
             macd_value=macd, macd_signal=macd_s, macd_histogram=macd_h,
@@ -153,6 +167,8 @@ class TrendModule:
             macd_crossover=crossover,
             golden_cross=golden, death_cross=death,
             status=status,
+            cross_age_bars=cross_age,
+            macd_cross_age_bars=macd_cross_age,
         )
 
 
@@ -160,7 +176,7 @@ class TrendModule:
 
 class MomentumModule:
     @staticmethod
-    def compute(inds: dict) -> MomentumResult:
+    def compute(inds: dict, ohlcv: list[dict] | None = None) -> MomentumResult:
         rsi     = inds.get("rsi", 50.0) or 50.0
         stoch_k = inds.get("stoch_k", 50.0) or 50.0
         stoch_d = inds.get("stoch_d", 50.0) or 50.0
@@ -194,10 +210,15 @@ class MomentumModule:
             # Neutral zone — mild directional bias
             status = "BULLISH" if rsi > 55 else "BEARISH" if rsi < 45 else "NEUTRAL"
 
+        # ── V3: Divergence detection ──────────────────────────────────────
+        divergence, div_strength = _detect_rsi_divergence(ohlcv, rsi) if ohlcv and len(ohlcv) >= 20 else ("NONE", 0.0)
+
         return MomentumResult(
             rsi=round(rsi, 2), rsi_zone=rz,
             stoch_k=round(stoch_k, 2), stoch_d=round(stoch_d, 2), stoch_zone=sz,
             status=status,
+            divergence=divergence,
+            divergence_strength=round(div_strength, 2),
         )
 
 
@@ -566,6 +587,186 @@ def _detect_patterns(
 
     return patterns
 
+# ─── V3: Signal Freshness helpers ─────────────────────────────────────────────
+
+def _detect_cross_age(ohlcv: list[dict], sma50: float, sma200: float) -> int:
+    """
+    Estimate bars since the last SMA50/SMA200 golden or death cross.
+
+    Strategy: Walk backwards through OHLCV computing proxy SMA50/SMA200
+    from closes. When the relative position flips, that's the cross bar.
+    Returns 0 if cross is at current bar, max 60 if not found.
+    """
+    if len(ohlcv) < 50:
+        return 0
+
+    closes = [b.get("close", 0) for b in ohlcv if b.get("close", 0) > 0]
+    if len(closes) < 50:
+        return 0
+
+    # Current cross direction
+    current_golden = sma50 > sma200
+
+    # Walk backwards: compute rolling SMA50 and a shorter proxy for SMA200
+    # Since we may not have 200 bars, use what we have as the "long MA"
+    for age in range(1, min(len(closes) - 50, 60)):
+        window_end = len(closes) - age
+        if window_end < 50:
+            break
+        sma50_past = sum(closes[window_end - 50:window_end]) / 50
+        # Use available data for long MA (up to 200 or what we have)
+        long_window = min(200, window_end)
+        sma200_past = sum(closes[window_end - long_window:window_end]) / long_window
+        past_golden = sma50_past > sma200_past
+
+        if past_golden != current_golden:
+            return age  # found the cross point
+
+    return 60  # cross happened >60 bars ago or not found
+
+
+def _detect_macd_cross_age(ohlcv: list[dict]) -> int:
+    """
+    Estimate bars since MACD histogram changed sign.
+
+    Uses EMA(12) - EMA(26) as MACD proxy, and EMA(9) of MACD as signal.
+    When histogram (MACD - signal) changes sign, that's the cross.
+    Returns bars since last sign change (0-60).
+    """
+    closes = [b.get("close", 0) for b in ohlcv if b.get("close", 0) > 0]
+    if len(closes) < 26:
+        return 0
+
+    # Compute EMA-12, EMA-26 from closes
+    def ema(data: list[float], period: int) -> list[float]:
+        result = [data[0]]
+        mult = 2 / (period + 1)
+        for i in range(1, len(data)):
+            result.append(data[i] * mult + result[-1] * (1 - mult))
+        return result
+
+    ema12 = ema(closes, 12)
+    ema26 = ema(closes, 26)
+    macd_line = [e12 - e26 for e12, e26 in zip(ema12, ema26)]
+
+    # Signal = EMA(9) of MACD
+    signal_line = ema(macd_line, 9)
+    histogram = [m - s for m, s in zip(macd_line, signal_line)]
+
+    if len(histogram) < 2:
+        return 0
+
+    # Walk backwards to find sign change
+    current_sign = histogram[-1] >= 0
+    for age in range(1, min(len(histogram), 60)):
+        past_sign = histogram[-(age + 1)] >= 0
+        if past_sign != current_sign:
+            return age
+
+    return 60
+
+
+# ─── V3: RSI/Price Divergence Detection ──────────────────────────────────────
+
+def _detect_rsi_divergence(
+    ohlcv: list[dict],
+    current_rsi: float,
+) -> tuple[str, float]:
+    """
+    Detect RSI/price divergence from OHLCV data.
+
+    Bearish divergence: Price makes higher high, RSI makes lower high
+    Bullish divergence: Price makes lower low, RSI makes higher low
+
+    Uses a simplified RSI computation from closes to track RSI history.
+
+    Returns:
+        (divergence_type, strength)
+        divergence_type: "BULLISH_DIV" | "BEARISH_DIV" | "NONE"
+        strength: 0–1 magnitude
+    """
+    closes = [b.get("close", 0) for b in ohlcv if b.get("close", 0) > 0]
+    if len(closes) < 20:
+        return "NONE", 0.0
+
+    # Compute RSI series from closes (14-period)
+    rsi_series = _compute_rsi_series(closes, period=14)
+    if len(rsi_series) < 10:
+        return "NONE", 0.0
+
+    # Find pivot highs and lows in the last 20 bars of both price and RSI
+    window = min(20, len(rsi_series))
+    price_window = closes[-window:]
+    rsi_window = rsi_series[-window:]
+
+    # Find the two most recent local maxima and minima (using 3-bar pivot)
+    price_highs = _find_local_extrema(price_window, mode="high")
+    price_lows = _find_local_extrema(price_window, mode="low")
+    rsi_highs = _find_local_extrema(rsi_window, mode="high")
+    rsi_lows = _find_local_extrema(rsi_window, mode="low")
+
+    # Bearish divergence: price HH + RSI LH
+    if len(price_highs) >= 2 and len(rsi_highs) >= 2:
+        p1, p2 = price_highs[-2], price_highs[-1]
+        r1, r2 = rsi_highs[-2], rsi_highs[-1]
+        if p2 > p1 and r2 < r1:  # price higher high, RSI lower high
+            strength = min(abs(r1 - r2) / 20, 1.0)  # normalise by 20 RSI points
+            return "BEARISH_DIV", round(strength, 2)
+
+    # Bullish divergence: price LL + RSI HL
+    if len(price_lows) >= 2 and len(rsi_lows) >= 2:
+        p1, p2 = price_lows[-2], price_lows[-1]
+        r1, r2 = rsi_lows[-2], rsi_lows[-1]
+        if p2 < p1 and r2 > r1:  # price lower low, RSI higher low
+            strength = min(abs(r2 - r1) / 20, 1.0)
+            return "BULLISH_DIV", round(strength, 2)
+
+    return "NONE", 0.0
+
+
+def _compute_rsi_series(closes: list[float], period: int = 14) -> list[float]:
+    """Compute RSI for each bar from a price series."""
+    if len(closes) < period + 1:
+        return []
+
+    rsi_values = []
+    gains = []
+    losses = []
+
+    for i in range(1, len(closes)):
+        change = closes[i] - closes[i - 1]
+        gains.append(max(change, 0))
+        losses.append(max(-change, 0))
+
+    # Initial average
+    avg_gain = sum(gains[:period]) / period
+    avg_loss = sum(losses[:period]) / period
+
+    for i in range(period, len(gains)):
+        avg_gain = (avg_gain * (period - 1) + gains[i]) / period
+        avg_loss = (avg_loss * (period - 1) + losses[i]) / period
+
+        if avg_loss == 0:
+            rsi_values.append(100.0)
+        else:
+            rs = avg_gain / avg_loss
+            rsi_values.append(100 - (100 / (1 + rs)))
+
+    return rsi_values
+
+
+def _find_local_extrema(data: list[float], mode: str = "high") -> list[float]:
+    """Find local maxima or minima using 3-bar pivot detection."""
+    extrema = []
+    for i in range(1, len(data) - 1):
+        if mode == "high":
+            if data[i] > data[i - 1] and data[i] > data[i + 1]:
+                extrema.append(data[i])
+        else:
+            if data[i] < data[i - 1] and data[i] < data[i + 1]:
+                extrema.append(data[i])
+    return extrema
+
 
 # ─── IndicatorEngine (façade) ─────────────────────────────────────────────────
 
@@ -588,9 +789,10 @@ class IndicatorEngine:
         ohlcv = tech_data.get("ohlcv", [])
 
         return IndicatorResult(
-            trend      = TrendModule.compute(price, inds),
-            momentum   = MomentumModule.compute(inds),
+            trend      = TrendModule.compute(price, inds, ohlcv=ohlcv),
+            momentum   = MomentumModule.compute(inds, ohlcv=ohlcv),
             volatility = VolatilityModule.compute(price, inds),
             volume     = VolumeModule.compute(inds, ohlcv),
             structure  = StructureModule.compute(price, ohlcv),
         )
+

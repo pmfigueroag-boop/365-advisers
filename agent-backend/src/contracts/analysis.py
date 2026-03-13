@@ -63,6 +63,22 @@ class TechnicalBiasResult(BaseModel):
     key_levels: dict = Field(default_factory=dict)
     actionable_zone: str = "NEUTRAL_ZONE"
     time_horizon: str = "MEDIUM"
+    setup_quality: float = Field(default=0.0, ge=0, le=1,
+                                  description="0–1 reliability proxy for this setup")
+
+
+class PositionSizingResult(BaseModel):
+    """Volatility-adjusted position sizing recommendation."""
+    method: str = "VOLATILITY_ADJUSTED"
+    suggested_pct_of_portfolio: float = Field(default=0.0, ge=0, le=1)
+    stop_loss_price: float = 0.0
+    stop_loss_pct: float = 0.0
+    take_profit_price: float = 0.0
+    take_profit_pct: float = 0.0
+    risk_per_trade_pct: float = 0.02
+    risk_reward_ratio: float = 1.0
+    position_conviction: str = "MEDIUM"
+    rationale: list[str] = Field(default_factory=list)
 
 
 class TechnicalResult(BaseModel):
@@ -84,3 +100,7 @@ class TechnicalResult(BaseModel):
     confirmation_level: str = Field(default="LOW",
                                     description="HIGH / MEDIUM / LOW based on module agreement")
     bias: TechnicalBiasResult = Field(default_factory=TechnicalBiasResult)
+    position_sizing: PositionSizingResult = Field(default_factory=PositionSizingResult)
+    setup_quality: float = Field(default=0.0, ge=0, le=1,
+                                  description="Setup reliability proxy 0–1")
+
