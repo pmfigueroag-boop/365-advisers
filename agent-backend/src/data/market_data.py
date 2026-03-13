@@ -23,6 +23,7 @@ import yfinance as yf
 from tradingview_ta import TA_Handler, Interval
 
 from src.utils.helpers import sanitize_data
+from src.utils.exchange_resolver import resolve_exchange, resolve_screener
 from src.config import get_settings
 
 logger = logging.getLogger("365advisers.market_data")
@@ -37,12 +38,8 @@ _settings = get_settings()
 # ─── Internal helpers ─────────────────────────────────────────────────────────
 
 def _resolve_exchange(exchange_code: str) -> str:
-    return {
-        "NYQ": "NYSE",
-        "NMS": "NASDAQ",
-        "NGM": "NASDAQ",
-        "ASQ": "AMEX",
-    }.get(exchange_code, "NASDAQ")
+    """Legacy shim — delegates to centralized resolver."""
+    return resolve_exchange(exchange_code)
 
 
 def _safe_get(df: pd.DataFrame | None, index_keys: list[str], default=None):
@@ -350,7 +347,7 @@ def fetch_technical_data(ticker: str) -> dict:
     try:
         handler = TA_Handler(
             symbol=symbol,
-            screener="america",
+            screener=resolve_screener(exchange),
             exchange=exchange,
             interval=Interval.INTERVAL_1_DAY,
         )

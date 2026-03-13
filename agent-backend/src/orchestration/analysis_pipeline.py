@@ -59,11 +59,12 @@ class AnalysisPipeline:
           3. committee_verdict   → score + narrative
           4. research_memo       → 1-pager markdown
           5. technical_ready     → TechnicalSummary JSON
-          6. source_coverage     → EDPL coverage report  ⭐ NEW
+          6. source_coverage     → EDPL coverage report
           7. opportunity_score   → 12-factor score
           8. position_sizing     → allocation recommendation
-          9. decision_ready      → CIO Investment Memo (enriched)
-         10. done
+          9. alpha_stack         → Alpha Signals + CASE + LLM Memos  ⭐ NEW
+         10. decision_ready      → CIO Investment Memo (enriched with Alpha Stack)
+         11. done
         """
         symbol = ticker.upper().strip()
         analysis_id = str(uuid.uuid4())
@@ -333,6 +334,129 @@ class AnalysisPipeline:
                 logger.warning(f"PIPELINE: Position Sizing error: {p_exc}")
         await asyncio.sleep(0)
 
+        # ── Part 4b: Alpha Stack Evaluation (Signals + CASE + LLM Memos) ──
+        alpha_stack_context = None
+        try:
+            from src.engines.alpha_signals.evaluator import SignalEvaluator
+            from src.engines.alpha_signals.combiner import SignalCombiner
+            from src.engines.composite_alpha.engine import CompositeAlphaEngine
+            from src.engines.alpha_decay import DecayEngine, ActivationTracker, DecayConfig
+            from src.engines.alpha.alpha_memo_agent import synthesize_alpha_memo
+            from src.engines.alpha.evidence_memo_agent import synthesize_evidence_memo
+            from src.engines.alpha.signal_map_memo_agent import synthesize_signal_map_memo
+            from src.engines.idea_generation.engine import IdeaGenerationEngine
+
+            logger.info(f"PIPELINE: Evaluating Alpha signals for {symbol}")
+
+            _evaluator = SignalEvaluator()
+            _combiner = SignalCombiner()
+            _decay_config = DecayConfig()
+            _activation_tracker = ActivationTracker(config=_decay_config)
+            _decay_engine = DecayEngine(tracker=_activation_tracker, config=_decay_config)
+            _composite_engine = CompositeAlphaEngine()
+            _ige = IdeaGenerationEngine()
+
+            # Fetch features for signal evaluation
+            fundamental_features = None
+            technical_features = None
+
+            try:
+                from src.data.market_data import fetch_fundamental_data
+                fund_raw = await asyncio.to_thread(fetch_fundamental_data, symbol)
+                if fund_raw and "error" not in fund_raw:
+                    fundamental_features = _ige._build_fundamental_features(symbol, fund_raw)
+            except Exception:
+                pass
+
+            try:
+                from src.data.market_data import fetch_technical_data as fetch_tech_for_signals
+                tech_raw = await asyncio.to_thread(fetch_tech_for_signals, symbol)
+                if tech_raw and "error" not in tech_raw:
+                    technical_features = _ige._build_technical_features(symbol, tech_raw)
+            except Exception:
+                pass
+
+            if fundamental_features or technical_features:
+                # Evaluate signals
+                profile = await asyncio.to_thread(
+                    _evaluator.evaluate, symbol, fundamental_features, technical_features,
+                )
+                composite = _combiner.combine(profile)
+                case_result = _composite_engine.compute(profile, decay_engine=_decay_engine)
+
+                # Build response data for memo agents
+                signal_data = {
+                    "ticker": symbol,
+                    "total_signals": profile.total_signals,
+                    "fired_signals": profile.fired_signals,
+                    "signals": [s.model_dump() for s in profile.signals if s.fired],
+                    "category_summary": {
+                        k: v.model_dump() for k, v in profile.category_summary.items()
+                    },
+                    "composite": composite.model_dump(),
+                    "composite_alpha": {
+                        "score": case_result.composite_alpha_score,
+                        "environment": case_result.signal_environment.value,
+                        "subscores": {
+                            k: v.model_dump() for k, v in case_result.subscores.items()
+                        },
+                        "active_categories": case_result.active_categories,
+                        "convergence_bonus": case_result.convergence_bonus,
+                        "cross_category_conflicts": case_result.cross_category_conflicts,
+                        "decay": {
+                            "applied": case_result.decay_applied,
+                            "average_freshness": case_result.average_freshness,
+                            "expired_signals": case_result.expired_signal_count,
+                            "freshness_level": case_result.freshness_level.value,
+                        },
+                    },
+                }
+
+                # Run 3 LLM memo agents concurrently
+                alpha_memo_t = asyncio.to_thread(
+                    synthesize_alpha_memo, ticker=symbol, signal_profile=signal_data,
+                )
+                evidence_memo_t = asyncio.to_thread(
+                    synthesize_evidence_memo,
+                    ticker=symbol,
+                    composite_alpha=signal_data["composite_alpha"],
+                    category_summary=signal_data["category_summary"],
+                )
+                signal_map_memo_t = asyncio.to_thread(
+                    synthesize_signal_map_memo,
+                    ticker=symbol,
+                    signals=signal_data["signals"],
+                    category_summary=signal_data["category_summary"],
+                )
+
+                alpha_memo, evidence_memo, signal_map_memo = await asyncio.gather(
+                    alpha_memo_t, evidence_memo_t, signal_map_memo_t,
+                    return_exceptions=True,
+                )
+
+                alpha_stack_context = {
+                    "case_score": case_result.composite_alpha_score,
+                    "environment": case_result.signal_environment.value,
+                    "fired_signals": profile.fired_signals,
+                    "total_signals": profile.total_signals,
+                    "alpha_memo": alpha_memo if not isinstance(alpha_memo, Exception) else None,
+                    "evidence_memo": evidence_memo if not isinstance(evidence_memo, Exception) else None,
+                    "signal_map_memo": signal_map_memo if not isinstance(signal_map_memo, Exception) else None,
+                }
+
+                yield sse("alpha_stack", alpha_stack_context)
+                logger.info(
+                    f"PIPELINE: Alpha Stack for {symbol}: "
+                    f"CASE={case_result.composite_alpha_score:.0f}, "
+                    f"{profile.fired_signals}/{profile.total_signals} signals"
+                )
+
+        except Exception as exc:
+            logger.warning(f"PIPELINE: Alpha Stack evaluation failed for {symbol}: {exc}")
+            # Non-fatal — CIO can proceed without alpha context
+
+        await asyncio.sleep(0)
+
         # ── Part 5: Decision Engine (CIO Memo — Enriched) ──────────────
         decision_data = self.decision_cache.get(symbol) if not force else None
         if decision_data and is_from_cache:
@@ -385,6 +509,7 @@ class AnalysisPipeline:
                     geopolitical_context=geo_dict,
                     macro_extended=macro_dict,
                     sentiment_context=sentiment_dict,
+                    alpha_stack_context=alpha_stack_context,
                 )
 
                 d_elapsed = (_time.monotonic_ns() / 1e6) - d_start

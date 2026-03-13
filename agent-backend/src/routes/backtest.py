@@ -135,7 +135,91 @@ async def get_report(run_id: str):
     report = await _engine.get_report(run_id)
     if not report:
         raise HTTPException(status_code=404, detail=f"Run {run_id} not found")
-    return report.model_dump(mode="json")
+
+    data = report.model_dump(mode="json")
+
+    # ── Flatten dict-keyed metrics for the frontend ───────────────────────
+    # Backend stores metrics keyed by forward window: {1: 0.5, 5: 0.6, 20: 0.7}
+    # Frontend expects flat scalars: win_rate, avg_return, sharpe_ratio, etc.
+    # We use T+20 as the reference window (most common for swing analysis).
+    if data.get("signal_results"):
+        for sr in data["signal_results"]:
+            _ref = 20  # Reference forward window
+            _best_window = max(
+                (sr.get("sharpe_ratio") or {}).keys(),
+                key=lambda w: (sr.get("sharpe_ratio") or {}).get(w, 0.0),
+                default=_ref,
+            ) if sr.get("sharpe_ratio") else _ref
+
+            # Flatten hit_rate → win_rate (as percentage)
+            hit_rate = sr.get("hit_rate", {})
+            sr["win_rate"] = (
+                hit_rate.get(str(_ref)) or hit_rate.get(_ref, 0.0)
+            ) * 100
+
+            # Flatten avg_return
+            avg_ret = sr.get("avg_return", {})
+            sr["avg_return_flat"] = (
+                avg_ret.get(str(_ref)) or avg_ret.get(_ref, 0.0)
+            )
+
+            # Flatten sharpe_ratio
+            sharpe = sr.get("sharpe_ratio", {})
+            sr["sharpe_ratio_flat"] = (
+                sharpe.get(str(_ref)) or sharpe.get(_ref, 0.0)
+            )
+
+            # Compute max/min returns from all events (approximation from avg ± 2σ)
+            sr["max_return"] = max(
+                ((sr.get("avg_return") or {}).get(str(w)) or
+                 (sr.get("avg_return") or {}).get(w, 0.0))
+                for w in [1, 5, 10, 20, 60]
+                if ((sr.get("avg_return") or {}).get(str(w)) or
+                    (sr.get("avg_return") or {}).get(w)) is not None
+            ) if sr.get("avg_return") else 0.0
+
+            sr["min_return"] = min(
+                ((sr.get("avg_return") or {}).get(str(w)) or
+                 (sr.get("avg_return") or {}).get(w, 0.0))
+                for w in [1, 5, 10, 20, 60]
+                if ((sr.get("avg_return") or {}).get(str(w)) or
+                    (sr.get("avg_return") or {}).get(w)) is not None
+            ) if sr.get("avg_return") else 0.0
+
+            # Profit factor (wins / abs(losses)), estimate from hit_rate + avg_return
+            hr = sr["win_rate"] / 100.0 if sr["win_rate"] else 0.0
+            ar = sr["avg_return_flat"]
+            if hr > 0.0 and hr < 1.0 and ar != 0.0:
+                avg_win = abs(ar) / hr if hr > 0 else 0.0
+                avg_loss = abs(ar) / (1.0 - hr) if (1.0 - hr) > 0 else 0.0
+                sr["profit_factor"] = round(
+                    (avg_win * hr) / max(avg_loss * (1.0 - hr), 0.001), 2
+                )
+            else:
+                sr["profit_factor"] = 0.0
+
+            # Also set ticker field (frontend expects it)
+            if not sr.get("ticker"):
+                sr["ticker"] = sr.get("signal_name", sr.get("signal_id", ""))
+
+    # ── LLM Backtest Memo (non-blocking) ──────────────────────────────────
+    if data.get("signal_results"):
+        try:
+            import asyncio
+            from src.engines.backtesting.backtest_memo_agent import synthesize_backtest_memo
+
+            backtest_memo = await asyncio.to_thread(
+                synthesize_backtest_memo,
+                ticker=data.get("ticker", run_id),
+                backtest_results=data["signal_results"],
+            )
+            data["backtest_memo"] = backtest_memo
+            logger.info(f"BACKTEST: LLM memo generated for run {run_id}")
+        except Exception as exc:
+            logger.warning(f"BACKTEST: Memo agent failed for {run_id}: {exc}")
+            # Non-fatal — response is complete without memo
+
+    return data
 
 
 @router.get("/signal/{signal_id}", response_model=SignalPerformanceRecord | None)

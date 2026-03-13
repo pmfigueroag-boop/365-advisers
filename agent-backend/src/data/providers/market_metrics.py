@@ -13,6 +13,7 @@ import logging
 from tradingview_ta import TA_Handler, Interval
 
 from src.contracts.market_data import MarketMetrics, RawIndicators
+from src.utils.exchange_resolver import resolve_exchange, resolve_screener
 from src.config import get_settings
 
 logger = logging.getLogger("365advisers.providers.market_metrics")
@@ -20,13 +21,8 @@ _settings = get_settings()
 
 
 def _resolve_exchange(exchange_code: str) -> str:
-    """Map yfinance exchange codes to TradingView exchange names."""
-    return {
-        "NYQ": "NYSE",
-        "NMS": "NASDAQ",
-        "NGM": "NASDAQ",
-        "ASQ": "AMEX",
-    }.get(exchange_code, "NASDAQ")
+    """Legacy shim — delegates to centralized resolver."""
+    return resolve_exchange(exchange_code)
 
 
 def _get_tv_indicator(inds: dict, keys: str | list, default: float = 0.0) -> float:
@@ -60,7 +56,7 @@ def fetch_market_metrics(ticker: str, exchange: str = "NASDAQ") -> MarketMetrics
     try:
         handler = TA_Handler(
             symbol=symbol,
-            screener="america",
+            screener=resolve_screener(resolved_exchange),
             exchange=resolved_exchange,
             interval=Interval.INTERVAL_1_DAY,
         )
@@ -139,7 +135,7 @@ def fetch_multi_timeframe(
         try:
             handler = TA_Handler(
                 symbol=symbol,
-                screener="america",
+                screener=resolve_screener(resolved_exchange),
                 exchange=resolved_exchange,
                 interval=tf_interval,
             )

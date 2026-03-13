@@ -81,10 +81,19 @@ export interface BacktestTrade {
     holding_days: number;
 }
 
+export interface LLMBacktestMemo {
+    signal: string;
+    conviction: string;
+    narrative: string;
+    key_data: string[];
+    risk_factors: string[];
+}
+
 export interface BacktestState {
     runResponse: BacktestRunResponse | null;
     report: BacktestReport | null;
     results: BacktestResult[];
+    backtestMemo: LLMBacktestMemo | null;
     status: "idle" | "running" | "done" | "error";
     error: string | null;
 }
@@ -111,6 +120,7 @@ export function useBacktest() {
         runResponse: null,
         report: null,
         results: [],
+        backtestMemo: null,
         status: "idle",
         error: null,
     });
@@ -120,7 +130,7 @@ export function useBacktest() {
         ticker: string,
         opts?: { signalId?: string; period?: string }
     ) => {
-        setState({ runResponse: null, report: null, results: [], status: "running", error: null });
+        setState({ runResponse: null, report: null, results: [], backtestMemo: null, status: "running", error: null });
         try {
             const startDate = periodToStartDate(opts?.period ?? "1y");
 
@@ -149,16 +159,16 @@ export function useBacktest() {
                 report = await reportRes.json();
                 // Map signal results → BacktestResult for the UI
                 if (report?.signal_results) {
-                    results = report.signal_results.map((sr) => ({
+                    results = report.signal_results.map((sr: any) => ({
                         ticker: sr.ticker || ticker.toUpperCase(),
                         signal_id: sr.signal_id,
                         period: opts?.period ?? "1y",
-                        total_signals: sr.total_firings,
+                        total_signals: sr.total_firings ?? 0,
                         win_rate: sr.win_rate ?? 0,
-                        avg_return: sr.avg_return ?? 0,
+                        avg_return: sr.avg_return_flat ?? sr.avg_return ?? 0,
                         max_return: sr.max_return ?? 0,
                         min_return: sr.min_return ?? 0,
-                        sharpe_ratio: sr.sharpe_ratio ?? 0,
+                        sharpe_ratio: sr.sharpe_ratio_flat ?? sr.sharpe_ratio ?? 0,
                         profit_factor: sr.profit_factor ?? 0,
                         trades: [],
                     }));
@@ -169,6 +179,7 @@ export function useBacktest() {
                 runResponse: runResp,
                 report,
                 results,
+                backtestMemo: (report as any)?.backtest_memo ?? null,
                 status: "done",
                 error: null,
             });
@@ -177,6 +188,7 @@ export function useBacktest() {
                 runResponse: null,
                 report: null,
                 results: [],
+                backtestMemo: null,
                 status: "error",
                 error: e instanceof Error ? e.message : String(e),
             });

@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import {
     Activity,
@@ -22,6 +20,8 @@ import type {
 import CompositeAlphaGauge from "./CompositeAlphaGauge";
 import AlphaRadarChart from "./AlphaRadarChart";
 import FreshnessBadge from "./FreshnessBadge";
+import ResearchMemoInsight from "./analysis/ResearchMemoInsight";
+import type { MemoInsight } from "./analysis/ResearchMemoInsight";
 
 // ── Category config ─────────────────────────────────────────────────────────
 
@@ -99,6 +99,68 @@ const CONFIDENCE_DOTS: Record<string, number> = {
     low: 1,
 };
 
+// ── Memo Builder ─────────────────────────────────────────────────────────────
+
+function buildAlphaMemo(profile: SignalProfileResponse): MemoInsight {
+    const { composite, fired_signals, total_signals, category_summary, signals } = profile;
+    const strength = composite.overall_strength;
+    const firedPct = total_signals > 0 ? (fired_signals / total_signals) * 100 : 0;
+
+    const signal: MemoInsight["signal"] =
+        strength >= 0.65 ? "BULLISH" : strength <= 0.3 ? "BEARISH" : "NEUTRAL";
+    const conviction: MemoInsight["conviction"] =
+        strength >= 0.75 ? "HIGH" : strength >= 0.45 ? "MEDIUM" : "LOW";
+
+    // Find categories with fired signals
+    const activeCats = Object.entries(category_summary)
+        .filter(([, v]) => (v.fired ?? 0) > 0)
+        .sort((a, b) => (b[1].fired ?? 0) - (a[1].fired ?? 0));
+
+    const dominant = composite.dominant_category
+        ? (CATEGORY_CONFIG[composite.dominant_category]?.label || composite.dominant_category)
+        : activeCats[0]?.[0] || "N/A";
+
+    // Top 3 strongest fired signals
+    const topSignals = signals
+        .filter((s) => s.fired)
+        .sort((a, b) => {
+            const order: Record<string, number> = { strong: 3, moderate: 2, weak: 1 };
+            return (order[b.strength] ?? 0) - (order[a.strength] ?? 0);
+        })
+        .slice(0, 3);
+
+    const narrative =
+        `${fired_signals} de ${total_signals} señales Alpha activas (${firedPct.toFixed(0)}%). ` +
+        `Fuerza Compuesta: ${(strength * 100).toFixed(0)}%. ` +
+        `Categoría dominante: ${dominant}` +
+        (composite.multi_category_bonus ? ` con bonus multi-estilo aplicado.` : `.`);
+
+    const bullets: string[] = [];
+    if (topSignals.length > 0) {
+        bullets.push(`Señales más fuertes: ${topSignals.map((s) => s.signal_name).join(", ")}`);
+    }
+    if (activeCats.length > 0) {
+        bullets.push(`Categorías activas: ${activeCats.map(([k, v]) => `${CATEGORY_CONFIG[k]?.label || k} (${v.fired}/${v.total})`).join(", ")}`);
+    }
+    if (composite.multi_category_bonus) {
+        bullets.push("Bonus multi-categoría aplicado — señales diversificadas refuerzan la convicción");
+    }
+
+    const risks: string[] = [];
+    if (firedPct < 30) {
+        risks.push(`Solo ${firedPct.toFixed(0)}% de señales activas — baja cobertura factorial`);
+    }
+    if (activeCats.length <= 1) {
+        risks.push("Señales concentradas en una sola categoría — falta diversificación");
+    }
+    const decayInfo = profile.composite_alpha?.decay;
+    if (decayInfo && (decayInfo.freshness_level === "stale" || decayInfo.freshness_level === "expired")) {
+        risks.push(`Señales con frescura "${decayInfo.freshness_level}" (${(decayInfo.average_freshness * 100).toFixed(0)}%) — considerar re-evaluación`);
+    }
+
+    return { title: "Research Memo — Alpha Signals", signal, conviction, narrative, bullets, risks };
+}
+
 // ── Props ─────────────────────────────────────────────────────────────────────
 
 interface AlphaSignalsViewProps {
@@ -156,8 +218,23 @@ export default function AlphaSignalsView({
     const { composite } = profile;
     const allCategories = ["value", "quality", "growth", "momentum", "volatility", "flow", "event", "macro"];
 
+    // Prefer LLM memo from backend, fallback to deterministic
+    const alphaMemo: MemoInsight = profile.alpha_memo
+        ? {
+              title: "Research Memo — Alpha Signals",
+              signal: (profile.alpha_memo.signal as MemoInsight["signal"]) || "NEUTRAL",
+              conviction: (profile.alpha_memo.conviction as MemoInsight["conviction"]) || "LOW",
+              narrative: profile.alpha_memo.narrative,
+              bullets: profile.alpha_memo.key_data || [],
+              risks: profile.alpha_memo.risk_factors || [],
+          }
+        : buildAlphaMemo(profile);
+
     return (
         <div className="flex flex-col gap-6">
+            {/* Research Memo */}
+            <ResearchMemoInsight memo={alphaMemo} />
+
             {/* Header */}
             <div className="glass-card p-5 border-[#30363d] flex items-center justify-between">
                 <div className="flex items-center gap-3">

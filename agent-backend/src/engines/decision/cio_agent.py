@@ -139,11 +139,13 @@ def synthesize_investment_memo(
     technical_summary: dict,
     opportunity_data: dict | None = None,
     position_data: dict | None = None,
-    # ─── NEW: optional EDPL enrichment contexts ───
+    # ─── EDPL enrichment contexts ───
     filing_context: dict | None = None,
     geopolitical_context: dict | None = None,
     macro_extended: dict | None = None,
     sentiment_context: dict | None = None,
+    # ─── Alpha Stack conclusions (NEW) ───
+    alpha_stack_context: dict | None = None,
 ) -> CIOMemoOutput:
     """
     Acts as the Chief Investment Officer synthesizing the final Investment Memo
@@ -195,19 +197,78 @@ def synthesize_investment_memo(
         filing_context, geopolitical_context, macro_extended, sentiment_context,
     )
 
+    # ─── Alpha Stack Context Block ───────────────────────────────────────
+    alpha_str = ""
+    if alpha_stack_context:
+        alpha_parts = []
+
+        alpha_memo = alpha_stack_context.get("alpha_memo")
+        if alpha_memo:
+            alpha_parts.append(f"""[ALPHA SIGNALS ANALYSIS]
+- Signal: {alpha_memo.get('signal', 'N/A')}
+- Conviction: {alpha_memo.get('conviction', 'N/A')}
+- Key conclusion: {alpha_memo.get('narrative', 'N/A')}
+- Key data: {', '.join(alpha_memo.get('key_data', []))}
+- Risks: {', '.join(alpha_memo.get('risk_factors', []))}""")
+
+        evidence_memo = alpha_stack_context.get("evidence_memo")
+        if evidence_memo:
+            alpha_parts.append(f"""[CASE EVIDENCE ANALYSIS]
+- Signal: {evidence_memo.get('signal', 'N/A')}
+- Conviction: {evidence_memo.get('conviction', 'N/A')}
+- Key conclusion: {evidence_memo.get('narrative', 'N/A')}
+- Key data: {', '.join(evidence_memo.get('key_data', []))}
+- Risks: {', '.join(evidence_memo.get('risk_factors', []))}""")
+
+        signal_map_memo = alpha_stack_context.get("signal_map_memo")
+        if signal_map_memo:
+            alpha_parts.append(f"""[SIGNAL MAP ANALYSIS]
+- Signal: {signal_map_memo.get('signal', 'N/A')}
+- Conviction: {signal_map_memo.get('conviction', 'N/A')}
+- Key conclusion: {signal_map_memo.get('narrative', 'N/A')}
+- Key data: {', '.join(signal_map_memo.get('key_data', []))}
+- Risks: {', '.join(signal_map_memo.get('risk_factors', []))}""")
+
+        backtest_memo = alpha_stack_context.get("backtest_memo")
+        if backtest_memo:
+            alpha_parts.append(f"""[BACKTEST EVIDENCE]
+- Signal: {backtest_memo.get('signal', 'N/A')}
+- Conviction: {backtest_memo.get('conviction', 'N/A')}
+- Key conclusion: {backtest_memo.get('narrative', 'N/A')}
+- Key data: {', '.join(backtest_memo.get('key_data', []))}
+- Risks: {', '.join(backtest_memo.get('risk_factors', []))}""")
+
+        # Summary stats
+        case_score = alpha_stack_context.get("case_score")
+        fired = alpha_stack_context.get("fired_signals", 0)
+        total = alpha_stack_context.get("total_signals", 0)
+        environment = alpha_stack_context.get("environment", "N/A")
+
+        if case_score is not None:
+            alpha_parts.insert(0, f"""[ALPHA STACK SUMMARY — PROPRIETARY SIGNAL SYSTEM]
+- CASE Composite Score: {case_score:.1f}/100
+- Signal Environment: {environment}
+- Active Signals: {fired}/{total}
+NOTE: The Alpha Stack provides quantitative evidence of statistical edge.
+You MUST reference Alpha Stack conclusions in your thesis_summary and use them
+to strengthen or qualify your conviction. If Alpha signals conflict with
+fundamental/technical, note the divergence explicitly.""")
+
+        alpha_str = "\n\n".join(alpha_parts)
+
     # Build dynamic output schema
     extra_fields = ""
     if enrichment_output_fields:
         extra_fields = f",\n{enrichment_output_fields}"
 
     prompt = f"""You are the Chief Investment Officer (CIO) of a top-tier institutional fund.
-Your Investment Committee and Technical Desk just analyzed {ticker}.
+Your Investment Committee, Technical Desk, and Alpha Signal System just analyzed {ticker}.
 Based on our proprietary Decision Matrix, the EXACT institutional posture must be: **{investment_position}**.
 We also calculated a structured target portfolio allocation based on risk and conviction.
 
 YOUR TASK:
 Write a compelling, institutional-grade summary justifying this final posture and target allocation.
-Do NOT disagree with the posture '{investment_position}' or the Target Allocation. Your job is to articulate exactly WHY this posture and allocation size were chosen based on the tension between fundamental and technical realities, heavily weighting the new 12-factor Opportunity Score and the Risk Level.
+Do NOT disagree with the posture '{investment_position}' or the Target Allocation. Your job is to articulate exactly WHY this posture and allocation size were chosen based on the tension between fundamental, technical, AND Alpha Stack signal realities, heavily weighting the new 12-factor Opportunity Score and the Risk Level.
 
 CONTEXT DATA:
 - Ticker: {ticker}
@@ -219,6 +280,7 @@ CONTEXT DATA:
 - Technical Score: {tech_score}/10
 - Technical Signal: {tech_signal}
 {opp_str}
+{alpha_str}
 {enrichment_str}
 
 OUTPUT REQUIREMENTS:

@@ -120,7 +120,8 @@ async def evaluate_signals(ticker: str):
     _persist_snapshots(symbol, profile)
     _persist_case_history(symbol, case_result)
 
-    return {
+    # Build the base response (before memos)
+    response_data = {
         "ticker": symbol,
         "evaluated_at": profile.evaluated_at.isoformat(),
         "total_signals": profile.total_signals,
@@ -147,6 +148,57 @@ async def evaluate_signals(ticker: str):
             },
         },
     }
+
+    # ── LLM Research Memos (concurrent, non-blocking) ─────────────────────
+    try:
+        from src.engines.alpha.alpha_memo_agent import synthesize_alpha_memo
+        from src.engines.alpha.evidence_memo_agent import synthesize_evidence_memo
+        from src.engines.alpha.signal_map_memo_agent import synthesize_signal_map_memo
+
+        alpha_memo_task = asyncio.to_thread(
+            synthesize_alpha_memo, ticker=symbol, signal_profile=response_data,
+        )
+        evidence_memo_task = asyncio.to_thread(
+            synthesize_evidence_memo,
+            ticker=symbol,
+            composite_alpha=response_data["composite_alpha"],
+            category_summary=response_data["category_summary"],
+        )
+        signal_map_memo_task = asyncio.to_thread(
+            synthesize_signal_map_memo,
+            ticker=symbol,
+            signals=response_data["signals"],
+            category_summary=response_data["category_summary"],
+        )
+
+        alpha_memo, evidence_memo, signal_map_memo = await asyncio.gather(
+            alpha_memo_task, evidence_memo_task, signal_map_memo_task,
+            return_exceptions=True,
+        )
+
+        if not isinstance(alpha_memo, Exception):
+            response_data["alpha_memo"] = alpha_memo
+            logger.info(f"SIGNAL-API: Alpha memo generated for {symbol}")
+        else:
+            logger.warning(f"SIGNAL-API: Alpha memo failed for {symbol}: {alpha_memo}")
+
+        if not isinstance(evidence_memo, Exception):
+            response_data["evidence_memo"] = evidence_memo
+            logger.info(f"SIGNAL-API: Evidence memo generated for {symbol}")
+        else:
+            logger.warning(f"SIGNAL-API: Evidence memo failed for {symbol}: {evidence_memo}")
+
+        if not isinstance(signal_map_memo, Exception):
+            response_data["signal_map_memo"] = signal_map_memo
+            logger.info(f"SIGNAL-API: Signal Map memo generated for {symbol}")
+        else:
+            logger.warning(f"SIGNAL-API: Signal Map memo failed for {symbol}: {signal_map_memo}")
+
+    except Exception as exc:
+        logger.warning(f"SIGNAL-API: Memo agents import failed: {exc}")
+        # Non-fatal — response is complete without memos
+
+    return response_data
 
 
 @router.get(

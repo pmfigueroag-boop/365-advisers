@@ -6,22 +6,82 @@
  * Shows signal backtest results with trade history and performance metrics.
  */
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { BarChart3, Loader2, Play, TrendingUp, TrendingDown } from "lucide-react";
 import { useBacktest } from "@/hooks/useBacktest";
 import type { BacktestResult, BacktestTrade } from "@/hooks/useBacktest";
+import ResearchMemoInsight from "./ResearchMemoInsight";
+import type { MemoInsight } from "./ResearchMemoInsight";
 
 interface BacktestEvidenceTabProps {
     ticker: string;
 }
 
+function buildBacktestMemo(results: BacktestResult[], ticker: string): MemoInsight | null {
+    if (results.length === 0) return null;
+
+    const n = (v: unknown): number => (typeof v === "number" && !isNaN(v) ? v : 0);
+
+    const avgWinRate = results.reduce((s, r) => s + n(r.win_rate), 0) / results.length;
+    const avgReturn = results.reduce((s, r) => s + n(r.avg_return), 0) / results.length;
+    const avgSharpe = results.reduce((s, r) => s + n(r.sharpe_ratio), 0) / results.length;
+    const avgPF = results.reduce((s, r) => s + n(r.profit_factor), 0) / results.length;
+    const totalSignals = results.reduce((s, r) => s + n(r.total_signals), 0);
+
+    const best = results.reduce((a, b) => n(a.avg_return) > n(b.avg_return) ? a : b);
+    const worst = results.reduce((a, b) => n(a.avg_return) < n(b.avg_return) ? a : b);
+
+    const signal: MemoInsight["signal"] =
+        avgWinRate >= 60 && avgReturn > 0 ? "BULLISH" :
+        avgWinRate < 40 || avgReturn < -1 ? "BEARISH" : "NEUTRAL";
+    const conviction: MemoInsight["conviction"] =
+        totalSignals >= 10 && avgWinRate >= 65 ? "HIGH" :
+        totalSignals >= 5 ? "MEDIUM" : "LOW";
+
+    const narrative =
+        `Backtest de ${results.length} estrategias con ${totalSignals} señales totales. ` +
+        `Win Rate promedio: ${avgWinRate.toFixed(1)}%. ` +
+        `Retorno promedio: ${avgReturn >= 0 ? "+" : ""}${avgReturn.toFixed(2)}%. ` +
+        (avgSharpe !== 0 ? `Sharpe promedio: ${avgSharpe.toFixed(2)}. ` : "") +
+        (avgPF !== 0 ? `Profit Factor promedio: ${avgPF.toFixed(2)}.` : "");
+
+    const bullets: string[] = [];
+    bullets.push(`Mejor estrategia: ${best.ticker || best.signal_id} (retorno ${n(best.avg_return) >= 0 ? "+" : ""}${n(best.avg_return).toFixed(2)}%)`);
+    if (worst !== best) {
+        bullets.push(`Peor estrategia: ${worst.ticker || worst.signal_id} (retorno ${n(worst.avg_return) >= 0 ? "+" : ""}${n(worst.avg_return).toFixed(2)}%)`);
+    }
+    bullets.push(`Cobertura: ${results.length} señales evaluadas históricamente`);
+
+    const risks: string[] = [];
+    if (totalSignals < 5) risks.push(`Solo ${totalSignals} observaciones — muestra insuficiente para conclusiones estadísticas`);
+    if (avgWinRate < 50) risks.push(`Win Rate por debajo de 50% — las señales no tienen edge estadístico claro`);
+    if (avgSharpe < 0.5 && avgSharpe !== 0) risks.push(`Sharpe bajo (${avgSharpe.toFixed(2)}) — retorno ajustado por riesgo insuficiente`);
+
+    return { title: "Research Memo — Backtest Evidence", signal, conviction, narrative, bullets, risks };
+}
+
 export default function BacktestEvidenceTab({ ticker }: BacktestEvidenceTabProps) {
-    const { results, status, error, run } = useBacktest();
+    const { results, status, error, run, backtestMemo: llmMemo } = useBacktest();
     const [period, setPeriod] = useState("1y");
 
     const handleRun = () => {
         if (ticker) run(ticker, { period });
     };
+
+    // Prefer LLM memo from backend, fallback to deterministic
+    const backtestMemo = useMemo(() => {
+        if (llmMemo) {
+            return {
+                title: "Research Memo — Backtest Evidence",
+                signal: (llmMemo.signal as "BULLISH" | "BEARISH" | "NEUTRAL") || "NEUTRAL",
+                conviction: (llmMemo.conviction as "HIGH" | "MEDIUM" | "LOW") || "LOW",
+                narrative: llmMemo.narrative,
+                bullets: llmMemo.key_data || [],
+                risks: llmMemo.risk_factors || [],
+            };
+        }
+        return buildBacktestMemo(results, ticker);
+    }, [llmMemo, results, ticker]);
 
     return (
         <div className="space-y-5" style={{ animation: "fadeSlideIn 0.3s ease both" }}>
@@ -76,6 +136,9 @@ export default function BacktestEvidenceTab({ ticker }: BacktestEvidenceTabProps
                     <p className="text-xs text-gray-600 mt-1">Click &quot;Run Backtest&quot; to see signal performance evidence</p>
                 </div>
             )}
+
+            {/* Research Memo — only when results exist */}
+            {backtestMemo && <ResearchMemoInsight memo={backtestMemo} />}
 
             {/* Results */}
             {results.map((result, idx) => (

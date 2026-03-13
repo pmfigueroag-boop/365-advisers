@@ -47,8 +47,68 @@ export interface TechnicalIndicators {
         distance_to_support_pct: number | null;
         breakout_probability: number;
         breakout_direction: "BULLISH" | "BEARISH" | "NEUTRAL";
+        // V2: Structure analysis extras
+        market_structure?: "HH_HL" | "LH_LL" | "MIXED";
+        patterns?: string[];
+        level_strength?: Record<string, { touches: number; strong: boolean }>;
+        risk_reward_ratio?: number;
     };
 }
+
+// ── V2/V3 Extended Types ─────────────────────────────────────────────────────
+
+export interface RegimeInfo {
+    trend_regime: "TRENDING" | "RANGING" | "TRANSITIONING" | "VOLATILE";
+    volatility_regime: "COMPRESSION" | "EXPANSION" | "MEAN_REVERTING" | "STABLE";
+    adx: number;
+    plus_di?: number;
+    minus_di?: number;
+    di_spread?: number;
+    bb_width_ratio?: number;
+    atr_trend?: "RISING" | "FLAT" | "FALLING";
+}
+
+export interface TimeframeScoreInfo {
+    timeframe: string;
+    score: number;
+    signal: string;
+    trend: string;
+    momentum?: string;
+}
+
+export interface MTFInfo {
+    mtf_aggregate: number;
+    mtf_signal: string;
+    agreement_level: "STRONG" | "MODERATE" | "WEAK";
+    agreement_count: number;
+    bonus_applied: number;
+    timeframe_scores: TimeframeScoreInfo[];
+}
+
+export interface TradingViewRatingCategory {
+    recommendation: string;
+    buy: number;
+    sell: number;
+    neutral: number;
+}
+
+export interface TradingViewRating {
+    recommendation: string;
+    buy: number;
+    sell: number;
+    neutral: number;
+    oscillators?: TradingViewRatingCategory;
+    moving_averages?: TradingViewRatingCategory;
+}
+
+export interface PositionSizingInfo {
+    stop_loss?: number;
+    take_profit?: number;
+    risk_reward?: number;
+    position_pct?: number;
+}
+
+// ── Technical Summary (V2/V3) ────────────────────────────────────────────────
 
 export interface TechnicalSummary {
     trend_status: string;
@@ -67,7 +127,17 @@ export interface TechnicalSummary {
         volume: number;
         structure: number;
     };
+    // V2: Extended scoring fields
+    confirmation_level?: "HIGH" | "MEDIUM" | "LOW";
+    strongest_module?: string;
+    weakest_module?: string;
+    technical_confidence?: number;
+    setup_quality?: number;
+    bias?: string;
+    evidence?: Record<string, string[]>;
 }
+
+// ── Main result type ─────────────────────────────────────────────────────────
 
 export interface TechnicalAnalysisResult {
     ticker: string;
@@ -83,6 +153,11 @@ export interface TechnicalAnalysisResult {
     active_indicators: string[];
     processing_time_ms: number | null;
     from_cache: boolean;
+    // V2/V3: Extended result fields
+    regime?: RegimeInfo;
+    mtf?: MTFInfo | null;
+    tradingview_rating?: TradingViewRating;
+    position_sizing?: PositionSizingInfo;
 }
 
 // ─── State ────────────────────────────────────────────────────────────────────

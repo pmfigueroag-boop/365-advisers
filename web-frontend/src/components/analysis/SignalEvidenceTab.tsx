@@ -7,12 +7,15 @@
  */
 
 import { Radio, TrendingUp, TrendingDown, Minus, Clock, CheckCircle2, XCircle } from "lucide-react";
-import type { EvaluatedSignal, CategoryScore } from "@/hooks/useAlphaSignals";
+import type { EvaluatedSignal, CategoryScore, LLMResearchMemo } from "@/hooks/useAlphaSignals";
+import ResearchMemoInsight from "./ResearchMemoInsight";
+import type { MemoInsight } from "./ResearchMemoInsight";
 
 interface SignalEvidenceTabProps {
     signals: EvaluatedSignal[];
     categorySummary: Record<string, CategoryScore>;
     ticker: string;
+    llmMemo?: LLMResearchMemo;
 }
 
 function strengthIcon(strength: string) {
@@ -21,7 +24,55 @@ function strengthIcon(strength: string) {
     return <TrendingDown size={11} className="text-gray-500" />;
 }
 
-export default function SignalEvidenceTab({ signals, categorySummary, ticker }: SignalEvidenceTabProps) {
+function buildSignalMapMemo(
+    signals: EvaluatedSignal[],
+    categorySummary: Record<string, CategoryScore>,
+    ticker: string,
+): MemoInsight {
+    const fired = signals.filter((s) => s.fired);
+    const total = signals.length;
+    const firedPct = total > 0 ? (fired.length / total) * 100 : 0;
+
+    const signal: MemoInsight["signal"] =
+        firedPct >= 55 ? "BULLISH" : firedPct <= 25 ? "BEARISH" : "NEUTRAL";
+    const conviction: MemoInsight["conviction"] =
+        firedPct >= 70 ? "HIGH" : firedPct >= 40 ? "MEDIUM" : "LOW";
+
+    const sortedCats = Object.entries(categorySummary)
+        .filter(([, v]) => (v.fired ?? 0) > 0)
+        .sort((a, b) => (b[1].fired ?? 0) - (a[1].fired ?? 0));
+
+    const strongSignals = fired.filter((s) => s.strength === "strong");
+
+    const narrative =
+        `${ticker}: ${fired.length} de ${total} señales activas (${firedPct.toFixed(0)}%). ` +
+        (sortedCats.length > 0
+            ? `Categoría más activa: ${sortedCats[0][0]} con ${sortedCats[0][1].fired} señales. `
+            : "") +
+        (strongSignals.length > 0
+            ? `${strongSignals.length} señales de fuerza "strong".`
+            : "Ninguna señal de fuerza máxima activa.");
+
+    const bullets: string[] = [];
+    if (strongSignals.length > 0) {
+        bullets.push(`Señales fuertes: ${strongSignals.slice(0, 3).map((s) => s.signal_name).join(", ")}`);
+    }
+    if (sortedCats.length > 0) {
+        bullets.push(`Distribución: ${sortedCats.map(([k, v]) => `${k} ${v.fired}/${v.total}`).join(", ")}`);
+    }
+    const coverage = sortedCats.length;
+    bullets.push(`Cobertura factorial: ${coverage} de 8 categorías con señales activas`);
+
+    const risks: string[] = [];
+    if (firedPct < 25) risks.push("Muy pocas señales activas — el modelo no tiene alta convicción");
+    if (coverage <= 1) risks.push("Concentración en una sola categoría — riesgo de sesgo factorial");
+    const weakOnly = fired.every((s) => s.strength === "weak");
+    if (weakOnly && fired.length > 0) risks.push("Todas las señales activas son de fuerza 'weak'");
+
+    return { title: "Research Memo — Signal Map", signal, conviction, narrative, bullets, risks };
+}
+
+export default function SignalEvidenceTab({ signals, categorySummary, ticker, llmMemo }: SignalEvidenceTabProps) {
     // Group by category
     const categories = Object.entries(categorySummary).sort((a, b) =>
         (b[1].fired ?? 0) - (a[1].fired ?? 0)
@@ -30,8 +81,23 @@ export default function SignalEvidenceTab({ signals, categorySummary, ticker }: 
     const firedSignals = signals.filter((s) => s.fired);
     const notFired = signals.filter((s) => !s.fired);
 
+    // Prefer LLM memo, fallback to deterministic
+    const signalMapMemo: MemoInsight = llmMemo
+        ? {
+              title: "Research Memo — Signal Map",
+              signal: (llmMemo.signal as MemoInsight["signal"]) || "NEUTRAL",
+              conviction: (llmMemo.conviction as MemoInsight["conviction"]) || "LOW",
+              narrative: llmMemo.narrative,
+              bullets: llmMemo.key_data || [],
+              risks: llmMemo.risk_factors || [],
+          }
+        : buildSignalMapMemo(signals, categorySummary, ticker);
+
     return (
         <div className="space-y-5" style={{ animation: "fadeSlideIn 0.3s ease both" }}>
+            {/* Research Memo */}
+            <ResearchMemoInsight memo={signalMapMemo} />
+
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">

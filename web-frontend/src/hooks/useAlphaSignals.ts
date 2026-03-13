@@ -75,6 +75,14 @@ export interface CompositeAlphaResponse {
     decay?: DecayInfo;
 }
 
+export interface LLMResearchMemo {
+    signal: string;
+    conviction: string;
+    narrative: string;
+    key_data: string[];
+    risk_factors: string[];
+}
+
 export interface SignalProfileResponse {
     ticker: string;
     evaluated_at: string;
@@ -84,6 +92,10 @@ export interface SignalProfileResponse {
     category_summary: Record<string, CategoryScore>;
     composite: CompositeScore;
     composite_alpha?: CompositeAlphaResponse;
+    // LLM-generated memos (optional — deterministic fallback in components)
+    alpha_memo?: LLMResearchMemo;
+    evidence_memo?: LLMResearchMemo;
+    signal_map_memo?: LLMResearchMemo;
 }
 
 export interface RegistrySignal {
