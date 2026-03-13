@@ -290,25 +290,34 @@ class TestConflictResolver:
         assert subscores["value"].conflict_penalty < 1.0
 
     def test_cross_category_conflict(self, engine):
-        """Momentum + Volatility both high → cross-category conflict."""
+        """Momentum ABOVE + Volatility BELOW → opposing directions → conflict."""
+        # Register a BELOW-direction volatility signal for this test
+        vol_below_def = _make_signal_def(
+            "test.volatility_below", SignalCategory.VOLATILITY,
+            SignalDirection.BELOW, 30.0, 15.0, weight=1.0,
+        )
+        registry.register(vol_below_def)
+
         sig_mom = _make_evaluated(
             "test.momentum_1", SignalCategory.MOMENTUM,
             fired=True, value=65.0, threshold=50.0,
             strength=SignalStrength.STRONG, confidence=0.9,
         )
         sig_vol = _make_evaluated(
-            "test.volatility_1", SignalCategory.VOLATILITY,
-            fired=True, value=35.0, threshold=20.0,
+            "test.volatility_below", SignalCategory.VOLATILITY,
+            fired=True, value=18.0, threshold=30.0,
             strength=SignalStrength.STRONG, confidence=0.9,
         )
         profile = _make_profile("GME", [sig_mom, sig_vol])
         normalized = engine._normalize_signals(profile)
         subscores = engine._aggregate_categories(normalized, profile)
         subscores, conflicts = engine._resolve_conflicts(subscores, profile)
-        # Only fires if both subscores >= 50
-        if subscores["momentum"].score >= 50 and subscores["volatility"].score >= 50:
-            assert len(conflicts) >= 1
-            assert "Momentum vs Volatility" in conflicts[0]
+        # Direction-aware: ABOVE (bullish) vs BELOW (bearish) should conflict
+        assert len(conflicts) >= 1
+        assert "Momentum vs Volatility" in conflicts[0]
+
+        # Cleanup
+        registry.unregister("test.volatility_below")
 
 
 # ═════════════════════════════════════════════════════════════════════════════

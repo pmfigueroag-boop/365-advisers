@@ -291,11 +291,21 @@ class CompositeAlphaEngine:
         flagged as degraded get their weights automatically reduced.
 
         Returns an empty dict (no-op) if no backtest data exists.
+        Cache expires after 300 seconds.
         """
+        import time
+
         if not hasattr(self, "_weight_cache"):
             self._weight_cache: dict[str, float] = {}
-        if self._weight_cache:
+            self._weight_cache_ts: float = 0.0
+
+        # TTL check (300s = 5 min)
+        now = time.monotonic()
+        if self._weight_cache and (now - self._weight_cache_ts) < 300.0:
             return self._weight_cache
+
+        self._weight_cache = {}
+        self._weight_cache_ts = now
 
         try:
             from src.engines.backtesting.dynamic_weights import (
@@ -521,22 +531,52 @@ class CompositeAlphaEngine:
                 subscore.conflict_penalty = round(penalty, 3)
                 subscore.score = round(subscore.score * penalty, 1)
 
-        # ── Cross-category conflicts ─────────────────────────────────────
+        # ── Cross-category conflicts (direction-aware) ───────────────────────
         conflict_descriptions: list[str] = []
 
+        # Build per-category direction from signal definitions
+        category_direction: dict[str, str] = {}  # "bullish", "bearish", "mixed"
+        for sig in profile.signals:
+            if not sig.fired:
+                continue
+            cat_key = sig.category.value
+            sig_def = registry.get(sig.signal_id)
+            if sig_def is None:
+                continue
+            # Determine signal polarity from its direction
+            if sig_def.direction == SignalDirection.ABOVE:
+                polarity = "bullish"
+            elif sig_def.direction == SignalDirection.BELOW:
+                polarity = "bearish"
+            else:
+                polarity = "neutral"
+
+            existing = category_direction.get(cat_key)
+            if existing is None:
+                category_direction[cat_key] = polarity
+            elif existing != polarity and polarity != "neutral":
+                category_direction[cat_key] = "mixed"
+
         for cat_a, cat_b, desc in _CROSS_CATEGORY_CONFLICTS:
-            score_a = subscores.get(cat_a)
-            score_b = subscores.get(cat_b)
+            dir_a = category_direction.get(cat_a)
+            dir_b = category_direction.get(cat_b)
 
-            if score_a is None or score_b is None:
-                continue
-            if score_a.fired == 0 or score_b.fired == 0:
+            if dir_a is None or dir_b is None:
                 continue
 
-            # Conflict if both are active but in opposing directions
-            # (high score in one + high score in the other, where the pair
-            # represents a conceptual tension)
-            if score_a.score >= 50 and score_b.score >= 50:
+            # Conflict when categories have opposing directions
+            # or when both are active with high scores (conceptual tension)
+            opposing = (
+                (dir_a == "bullish" and dir_b == "bearish")
+                or (dir_a == "bearish" and dir_b == "bullish")
+            )
+            both_high = (
+                subscores.get(cat_a, CategorySubscore(category=SignalCategory.VALUE)).score >= 50
+                and subscores.get(cat_b, CategorySubscore(category=SignalCategory.VALUE)).score >= 50
+                and dir_a == "mixed" or dir_b == "mixed"
+            )
+
+            if opposing or both_high:
                 conflict_descriptions.append(desc)
 
         return subscores, conflict_descriptions

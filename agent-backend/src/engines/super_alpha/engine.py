@@ -59,6 +59,10 @@ DEFAULT_WEIGHTS = {
     FactorName.EVENT: 0.10,
     FactorName.VOLATILITY: 0.05,
 }
+# NOTE: Weights intentionally sum to 0.95+0.05=1.0.
+# The engine normalises weights at L256 to handle custom profiles
+# that may not sum to 1.0.  Keeping VOL at 0.05 is intentional —
+# volatility is an adjustment layer, not a directional alpha source.
 
 _VOL_PENALTY_PER_TIER = 5.0
 _CONVERGENCE_THRESHOLD = 60.0

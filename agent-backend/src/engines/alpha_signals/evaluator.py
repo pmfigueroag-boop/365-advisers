@@ -209,18 +209,34 @@ class SignalEvaluator:
         """
         Compute confidence as a 0.0–1.0 measure of how decisively
         the signal fired.
+
+        Uses a sigmoid rather than linear ratio to avoid:
+        - Requiring 2×threshold for max confidence (ABOVE)
+        - Diverging to infinity for small values (BELOW)
         """
+        import math
+
         threshold = signal_def.threshold
-        if threshold == 0:
-            return 0.5
+        strong = signal_def.strong_threshold
 
         if signal_def.direction == SignalDirection.ABOVE:
-            ratio = value / abs(threshold) if threshold != 0 else 1.0
-            return min(ratio / 2.0, 1.0)  # 2x threshold = 1.0 confidence
+            if threshold == 0:
+                return 0.5
+            if strong is None:
+                strong = threshold * 1.5 if threshold > 0 else threshold * 0.5
+            span = abs(strong - threshold) or 1.0
+            ratio = (value - threshold) / span
+            # Sigmoid: maps 0→~0.3, 0.5→~0.5, 1.0→~0.7, 2.0→~0.9
+            return min(1.0 / (1.0 + math.exp(-2.0 * ratio)), 1.0)
 
         elif signal_def.direction == SignalDirection.BELOW:
-            ratio = abs(threshold) / max(abs(value), 0.001)
-            return min(ratio / 2.0, 1.0)
+            if threshold == 0:
+                return 0.5
+            if strong is None:
+                strong = threshold * 0.6 if threshold > 0 else threshold * 1.5
+            span = abs(threshold - strong) or 1.0
+            ratio = (threshold - value) / span
+            return min(1.0 / (1.0 + math.exp(-2.0 * ratio)), 1.0)
 
         return 0.5
 

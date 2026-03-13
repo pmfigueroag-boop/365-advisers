@@ -15,6 +15,7 @@ from datetime import datetime, timezone
 from src.engines.alpha_volatility.models import (
     VolRegime, VolScore, VolSignal, VolDashboard,
 )
+from src.engines._utils import safe_float as _f
 
 logger = logging.getLogger("365advisers.alpha_volatility.engine")
 
@@ -85,13 +86,19 @@ class AlphaVolatilityEngine:
             else: term = "contango"
 
         # Composite risk: 0=ultra calm, 100=crisis
-        risk = 50.0
-        if vix is not None:
-            risk = min(max((vix - 10) * 3.3, 0), 100)
-        if iv_rank is not None:
-            risk = risk * 0.6 + iv_rank * 0.4
-        if term == "backwardation":
-            risk = min(risk + 10, 100)
+        # Multivariate: VIX (40%), IV rank (30%), term structure (20%), IV-RV (10%)
+        vix_component = min(max((vix - 10) * 3.3, 0), 100) if vix is not None else 50.0
+        iv_component = iv_rank if iv_rank is not None else 50.0
+        term_map = {"backwardation": 90, "flat": 50, "contango": 20, "normal": 35}
+        term_component = term_map.get(term, 50.0)
+        ivrv_component = min(max((iv_rv or 0) * 5, 0), 100)  # +20 IV-RV → 100
+
+        risk = (
+            0.40 * vix_component
+            + 0.30 * iv_component
+            + 0.20 * term_component
+            + 0.10 * ivrv_component
+        )
 
         signals = []
         if regime == VolRegime.EXTREME: signals.append("⚠ Extreme volatility regime (VIX > 30)")
@@ -142,9 +149,3 @@ class AlphaVolatilityEngine:
             if val is not None:
                 indicators[key] = round(val, 2)
         return indicators
-
-
-def _f(val) -> float | None:
-    if val is None: return None
-    try: return float(val)
-    except (ValueError, TypeError): return None

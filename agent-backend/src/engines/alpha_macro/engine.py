@@ -14,6 +14,7 @@ from src.engines.alpha_macro.models import (
     MacroRegime, MacroScore, MacroIndicatorReading,
     AssetAllocationSuggestion, MacroDashboard,
 )
+from src.engines._utils import safe_float as _f
 
 logger = logging.getLogger("365advisers.alpha_macro.engine")
 
@@ -37,6 +38,9 @@ class AlphaMacroEngine:
         dashboard = engine.analyze(indicators)
     """
 
+    def __init__(self) -> None:
+        self._previous_regime: MacroRegime | None = None
+
     def analyze(self, indicators: dict) -> MacroDashboard:
         """
         Run macro analysis.
@@ -51,13 +55,24 @@ class AlphaMacroEngine:
         regime, confidence, probs = self._detect_regime(indicators)
         score = self._compute_score(regime, readings)
 
+        # Detect regime transition
+        transition: str | None = None
+        if self._previous_regime is not None and regime != self._previous_regime:
+            transition = f"{self._previous_regime.value} → {regime.value}"
+            logger.info(f"MACRO: Regime transition: {transition}")
+        self._previous_regime = regime
+
+        signals = self._generate_signals(regime, readings)
+        if transition:
+            signals.insert(0, f"⚠ Regime transition: {transition}")
+
         macro_score = MacroScore(
             regime=regime,
             regime_confidence=confidence,
             regime_probabilities=probs,
             composite_score=score,
             indicators=readings,
-            signals=self._generate_signals(regime, readings),
+            signals=signals,
             evaluated_at=datetime.now(timezone.utc),
         )
 
@@ -176,9 +191,3 @@ class AlphaMacroEngine:
         if unemp and unemp > 6.0: risks.append(f"High unemployment: {unemp}%")
         if regime == MacroRegime.RECESSION: risks.append("Economy in contraction")
         return risks
-
-
-def _f(val) -> float | None:
-    if val is None: return None
-    try: return float(val)
-    except (ValueError, TypeError): return None

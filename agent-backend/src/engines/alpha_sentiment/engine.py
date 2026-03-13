@@ -14,6 +14,7 @@ from src.engines.alpha_sentiment.models import (
     SentimentScoreResult, SentimentRegime, SentimentDashboard,
     HypeAlert, PanicSignal,
 )
+from src.engines._utils import safe_float as _f
 
 logger = logging.getLogger("365advisers.alpha_sentiment.engine")
 
@@ -52,8 +53,9 @@ class AlphaSentimentEngine:
         # Polarity: -1 to +1
         polarity = (bull - bear) / 100.0
 
-        # Volume z-score
-        vol_z = (vol_24h - avg_vol) / max(avg_vol * 0.5, 1) if avg_vol > 0 else 0
+        # Volume z-score — use Poisson-like proxy: σ ≈ √μ for count data
+        sigma = max(avg_vol ** 0.5, 1.0) if avg_vol > 0 else 1.0
+        vol_z = (vol_24h - avg_vol) / sigma if sigma > 0 else 0
 
         # Momentum of attention: 24h vs 7d daily avg
         daily_avg_7d = vol_7d / 7.0 if vol_7d > 0 else 0
@@ -134,9 +136,3 @@ class AlphaSentimentEngine:
         if momentum > 1.0: signals.append("Attention momentum accelerating")
         elif momentum < -0.5: signals.append("Attention fading")
         return signals
-
-
-def _f(val) -> float | None:
-    if val is None: return None
-    try: return float(val)
-    except (ValueError, TypeError): return None
