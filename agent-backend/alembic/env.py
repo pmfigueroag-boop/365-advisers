@@ -1,36 +1,26 @@
 """
-Alembic env.py — 365 Advisers
-──────────────────────────────
-Reads DATABASE_URL from application config (src.config.Settings)
-and wires Alembic to the project's SQLAlchemy Base metadata
-for autogenerate support.
+alembic/env.py
+─────────────────────────────────────────────────────────────────────────────
+Alembic migration environment — configured for 365 Advisers models.
 """
 
 from logging.config import fileConfig
-
 from sqlalchemy import engine_from_config, pool
-
 from alembic import context
 
-# ─── Alembic Config object ──────────────────────────────────────────────────
-config = context.config
+# Import all models so Alembic can detect them
+from src.data.database import Base
+from src.data.models.audit import AuditLog  # noqa: F401
 
-# Python logging from .ini
+config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# ─── Import project metadata ────────────────────────────────────────────────
-from src.data.database import Base  # noqa: E402
-from src.config import get_settings  # noqa: E402
-
 target_metadata = Base.metadata
-
-# Override sqlalchemy.url from application config (not from alembic.ini)
-config.set_main_option("sqlalchemy.url", get_settings().DATABASE_URL)
 
 
 def run_migrations_offline() -> None:
-    """Run migrations in 'offline' mode (emit SQL to stdout)."""
+    """Run migrations in 'offline' mode."""
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
@@ -38,25 +28,19 @@ def run_migrations_offline() -> None:
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
     )
-
     with context.begin_transaction():
         context.run_migrations()
 
 
 def run_migrations_online() -> None:
-    """Run migrations in 'online' mode (connect to actual DB)."""
+    """Run migrations in 'online' mode."""
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
-
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection,
-            target_metadata=target_metadata,
-        )
-
+        context.configure(connection=connection, target_metadata=target_metadata)
         with context.begin_transaction():
             context.run_migrations()
 

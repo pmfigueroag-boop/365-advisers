@@ -286,6 +286,8 @@ from src.routes.screener import router as screener_router
 from src.routes.auth import router as auth_router
 from src.routes.agents import router as agents_router
 from src.routes.audit import router as audit_router
+from src.agents.mcp_server import router as mcp_router
+from src.routes.costs import router as costs_router
 
 app.include_router(health_router)
 app.include_router(auth_router)
@@ -338,8 +340,10 @@ app.include_router(ideas_backtest_router)
 app.include_router(screener_router)
 app.include_router(agents_router)
 app.include_router(audit_router)
+app.include_router(mcp_router)
+app.include_router(costs_router)
 
-logger.info(f"Mounted {len(app.routes)} routes across 52 routers (v3.5 — audit trail added)")
+logger.info(f"Mounted {len(app.routes)} routes across 55 routers (v3.6 — MCP + costs + memory)")
 
 
 # ── Dev Server ───────────────────────────────────────────────────────────────
