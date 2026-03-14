@@ -231,7 +231,14 @@ export default function Home() {
   // ── Update history + watchlist on combined complete ───────────────────────
   useEffect(() => {
     if (combined.state.status === "complete" && combined.state.ticker && combined.state.fundamentalDataReady) {
-      const signalToSave = combined.state.decision?.investment_position ?? "HOLD";
+      const rawPosition = combined.state.decision?.investment_position ?? "Neutral";
+      // Map investment position → standard signal for Coverage Dashboard badges
+      const posUpper = rawPosition.toUpperCase();
+      const signalToSave = posUpper.includes("STRONG") || posUpper.includes("MODERATE OPPORTUNITY")
+        ? "BUY"
+        : posUpper.includes("AVOID")
+          ? "SELL"
+          : "HOLD";
       const scoreToSave = combined.state.committee?.score ?? 0;
 
       watchlist.updateSignal(combined.state.ticker, signalToSave, scoreToSave);
