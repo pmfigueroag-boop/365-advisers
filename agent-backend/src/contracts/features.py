@@ -109,3 +109,17 @@ class TechnicalFeatureSet(BaseModel):
 
     # TradingView consensus
     tv_recommendation: str = "UNKNOWN"
+
+    # Derived risk features
+    sma50_below_sma200: float = 0.0  # (sma_50 / sma_200) - 1 ; negative = death cross
+
+    @property
+    def _compute_sma50_below_sma200(self) -> float:
+        if self.sma_200 > 0:
+            return (self.sma_50 / self.sma_200) - 1.0
+        return 0.0
+
+    def model_post_init(self, __context) -> None:
+        """Compute derived features after initialization."""
+        if self.sma_200 > 0 and self.sma50_below_sma200 == 0.0:
+            self.sma50_below_sma200 = round((self.sma_50 / self.sma_200) - 1.0, 6)

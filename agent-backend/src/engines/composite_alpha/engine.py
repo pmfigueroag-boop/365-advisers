@@ -60,6 +60,17 @@ _CROSS_CATEGORY_CONFLICTS = [
 _CONVERGENCE_BONUS_5 = 3.0   # +3 when >= 5 active categories
 _CONVERGENCE_BONUS_7 = 5.0   # +5 when >= 7 active categories
 
+# ── Spread amplifier (P0 fix: widen narrow score clustering) ─────────────
+_SPREAD_FACTOR = 1.4          # Push scores 40% away from midpoint
+_SPREAD_MIDPOINT = 50.0
+
+# ── Regime multipliers (P0 fix: market-awareness) ────────────────────────
+_REGIME_MULTIPLIER = {
+    "bullish": 1.10,   # Boost 10% in risk-on
+    "neutral": 1.00,
+    "bearish": 0.80,   # Discount 20% in risk-off
+}
+
 
 class CompositeAlphaEngine:
     """
@@ -140,7 +151,18 @@ class CompositeAlphaEngine:
         final_score = min(100.0, raw_score + convergence_bonus)
         final_score = round(max(0.0, final_score), 1)
 
-        # Stage 5: Classify
+        # Stage 5: Spread amplification (P0 fix C2)
+        diff = final_score - _SPREAD_MIDPOINT
+        final_score = _SPREAD_MIDPOINT + diff * _SPREAD_FACTOR
+        final_score = round(max(0.0, min(100.0, final_score)), 1)
+
+        # Stage 6: Market regime adjustment (P0 fix C1)
+        regime = self._detect_market_regime()
+        regime_mult = _REGIME_MULTIPLIER.get(regime, 1.0)
+        if regime_mult != 1.0:
+            final_score = round(max(0.0, min(100.0, final_score * regime_mult)), 1)
+
+        # Stage 7: Classify
         environment = self._classify(final_score)
 
         active_count = sum(
@@ -155,7 +177,8 @@ class CompositeAlphaEngine:
 
         logger.info(
             f"CASE: {profile.ticker} → score={final_score}, "
-            f"env={environment.value}, active={active_count}"
+            f"env={environment.value}, active={active_count}, "
+            f"regime={regime}"
             f"{f', freshness={avg_freshness:.3f}' if decay_applied else ''}"
         )
 
@@ -265,6 +288,11 @@ class CompositeAlphaEngine:
             nss = self._compute_normalized_score(sig, sig_def)
             # Modulate by confidence and weight
             effective = nss * sig.confidence * sig_def.weight
+
+            # P0 fix C3: Risk signals contribute NEGATIVELY
+            is_risk = "risk" in sig_def.tags if sig_def.tags else False
+            if is_risk:
+                effective = -effective  # Invert to pull score down
 
             # Apply continuous dynamic weight from backtest evidence
             bt_multiplier = dynamic_weights.get(sig.signal_id, 1.0)
@@ -628,3 +656,58 @@ class CompositeAlphaEngine:
             return SignalEnvironment.WEAK
         else:
             return SignalEnvironment.NEGATIVE
+
+    # ═════════════════════════════════════════════════════════════════════════
+    # Stage 6: Market Regime Detector (P0 fix C1)
+    # ═════════════════════════════════════════════════════════════════════════
+
+    # Class-level cache for regime detection (avoid repeated API calls)
+    _regime_cache: str | None = None
+    _regime_cache_ts: float = 0.0
+    _REGIME_TTL = 3600.0  # 1 hour
+
+    def _detect_market_regime(self) -> str:
+        """
+        Detect broad market regime using SPY's SMA50/SMA200 relationship.
+
+        Returns 'bullish', 'bearish', or 'neutral'.
+        Cached for 1 hour to avoid API overhead.
+        """
+        import time as _t
+
+        now = _t.monotonic()
+        if (
+            CompositeAlphaEngine._regime_cache is not None
+            and (now - CompositeAlphaEngine._regime_cache_ts) < self._REGIME_TTL
+        ):
+            return CompositeAlphaEngine._regime_cache
+
+        regime = "neutral"
+        try:
+            import yfinance as yf
+            spy = yf.Ticker("SPY")
+            hist = spy.history(period="1y")
+
+            if hist is not None and len(hist) >= 200:
+                sma_50 = hist["Close"].rolling(50).mean().iloc[-1]
+                sma_200 = hist["Close"].rolling(200).mean().iloc[-1]
+                current_price = hist["Close"].iloc[-1]
+
+                if sma_50 > sma_200 and current_price > sma_50:
+                    regime = "bullish"
+                elif sma_50 < sma_200 and current_price < sma_50:
+                    regime = "bearish"
+                else:
+                    regime = "neutral"
+
+                logger.info(
+                    f"REGIME: SPY price={current_price:.1f}, "
+                    f"SMA50={sma_50:.1f}, SMA200={sma_200:.1f} → {regime}"
+                )
+
+        except Exception as exc:
+            logger.warning(f"REGIME: detection failed, defaulting to neutral: {exc}")
+
+        CompositeAlphaEngine._regime_cache = regime
+        CompositeAlphaEngine._regime_cache_ts = now
+        return regime
