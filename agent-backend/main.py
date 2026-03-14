@@ -228,6 +228,10 @@ app.add_middleware(
 from src.middleware import RateLimitMiddleware
 app.add_middleware(RateLimitMiddleware, max_requests=30, window_seconds=60)
 
+# ── Audit Trail ───────────────────────────────────────────────────────────────
+from src.middleware.audit import AuditMiddleware
+app.add_middleware(AuditMiddleware)
+
 
 # ── Router Mounts ────────────────────────────────────────────────────────────
 
@@ -281,6 +285,7 @@ from src.routes.ideas_backtest import router as ideas_backtest_router
 from src.routes.screener import router as screener_router
 from src.routes.auth import router as auth_router
 from src.routes.agents import router as agents_router
+from src.routes.audit import router as audit_router
 
 app.include_router(health_router)
 app.include_router(auth_router)
@@ -332,8 +337,9 @@ app.include_router(autonomous_pm_router)
 app.include_router(ideas_backtest_router)
 app.include_router(screener_router)
 app.include_router(agents_router)
+app.include_router(audit_router)
 
-logger.info(f"Mounted {len(app.routes)} routes across 50 routers (auth + agents added)")
+logger.info(f"Mounted {len(app.routes)} routes across 52 routers (v3.5 — audit trail added)")
 
 
 # ── Dev Server ───────────────────────────────────────────────────────────────
