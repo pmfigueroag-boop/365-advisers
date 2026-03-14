@@ -8,7 +8,7 @@
  *   Opportunity Score → Verdict → Allocation → Confidence → Risk
  */
 
-import { TrendingUp, TrendingDown, Minus, Shield, Target, DollarSign } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, Shield, Target, DollarSign, Loader2 } from "lucide-react";
 import OpportunityScoreGauge from "@/components/shared/OpportunityScoreGauge";
 import ConfidenceMeter from "@/components/shared/ConfidenceMeter";
 import ScoreRing from "@/components/shared/ScoreRing";
@@ -86,7 +86,21 @@ export default function OpportunityVerdict({ combined, alphaProfile }: Opportuni
                         <OpportunityScoreGauge score={oppScore} size={100} label="Opportunity" />
                     </InfoTooltip>
                     <InfoTooltip text="Composite Alpha Score Engine — aggregated score from 50+ alpha signals across 8 categories (momentum, value, quality, etc.)." showIcon={false}>
-                        <ScoreRing value={caseScore} max={100} size={64} label="CASE" color="#d4af37" />
+                        {alphaProfile ? (
+                            <ScoreRing value={caseScore} max={100} size={64} label="CASE" color="#d4af37" />
+                        ) : (
+                            <div className="flex flex-col items-center gap-1">
+                                <div className="relative" style={{ width: 64, height: 64 }}>
+                                    <svg width={64} height={64} className="-rotate-90">
+                                        <circle cx={32} cy={32} r={29} fill="none" stroke="#21262d" strokeWidth={3} />
+                                    </svg>
+                                    <span className="absolute inset-0 flex items-center justify-center">
+                                        <Loader2 size={18} className="animate-spin text-[#d4af37]/40" />
+                                    </span>
+                                </div>
+                                <span className="text-[8px] font-black uppercase tracking-widest text-gray-600">CASE</span>
+                            </div>
+                        )}
                     </InfoTooltip>
                     <InfoTooltip text="Investment Committee verdict (4 AI analysts). Score 0–10 based on multi-agent fundamental analysis." showIcon={false}>
                         <ScoreRing value={committee?.score ?? 0} max={10} size={64} label="Committee" />
