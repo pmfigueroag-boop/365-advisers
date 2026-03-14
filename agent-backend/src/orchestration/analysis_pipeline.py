@@ -538,6 +538,14 @@ class AnalysisPipeline:
         """
         Non-blocking EDPL fetch for enrichment data.
 
+        Fetches 6 domains concurrently (all keyless or gracefully degrading):
+          - FILING_EVENTS  (SEC EDGAR — keyless)
+          - GEOPOLITICAL   (GDELT — keyless)
+          - MACRO          (FRED/World Bank/IMF — keyless or free-tier key)
+          - SENTIMENT      (StockTwits/GDELT — keyless)
+          - VOLATILITY     (CBOE — keyless)
+          - INSTITUTIONAL  (SEC 13F/yfinance fallback — keyless)
+
         Uses the provided edpl_router (from app.state singleton) when available,
         avoiding the creation of fresh instances that reset circuit breaker state.
         """
@@ -570,20 +578,33 @@ class AnalysisPipeline:
                     logger.debug(f"EDPL {domain.value} error: {exc}")
                     return domain.value, None
 
+            # Fetch all complementary domains concurrently
             domain_tasks = [
-                _safe_fetch(DataDomain.FILING_EVENTS),
-                _safe_fetch(DataDomain.GEOPOLITICAL),
+                _safe_fetch(DataDomain.FILING_EVENTS),     # SEC EDGAR (keyless)
+                _safe_fetch(DataDomain.GEOPOLITICAL),       # GDELT (keyless)
+                _safe_fetch(DataDomain.MACRO),              # FRED/World Bank/IMF
+                _safe_fetch(DataDomain.SENTIMENT),          # StockTwits/news
+                _safe_fetch(DataDomain.VOLATILITY),         # CBOE VIX/options
+                _safe_fetch(DataDomain.INSTITUTIONAL),      # SEC 13F/insider
             ]
 
             fetched = await asyncio.gather(*domain_tasks)
 
+            # Map results to enrichment keys
+            _domain_to_key = {
+                "filing_events": "filing_events",
+                "geopolitical": "geopolitical",
+                "macro": "macro_extended",
+                "sentiment": "sentiment_extended",
+                "volatility": "volatility_data",
+                "institutional": "institutional_data",
+            }
+
             for domain_key, resp in fetched:
                 if resp and resp.ok:
                     results["_responses"][domain_key] = resp
-                    if domain_key == "filing_events":
-                        results["filing_events"] = resp.data
-                    elif domain_key == "geopolitical":
-                        results["geopolitical"] = resp.data
+                    enrichment_key = _domain_to_key.get(domain_key, domain_key)
+                    results[enrichment_key] = resp.data
 
         except ImportError:
             logger.debug("EDPL not fully configured — skipping enrichment")
