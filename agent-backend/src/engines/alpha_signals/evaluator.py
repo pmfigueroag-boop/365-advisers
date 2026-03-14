@@ -113,7 +113,22 @@ class SignalEvaluator:
                 description=f"{signal_def.name}: data unavailable",
             )
 
-        fired = self._check_fired(signal_def, value)
+        # C4: Sector-relative threshold adjustment for valuation signals
+        adjusted_def = signal_def
+        if (
+            fundamental is not None
+            and signal_def.category == SignalCategory.VALUE
+            and fundamental.sector_pe_adjustment != 1.0
+            and any(kw in signal_def.feature_path for kw in ("pe_ratio", "ev_ebitda", "pb_ratio", "ev_revenue"))
+        ):
+            factor = fundamental.sector_pe_adjustment
+            from copy import copy
+            adjusted_def = copy(signal_def)
+            adjusted_def.threshold = signal_def.threshold * factor
+            if signal_def.strong_threshold is not None:
+                adjusted_def.strong_threshold = signal_def.strong_threshold * factor
+
+        fired = self._check_fired(adjusted_def, value)
         strength = self._compute_strength(signal_def, value) if fired else SignalStrength.WEAK
         confidence = self._compute_confidence(signal_def, value) if fired else 0.0
         description = self._build_description(signal_def, value, fired)

@@ -53,6 +53,12 @@ _CROSS_CATEGORY_CONFLICTS = [
     ("momentum", "volatility", "Momentum vs Volatility: trend may be unsustainable"),
     ("value", "quality", "Value vs Quality: potential value trap"),
     ("growth", "macro", "Growth vs Macro: headwind environment"),
+    # P1 fix T3: expanded conflict pairs
+    ("momentum", "value", "Momentum vs Value: high momentum ignoring stretched valuation"),
+    ("quality", "event", "Quality vs Event: quality degradation event detected"),
+    ("growth", "volatility", "Growth vs Volatility: high-growth with elevated vol risk"),
+    ("flow", "value", "Flow vs Value: flow signals conflicting with valuation"),
+    ("momentum", "macro", "Momentum vs Macro: strong momentum against macro headwinds"),
 ]
 
 # ── Convergence bonus thresholds ─────────────────────────────────────────────
@@ -417,7 +423,9 @@ class CompositeAlphaEngine:
             if span <= 0:
                 return 50.0 if value > threshold else 0.0
             ratio = (value - threshold) / span
-            return max(0.0, min(100.0, ratio * 100.0))
+            # P1 fix T1: sigmoid normalization for more natural sensitivity
+            import math
+            return max(0.0, min(100.0, 100.0 / (1.0 + math.exp(-5.0 * (ratio - 0.5)))))
 
         elif sig_def.direction == SignalDirection.BELOW:
             if strong is None:
@@ -426,7 +434,9 @@ class CompositeAlphaEngine:
             if span <= 0:
                 return 50.0 if value < threshold else 0.0
             ratio = (threshold - value) / span
-            return max(0.0, min(100.0, ratio * 100.0))
+            # P1 fix T1: sigmoid normalization
+            import math
+            return max(0.0, min(100.0, 100.0 / (1.0 + math.exp(-5.0 * (ratio - 0.5)))))
 
         elif sig_def.direction == SignalDirection.BETWEEN:
             upper = sig_def.upper_threshold or threshold
@@ -495,8 +505,10 @@ class CompositeAlphaEngine:
 
             # Coverage penalty
             coverage = fired_count / total if total > 0 else 0.0
-            if coverage < 0.3 and coverage > 0:
-                raw_score *= coverage / 0.3
+            # P1 fix T2: smooth sigmoid coverage penalty (replaces hard 0.3 cutoff)
+            import math
+            coverage_factor = 1.0 / (1.0 + math.exp(-10.0 * (coverage - 0.25)))
+            raw_score *= coverage_factor
 
             raw_score = max(0.0, min(100.0, raw_score))
 
@@ -629,12 +641,14 @@ class CompositeAlphaEngine:
             if subscore is not None:
                 weighted_sum += subscore.score * weight
 
-        # Convergence bonus
-        active_count = sum(1 for s in subscores.values() if s.fired > 0)
+        # P1 fix C5: quality-weighted convergence (only meaningful categories count)
+        meaningful_active = sum(
+            1 for s in subscores.values() if s.fired > 0 and s.score >= 40.0
+        )
         bonus = 0.0
-        if active_count >= 7:
+        if meaningful_active >= 7:
             bonus = _CONVERGENCE_BONUS_7
-        elif active_count >= 5:
+        elif meaningful_active >= 5:
             bonus = _CONVERGENCE_BONUS_5
 
         return weighted_sum, bonus

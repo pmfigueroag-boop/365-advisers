@@ -1,22 +1,22 @@
 {
-  "generated_at": "2026-03-14T16:29:42.929025+00:00",
+  "generated_at": "2026-03-14T16:53:56.004111+00:00",
   "universe_size": 47,
   "outcome_count": 141,
-  "elapsed_seconds": 321.4,
+  "elapsed_seconds": 316.9,
   "case_scores": {
     "AAPL": {
       "ticker": "AAPL",
-      "case_score": 89.2,
+      "case_score": 94.2,
       "environment": "Very Strong Opportunity",
-      "active_categories": 5,
-      "fired_signals": 11,
-      "total_signals": 60,
+      "active_categories": 6,
+      "fired_signals": 12,
+      "total_signals": 68,
       "sector": "Technology",
       "name": "Apple Inc.",
       "subscores": {
-        "value": 100.0,
+        "value": 95.0,
         "quality": 100.0,
-        "growth": 0.0,
+        "growth": 30.5,
         "momentum": 100.0,
         "volatility": 0.0,
         "flow": 100.0,
@@ -28,16 +28,16 @@
     },
     "MSFT": {
       "ticker": "MSFT",
-      "case_score": 66.1,
-      "environment": "Strong Opportunity",
+      "case_score": 52.5,
+      "environment": "Neutral",
       "active_categories": 5,
-      "fired_signals": 13,
-      "total_signals": 60,
+      "fired_signals": 17,
+      "total_signals": 68,
       "sector": "Technology",
       "name": "Microsoft Corporation",
       "subscores": {
-        "value": 100.0,
-        "quality": 75.0,
+        "value": 75.0,
+        "quality": 80.0,
         "growth": 0.0,
         "momentum": 75.0,
         "volatility": 0.0,
@@ -47,21 +47,24 @@
       },
       "convergence_bonus": 3.0,
       "conflicts": [
-        "Value vs Quality: potential value trap"
+        "Value vs Quality: potential value trap",
+        "Momentum vs Value: high momentum ignoring stretched valuation",
+        "Quality vs Event: quality degradation event detected",
+        "Flow vs Value: flow signals conflicting with valuation"
       ]
     },
     "NVDA": {
       "ticker": "NVDA",
-      "case_score": 47.2,
-      "environment": "Neutral",
+      "case_score": 37.1,
+      "environment": "Weak",
       "active_categories": 6,
       "fired_signals": 15,
-      "total_signals": 60,
+      "total_signals": 68,
       "sector": "Technology",
       "name": "NVIDIA Corporation",
       "subscores": {
         "value": 0.0,
-        "quality": 75.0,
+        "quality": 80.0,
         "growth": 0.0,
         "momentum": 100.0,
         "volatility": 0.0,
@@ -69,23 +72,24 @@
         "event": 100.0,
         "macro": 0.0
       },
-      "convergence_bonus": 3.0,
+      "convergence_bonus": 0.0,
       "conflicts": [
-        "Value vs Quality: potential value trap"
+        "Quality vs Event: quality degradation event detected",
+        "Growth vs Volatility: high-growth with elevated vol risk"
       ]
     },
     "GOOGL": {
       "ticker": "GOOGL",
-      "case_score": 72.4,
+      "case_score": 62.6,
       "environment": "Strong Opportunity",
       "active_categories": 5,
-      "fired_signals": 13,
-      "total_signals": 60,
+      "fired_signals": 14,
+      "total_signals": 68,
       "sector": "Communication Services",
       "name": "Alphabet Inc.",
       "subscores": {
-        "value": 100.0,
-        "quality": 75.0,
+        "value": 95.0,
+        "quality": 80.0,
         "growth": 0.0,
         "momentum": 100.0,
         "volatility": 0.0,
@@ -95,21 +99,22 @@
       },
       "convergence_bonus": 3.0,
       "conflicts": [
-        "Value vs Quality: potential value trap"
+        "Value vs Quality: potential value trap",
+        "Quality vs Event: quality degradation event detected"
       ]
     },
     "META": {
       "ticker": "META",
-      "case_score": 66.1,
-      "environment": "Strong Opportunity",
+      "case_score": 52.5,
+      "environment": "Neutral",
       "active_categories": 5,
-      "fired_signals": 12,
-      "total_signals": 60,
+      "fired_signals": 14,
+      "total_signals": 68,
       "sector": "Communication Services",
       "name": "Meta Platforms, Inc.",
       "subscores": {
-        "value": 100.0,
-        "quality": 75.0,
+        "value": 75.0,
+        "quality": 80.0,
         "growth": 0.0,
         "momentum": 75.0,
         "volatility": 0.0,
@@ -119,16 +124,19 @@
       },
       "convergence_bonus": 3.0,
       "conflicts": [
-        "Value vs Quality: potential value trap"
+        "Value vs Quality: potential value trap",
+        "Momentum vs Value: high momentum ignoring stretched valuation",
+        "Quality vs Event: quality degradation event detected",
+        "Flow vs Value: flow signals conflicting with valuation"
       ]
     },
     "AVGO": {
       "ticker": "AVGO",
-      "case_score": 74.5,
+      "case_score": 64.4,
       "environment": "Strong Opportunity",
-      "active_categories": 5,
-      "fired_signals": 13,
-      "total_signals": 60,
+      "active_categories": 6,
+      "fired_signals": 15,
+      "total_signals": 68,
       "sector": "Technology",
       "name": "Broadcom Inc.",
       "subscores": {
@@ -143,20 +151,22 @@
       },
       "convergence_bonus": 3.0,
       "conflicts": [
-        "Value vs Quality: potential value trap"
+        "Value vs Quality: potential value trap",
+        "Momentum vs Value: high momentum ignoring stretched valuation",
+        "Flow vs Value: flow signals conflicting with valuation"
       ]
     },
     "ADBE": {
       "ticker": "ADBE",
-      "case_score": 67.4,
-      "environment": "Strong Opportunity",
+      "case_score": 59.2,
+      "environment": "Neutral",
       "active_categories": 6,
-      "fired_signals": 16,
-      "total_signals": 60,
+      "fired_signals": 20,
+      "total_signals": 68,
       "sector": "Technology",
       "name": "Adobe Inc.",
       "subscores": {
-        "value": 75.0,
+        "value": 80.0,
         "quality": 100.0,
         "growth": 0.0,
         "momentum": 80.0,
@@ -167,21 +177,23 @@
       },
       "convergence_bonus": 3.0,
       "conflicts": [
-        "Value vs Quality: potential value trap"
+        "Value vs Quality: potential value trap",
+        "Momentum vs Value: high momentum ignoring stretched valuation",
+        "Flow vs Value: flow signals conflicting with valuation"
       ]
     },
     "CRM": {
       "ticker": "CRM",
-      "case_score": 68.2,
-      "environment": "Strong Opportunity",
+      "case_score": 52.5,
+      "environment": "Neutral",
       "active_categories": 5,
-      "fired_signals": 11,
-      "total_signals": 60,
+      "fired_signals": 16,
+      "total_signals": 68,
       "sector": "Technology",
       "name": "Salesforce, Inc.",
       "subscores": {
-        "value": 100.0,
-        "quality": 83.3,
+        "value": 80.0,
+        "quality": 75.0,
         "growth": 0.0,
         "momentum": 75.0,
         "volatility": 0.0,
@@ -191,22 +203,25 @@
       },
       "convergence_bonus": 3.0,
       "conflicts": [
-        "Value vs Quality: potential value trap"
+        "Value vs Quality: potential value trap",
+        "Momentum vs Value: high momentum ignoring stretched valuation",
+        "Quality vs Event: quality degradation event detected",
+        "Flow vs Value: flow signals conflicting with valuation"
       ]
     },
     "CSCO": {
       "ticker": "CSCO",
-      "case_score": 89.2,
+      "case_score": 80.1,
       "environment": "Very Strong Opportunity",
-      "active_categories": 5,
-      "fired_signals": 9,
-      "total_signals": 60,
+      "active_categories": 6,
+      "fired_signals": 11,
+      "total_signals": 68,
       "sector": "Technology",
       "name": "Cisco Systems, Inc.",
       "subscores": {
-        "value": 100.0,
-        "quality": 100.0,
-        "growth": 0.0,
+        "value": 95.0,
+        "quality": 83.3,
+        "growth": 100.0,
         "momentum": 100.0,
         "volatility": 0.0,
         "flow": 100.0,
@@ -214,20 +229,23 @@
         "macro": 0.0
       },
       "convergence_bonus": 3.0,
-      "conflicts": []
+      "conflicts": [
+        "Value vs Quality: potential value trap",
+        "Quality vs Event: quality degradation event detected"
+      ]
     },
     "INTC": {
       "ticker": "INTC",
-      "case_score": 43.0,
-      "environment": "Neutral",
+      "case_score": 27.0,
+      "environment": "Weak",
       "active_categories": 5,
-      "fired_signals": 10,
-      "total_signals": 60,
+      "fired_signals": 11,
+      "total_signals": 68,
       "sector": "Technology",
       "name": "Intel Corporation",
       "subscores": {
         "value": 0.0,
-        "quality": 83.3,
+        "quality": 59.8,
         "growth": 0.0,
         "momentum": 100.0,
         "volatility": 0.0,
@@ -235,23 +253,25 @@
         "event": 0.0,
         "macro": 0.0
       },
-      "convergence_bonus": 3.0,
+      "convergence_bonus": 0.0,
       "conflicts": [
-        "Value vs Quality: potential value trap"
+        "Value vs Quality: potential value trap",
+        "Momentum vs Value: high momentum ignoring stretched valuation",
+        "Flow vs Value: flow signals conflicting with valuation"
       ]
     },
     "JPM": {
       "ticker": "JPM",
-      "case_score": 66.1,
-      "environment": "Strong Opportunity",
+      "case_score": 52.7,
+      "environment": "Neutral",
       "active_categories": 5,
-      "fired_signals": 11,
-      "total_signals": 60,
+      "fired_signals": 12,
+      "total_signals": 68,
       "sector": "Financial Services",
       "name": "JP Morgan Chase & Co.",
       "subscores": {
-        "value": 75.0,
-        "quality": 100.0,
+        "value": 95.0,
+        "quality": 43.2,
         "growth": 0.0,
         "momentum": 100.0,
         "volatility": 0.0,
@@ -259,22 +279,22 @@
         "event": 0.0,
         "macro": 0.0
       },
-      "convergence_bonus": 3.0,
+      "convergence_bonus": 0.0,
       "conflicts": [
         "Value vs Quality: potential value trap"
       ]
     },
     "V": {
       "ticker": "V",
-      "case_score": 83.6,
-      "environment": "Very Strong Opportunity",
+      "case_score": 58.1,
+      "environment": "Neutral",
       "active_categories": 5,
-      "fired_signals": 13,
-      "total_signals": 60,
+      "fired_signals": 15,
+      "total_signals": 68,
       "sector": "Financial Services",
       "name": "Visa Inc.",
       "subscores": {
-        "value": 100.0,
+        "value": 75.0,
         "quality": 100.0,
         "growth": 0.0,
         "momentum": 80.0,
@@ -284,21 +304,25 @@
         "macro": 0.0
       },
       "convergence_bonus": 3.0,
-      "conflicts": []
+      "conflicts": [
+        "Value vs Quality: potential value trap",
+        "Momentum vs Value: high momentum ignoring stretched valuation",
+        "Flow vs Value: flow signals conflicting with valuation"
+      ]
     },
     "MA": {
       "ticker": "MA",
-      "case_score": 82.2,
-      "environment": "Very Strong Opportunity",
-      "active_categories": 5,
-      "fired_signals": 14,
-      "total_signals": 60,
+      "case_score": 61.5,
+      "environment": "Strong Opportunity",
+      "active_categories": 6,
+      "fired_signals": 17,
+      "total_signals": 68,
       "sector": "Financial Services",
       "name": "Mastercard Incorporated",
       "subscores": {
-        "value": 100.0,
+        "value": 75.0,
         "quality": 100.0,
-        "growth": 0.0,
+        "growth": 27.0,
         "momentum": 75.0,
         "volatility": 0.0,
         "flow": 100.0,
@@ -306,44 +330,50 @@
         "macro": 0.0
       },
       "convergence_bonus": 3.0,
-      "conflicts": []
+      "conflicts": [
+        "Value vs Quality: potential value trap",
+        "Momentum vs Value: high momentum ignoring stretched valuation",
+        "Flow vs Value: flow signals conflicting with valuation"
+      ]
     },
     "BAC": {
       "ticker": "BAC",
-      "case_score": 73.5,
-      "environment": "Strong Opportunity",
-      "active_categories": 5,
-      "fired_signals": 11,
-      "total_signals": 60,
+      "case_score": 42.2,
+      "environment": "Neutral",
+      "active_categories": 6,
+      "fired_signals": 13,
+      "total_signals": 68,
       "sector": "Financial Services",
       "name": "Bank of America Corporation",
       "subscores": {
         "value": 83.3,
-        "quality": 100.0,
-        "growth": 0.0,
+        "quality": 6.7,
+        "growth": 22.1,
         "momentum": 100.0,
         "volatility": 0.0,
         "flow": 100.0,
-        "event": 83.7,
+        "event": 83.5,
         "macro": 0.0
       },
-      "convergence_bonus": 3.0,
+      "convergence_bonus": 0.0,
       "conflicts": [
-        "Value vs Quality: potential value trap"
+        "Value vs Quality: potential value trap",
+        "Momentum vs Value: high momentum ignoring stretched valuation",
+        "Flow vs Value: flow signals conflicting with valuation"
       ]
     },
     "GS": {
       "ticker": "GS",
-      "case_score": 68.2,
-      "environment": "Strong Opportunity",
-      "active_categories": 5,
-      "fired_signals": 10,
-      "total_signals": 60,
+      "case_score": 36.0,
+      "environment": "Weak",
+      "active_categories": 6,
+      "fired_signals": 13,
+      "total_signals": 68,
       "sector": "Financial Services",
       "name": "Goldman Sachs Group, Inc. (The)",
       "subscores": {
-        "value": 100.0,
-        "quality": 25.1,
+        "value": 75.0,
+        "quality": 0.0,
         "growth": 0.0,
         "momentum": 100.0,
         "volatility": 0.0,
@@ -351,111 +381,348 @@
         "event": 100.0,
         "macro": 0.0
       },
-      "convergence_bonus": 3.0,
-      "conflicts": []
+      "convergence_bonus": 0.0,
+      "conflicts": [
+        "Value vs Quality: potential value trap",
+        "Momentum vs Value: high momentum ignoring stretched valuation",
+        "Flow vs Value: flow signals conflicting with valuation"
+      ]
     },
     "BLK": {
       "ticker": "BLK",
-      "case_score": 67.4,
-      "environment": "Strong Opportunity",
-      "active_categories": 6,
-      "fired_signals": 12,
-      "total_signals": 60,
+      "case_score": 36.0,
+      "environment": "Weak",
+      "active_categories": 5,
+      "fired_signals": 9,
+      "total_signals": 68,
       "sector": "Financial Services",
       "name": "BlackRock, Inc.",
       "subscores": {
-        "value": 100.0,
+        "value": 75.0,
         "quality": 75.0,
         "growth": 0.0,
-        "momentum": 80.0,
+        "momentum": 75.0,
         "volatility": 0.0,
-        "flow": 100.0,
+        "flow": 0.0,
+        "event": 100.0,
+        "macro": 0.0
+      },
+      "convergence_bonus": 0.0,
+      "conflicts": [
+        "Value vs Quality: potential value trap",
+        "Momentum vs Value: high momentum ignoring stretched valuation",
+        "Quality vs Event: quality degradation event detected"
+      ]
+    },
+    "UNH": {
+      "ticker": "UNH",
+      "case_score": 19.2,
+      "environment": "Negative Signal Environment",
+      "active_categories": 5,
+      "fired_signals": 8,
+      "total_signals": 68,
+      "sector": "Healthcare",
+      "name": "UnitedHealth Group Incorporated",
+      "subscores": {
+        "value": 75.0,
+        "quality": 0.0,
+        "growth": 0.0,
+        "momentum": 75.0,
+        "volatility": 0.0,
+        "flow": 0.0,
+        "event": 100.0,
+        "macro": 0.0
+      },
+      "convergence_bonus": 0.0,
+      "conflicts": [
+        "Momentum vs Value: high momentum ignoring stretched valuation",
+        "Quality vs Event: quality degradation event detected"
+      ]
+    },
+    "JNJ": {
+      "ticker": "JNJ",
+      "case_score": 42.3,
+      "environment": "Neutral",
+      "active_categories": 4,
+      "fired_signals": 9,
+      "total_signals": 68,
+      "sector": "Healthcare",
+      "name": "Johnson & Johnson",
+      "subscores": {
+        "value": 95.0,
+        "quality": 75.0,
+        "growth": 0.0,
+        "momentum": 83.3,
+        "volatility": 0.0,
+        "flow": 0.0,
+        "event": 100.0,
+        "macro": 0.0
+      },
+      "convergence_bonus": 0.0,
+      "conflicts": [
+        "Value vs Quality: potential value trap",
+        "Quality vs Event: quality degradation event detected"
+      ]
+    },
+    "LLY": {
+      "ticker": "LLY",
+      "case_score": 61.5,
+      "environment": "Strong Opportunity",
+      "active_categories": 5,
+      "fired_signals": 10,
+      "total_signals": 68,
+      "sector": "Healthcare",
+      "name": "Eli Lilly and Company",
+      "subscores": {
+        "value": 95.0,
+        "quality": 75.0,
+        "growth": 100.0,
+        "momentum": 75.0,
+        "volatility": 0.0,
+        "flow": 0.0,
         "event": 100.0,
         "macro": 0.0
       },
       "convergence_bonus": 3.0,
       "conflicts": [
-        "Value vs Quality: potential value trap"
+        "Value vs Quality: potential value trap",
+        "Quality vs Event: quality degradation event detected"
       ]
     },
-    "UNH": {
-      "ticker": "UNH",
-      "case_score": 55.6,
-      "environment": "Neutral",
-      "active_categories": 5,
-      "fired_signals": 10,
-      "total_signals": 60,
+    "PFE": {
+      "ticker": "PFE",
+      "case_score": 15.4,
+      "environment": "Negative Signal Environment",
+      "active_categories": 4,
+      "fired_signals": 11,
+      "total_signals": 68,
       "sector": "Healthcare",
-      "name": "UnitedHealth Group Incorporated",
+      "name": "Pfizer, Inc.",
       "subscores": {
-        "value": 100.0,
+        "value": 75.0,
         "quality": 0.0,
         "growth": 0.0,
-        "momentum": 80.0,
+        "momentum": 83.3,
         "volatility": 0.0,
-        "flow": 100.0,
+        "flow": 0.0,
+        "event": 0.0,
+        "macro": 0.0
+      },
+      "convergence_bonus": 0.0,
+      "conflicts": [
+        "Value vs Quality: potential value trap",
+        "Momentum vs Value: high momentum ignoring stretched valuation"
+      ]
+    },
+    "ABBV": {
+      "ticker": "ABBV",
+      "case_score": 38.8,
+      "environment": "Weak",
+      "active_categories": 4,
+      "fired_signals": 10,
+      "total_signals": 68,
+      "sector": "Healthcare",
+      "name": "AbbVie Inc.",
+      "subscores": {
+        "value": 83.3,
+        "quality": 75.0,
+        "growth": 38.6,
+        "momentum": 75.0,
+        "volatility": 0.0,
+        "flow": 0.0,
+        "event": 0.0,
+        "macro": 0.0
+      },
+      "convergence_bonus": 0.0,
+      "conflicts": [
+        "Value vs Quality: potential value trap",
+        "Momentum vs Value: high momentum ignoring stretched valuation"
+      ]
+    },
+    "MRK": {
+      "ticker": "MRK",
+      "case_score": 32.2,
+      "environment": "Weak",
+      "active_categories": 4,
+      "fired_signals": 11,
+      "total_signals": 68,
+      "sector": "Healthcare",
+      "name": "Merck & Company, Inc.",
+      "subscores": {
+        "value": 83.3,
+        "quality": 75.0,
+        "growth": 0.0,
+        "momentum": 75.0,
+        "volatility": 0.0,
+        "flow": 0.0,
+        "event": 0.0,
+        "macro": 0.0
+      },
+      "convergence_bonus": 0.0,
+      "conflicts": [
+        "Value vs Quality: potential value trap",
+        "Momentum vs Value: high momentum ignoring stretched valuation"
+      ]
+    },
+    "AMZN": {
+      "ticker": "AMZN",
+      "case_score": 25.4,
+      "environment": "Weak",
+      "active_categories": 3,
+      "fired_signals": 8,
+      "total_signals": 68,
+      "sector": "Consumer Cyclical",
+      "name": "Amazon.com, Inc.",
+      "subscores": {
+        "value": 0.0,
+        "quality": 80.0,
+        "growth": 0.0,
+        "momentum": 75.0,
+        "volatility": 0.0,
+        "flow": 0.0,
+        "event": 100.0,
+        "macro": 0.0
+      },
+      "convergence_bonus": 0.0,
+      "conflicts": [
+        "Quality vs Event: quality degradation event detected"
+      ]
+    },
+    "TSLA": {
+      "ticker": "TSLA",
+      "case_score": 2.4,
+      "environment": "Negative Signal Environment",
+      "active_categories": 6,
+      "fired_signals": 12,
+      "total_signals": 68,
+      "sector": "Consumer Cyclical",
+      "name": "Tesla, Inc.",
+      "subscores": {
+        "value": 0.0,
+        "quality": 0.0,
+        "growth": 0.0,
+        "momentum": 75.0,
+        "volatility": 0.0,
+        "flow": 0.0,
+        "event": 100.0,
+        "macro": 0.0
+      },
+      "convergence_bonus": 0.0,
+      "conflicts": [
+        "Momentum vs Value: high momentum ignoring stretched valuation",
+        "Quality vs Event: quality degradation event detected",
+        "Growth vs Volatility: high-growth with elevated vol risk"
+      ]
+    },
+    "NKE": {
+      "ticker": "NKE",
+      "case_score": 15.4,
+      "environment": "Negative Signal Environment",
+      "active_categories": 4,
+      "fired_signals": 10,
+      "total_signals": 68,
+      "sector": "Consumer Cyclical",
+      "name": "Nike, Inc.",
+      "subscores": {
+        "value": 83.3,
+        "quality": 0.0,
+        "growth": 0.0,
+        "momentum": 75.0,
+        "volatility": 0.0,
+        "flow": 0.0,
+        "event": 0.0,
+        "macro": 0.0
+      },
+      "convergence_bonus": 0.0,
+      "conflicts": [
+        "Value vs Quality: potential value trap",
+        "Momentum vs Value: high momentum ignoring stretched valuation"
+      ]
+    },
+    "SBUX": {
+      "ticker": "SBUX",
+      "case_score": 36.0,
+      "environment": "Weak",
+      "active_categories": 4,
+      "fired_signals": 11,
+      "total_signals": 68,
+      "sector": "Consumer Cyclical",
+      "name": "Starbucks Corporation",
+      "subscores": {
+        "value": 83.3,
+        "quality": 83.3,
+        "growth": 0.0,
+        "momentum": 83.3,
+        "volatility": 0.0,
+        "flow": 0.0,
+        "event": 0.0,
+        "macro": 0.0
+      },
+      "convergence_bonus": 0.0,
+      "conflicts": [
+        "Value vs Quality: potential value trap",
+        "Momentum vs Value: high momentum ignoring stretched valuation"
+      ]
+    },
+    "CAT": {
+      "ticker": "CAT",
+      "case_score": 56.3,
+      "environment": "Neutral",
+      "active_categories": 6,
+      "fired_signals": 12,
+      "total_signals": 68,
+      "sector": "Industrials",
+      "name": "Caterpillar, Inc.",
+      "subscores": {
+        "value": 95.0,
+        "quality": 75.0,
+        "growth": 69.0,
+        "momentum": 75.0,
+        "volatility": 0.0,
+        "flow": 0.0,
+        "event": 100.0,
+        "macro": 0.0
+      },
+      "convergence_bonus": 3.0,
+      "conflicts": [
+        "Value vs Quality: potential value trap",
+        "Quality vs Event: quality degradation event detected"
+      ]
+    },
+    "GE": {
+      "ticker": "GE",
+      "case_score": 89.2,
+      "environment": "Very Strong Opportunity",
+      "active_categories": 5,
+      "fired_signals": 12,
+      "total_signals": 68,
+      "sector": "Industrials",
+      "name": "GE Aerospace",
+      "subscores": {
+        "value": 100.0,
+        "quality": 100.0,
+        "growth": 100.0,
+        "momentum": 75.0,
+        "volatility": 0.0,
+        "flow": 0.0,
         "event": 100.0,
         "macro": 0.0
       },
       "convergence_bonus": 3.0,
       "conflicts": []
     },
-    "JNJ": {
-      "ticker": "JNJ",
-      "case_score": 64.0,
-      "environment": "Strong Opportunity",
-      "active_categories": 4,
-      "fired_signals": 7,
-      "total_signals": 60,
-      "sector": "Healthcare",
-      "name": "Johnson & Johnson",
-      "subscores": {
-        "value": 100.0,
-        "quality": 100.0,
-        "growth": 0.0,
-        "momentum": 75.0,
-        "volatility": 0.0,
-        "flow": 0.0,
-        "event": 100.0,
-        "macro": 0.0
-      },
-      "convergence_bonus": 0.0,
-      "conflicts": []
-    },
-    "LLY": {
-      "ticker": "LLY",
-      "case_score": 64.0,
-      "environment": "Strong Opportunity",
-      "active_categories": 4,
-      "fired_signals": 10,
-      "total_signals": 60,
-      "sector": "Healthcare",
-      "name": "Eli Lilly and Company",
-      "subscores": {
-        "value": 100.0,
-        "quality": 100.0,
-        "growth": 0.0,
-        "momentum": 75.0,
-        "volatility": 0.0,
-        "flow": 0.0,
-        "event": 100.0,
-        "macro": 0.0
-      },
-      "convergence_bonus": 0.0,
-      "conflicts": []
-    },
-    "PFE": {
-      "ticker": "PFE",
-      "case_score": 43.0,
+    "HON": {
+      "ticker": "HON",
+      "case_score": 41.7,
       "environment": "Neutral",
       "active_categories": 4,
-      "fired_signals": 6,
-      "total_signals": 60,
-      "sector": "Healthcare",
-      "name": "Pfizer, Inc.",
+      "fired_signals": 10,
+      "total_signals": 68,
+      "sector": "Industrials",
+      "name": "Honeywell International Inc.",
       "subscores": {
-        "value": 75.0,
-        "quality": 100.0,
+        "value": 95.0,
+        "quality": 75.0,
         "growth": 0.0,
         "momentum": 75.0,
         "volatility": 0.0,
@@ -468,15 +735,15 @@
         "Value vs Quality: potential value trap"
       ]
     },
-    "ABBV": {
-      "ticker": "ABBV",
-      "case_score": 40.9,
-      "environment": "Neutral",
-      "active_categories": 3,
-      "fired_signals": 8,
-      "total_signals": 60,
-      "sector": "Healthcare",
-      "name": "AbbVie Inc.",
+    "UPS": {
+      "ticker": "UPS",
+      "case_score": 34.2,
+      "environment": "Weak",
+      "active_categories": 4,
+      "fired_signals": 10,
+      "total_signals": 68,
+      "sector": "Industrials",
+      "name": "United Parcel Service, Inc.",
       "subscores": {
         "value": 83.3,
         "quality": 83.3,
@@ -489,226 +756,23 @@
       },
       "convergence_bonus": 0.0,
       "conflicts": [
-        "Value vs Quality: potential value trap"
-      ]
-    },
-    "MRK": {
-      "ticker": "MRK",
-      "case_score": 57.0,
-      "environment": "Neutral",
-      "active_categories": 4,
-      "fired_signals": 7,
-      "total_signals": 60,
-      "sector": "Healthcare",
-      "name": "Merck & Company, Inc.",
-      "subscores": {
-        "value": 100.0,
-        "quality": 100.0,
-        "growth": 0.0,
-        "momentum": 75.0,
-        "volatility": 0.0,
-        "flow": 0.0,
-        "event": 0.0,
-        "macro": 0.0
-      },
-      "convergence_bonus": 0.0,
-      "conflicts": []
-    },
-    "AMZN": {
-      "ticker": "AMZN",
-      "case_score": 29.0,
-      "environment": "Weak",
-      "active_categories": 3,
-      "fired_signals": 7,
-      "total_signals": 60,
-      "sector": "Consumer Cyclical",
-      "name": "Amazon.com, Inc.",
-      "subscores": {
-        "value": 0.0,
-        "quality": 75.0,
-        "growth": 0.0,
-        "momentum": 75.0,
-        "volatility": 0.0,
-        "flow": 0.0,
-        "event": 100.0,
-        "macro": 0.0
-      },
-      "convergence_bonus": 0.0,
-      "conflicts": []
-    },
-    "TSLA": {
-      "ticker": "TSLA",
-      "case_score": 34.6,
-      "environment": "Weak",
-      "active_categories": 6,
-      "fired_signals": 9,
-      "total_signals": 60,
-      "sector": "Consumer Cyclical",
-      "name": "Tesla, Inc.",
-      "subscores": {
-        "value": 0.0,
-        "quality": 100.0,
-        "growth": 0.0,
-        "momentum": 75.0,
-        "volatility": 0.0,
-        "flow": 0.0,
-        "event": 100.0,
-        "macro": 0.0
-      },
-      "convergence_bonus": 3.0,
-      "conflicts": [
-        "Value vs Quality: potential value trap"
-      ]
-    },
-    "NKE": {
-      "ticker": "NKE",
-      "case_score": 57.0,
-      "environment": "Neutral",
-      "active_categories": 4,
-      "fired_signals": 6,
-      "total_signals": 60,
-      "sector": "Consumer Cyclical",
-      "name": "Nike, Inc.",
-      "subscores": {
-        "value": 100.0,
-        "quality": 100.0,
-        "growth": 0.0,
-        "momentum": 75.0,
-        "volatility": 0.0,
-        "flow": 0.0,
-        "event": 0.0,
-        "macro": 0.0
-      },
-      "convergence_bonus": 0.0,
-      "conflicts": []
-    },
-    "SBUX": {
-      "ticker": "SBUX",
-      "case_score": 36.7,
-      "environment": "Weak",
-      "active_categories": 4,
-      "fired_signals": 9,
-      "total_signals": 60,
-      "sector": "Consumer Cyclical",
-      "name": "Starbucks Corporation",
-      "subscores": {
-        "value": 75.0,
-        "quality": 75.0,
-        "growth": 0.0,
-        "momentum": 75.0,
-        "volatility": 0.0,
-        "flow": 0.0,
-        "event": 0.0,
-        "macro": 0.0
-      },
-      "convergence_bonus": 0.0,
-      "conflicts": [
-        "Value vs Quality: potential value trap"
-      ]
-    },
-    "CAT": {
-      "ticker": "CAT",
-      "case_score": 68.2,
-      "environment": "Strong Opportunity",
-      "active_categories": 6,
-      "fired_signals": 12,
-      "total_signals": 60,
-      "sector": "Industrials",
-      "name": "Caterpillar, Inc.",
-      "subscores": {
-        "value": 100.0,
-        "quality": 100.0,
-        "growth": 0.0,
-        "momentum": 75.0,
-        "volatility": 0.0,
-        "flow": 0.0,
-        "event": 100.0,
-        "macro": 0.0
-      },
-      "convergence_bonus": 3.0,
-      "conflicts": []
-    },
-    "GE": {
-      "ticker": "GE",
-      "case_score": 64.0,
-      "environment": "Strong Opportunity",
-      "active_categories": 4,
-      "fired_signals": 11,
-      "total_signals": 60,
-      "sector": "Industrials",
-      "name": "GE Aerospace",
-      "subscores": {
-        "value": 100.0,
-        "quality": 100.0,
-        "growth": 0.0,
-        "momentum": 75.0,
-        "volatility": 0.0,
-        "flow": 0.0,
-        "event": 100.0,
-        "macro": 0.0
-      },
-      "convergence_bonus": 0.0,
-      "conflicts": []
-    },
-    "HON": {
-      "ticker": "HON",
-      "case_score": 57.0,
-      "environment": "Neutral",
-      "active_categories": 4,
-      "fired_signals": 8,
-      "total_signals": 60,
-      "sector": "Industrials",
-      "name": "Honeywell International Inc.",
-      "subscores": {
-        "value": 100.0,
-        "quality": 100.0,
-        "growth": 0.0,
-        "momentum": 75.0,
-        "volatility": 0.0,
-        "flow": 0.0,
-        "event": 0.0,
-        "macro": 0.0
-      },
-      "convergence_bonus": 0.0,
-      "conflicts": []
-    },
-    "UPS": {
-      "ticker": "UPS",
-      "case_score": 45.1,
-      "environment": "Neutral",
-      "active_categories": 4,
-      "fired_signals": 8,
-      "total_signals": 60,
-      "sector": "Industrials",
-      "name": "United Parcel Service, Inc.",
-      "subscores": {
-        "value": 83.3,
-        "quality": 100.0,
-        "growth": 0.0,
-        "momentum": 75.0,
-        "volatility": 0.0,
-        "flow": 0.0,
-        "event": 0.0,
-        "macro": 0.0
-      },
-      "convergence_bonus": 0.0,
-      "conflicts": [
-        "Value vs Quality: potential value trap"
+        "Value vs Quality: potential value trap",
+        "Momentum vs Value: high momentum ignoring stretched valuation"
       ]
     },
     "BA": {
       "ticker": "BA",
-      "case_score": 36.1,
-      "environment": "Weak",
-      "active_categories": 4,
-      "fired_signals": 9,
-      "total_signals": 60,
+      "case_score": 49.3,
+      "environment": "Neutral",
+      "active_categories": 5,
+      "fired_signals": 11,
+      "total_signals": 68,
       "sector": "Industrials",
       "name": "Boeing Company (The)",
       "subscores": {
-        "value": 0.4,
+        "value": 0.2,
         "quality": 100.0,
-        "growth": 0.0,
+        "growth": 100.0,
         "momentum": 75.0,
         "volatility": 0.0,
         "flow": 0.0,
@@ -716,20 +780,22 @@
         "macro": 0.0
       },
       "convergence_bonus": 0.0,
-      "conflicts": []
+      "conflicts": [
+        "Momentum vs Value: high momentum ignoring stretched valuation"
+      ]
     },
     "XOM": {
       "ticker": "XOM",
-      "case_score": 43.0,
-      "environment": "Neutral",
-      "active_categories": 4,
-      "fired_signals": 7,
-      "total_signals": 60,
+      "case_score": 36.7,
+      "environment": "Weak",
+      "active_categories": 5,
+      "fired_signals": 12,
+      "total_signals": 68,
       "sector": "Energy",
       "name": "Exxon Mobil Corporation",
       "subscores": {
-        "value": 100.0,
-        "quality": 75.0,
+        "value": 95.0,
+        "quality": 83.3,
         "growth": 0.0,
         "momentum": 75.0,
         "volatility": 0.0,
@@ -739,21 +805,22 @@
       },
       "convergence_bonus": 0.0,
       "conflicts": [
-        "Value vs Quality: potential value trap"
+        "Value vs Quality: potential value trap",
+        "Growth vs Volatility: high-growth with elevated vol risk"
       ]
     },
     "CVX": {
       "ticker": "CVX",
-      "case_score": 49.3,
-      "environment": "Neutral",
-      "active_categories": 4,
-      "fired_signals": 6,
-      "total_signals": 60,
+      "case_score": 19.2,
+      "environment": "Negative Signal Environment",
+      "active_categories": 5,
+      "fired_signals": 12,
+      "total_signals": 68,
       "sector": "Energy",
       "name": "Chevron Corporation",
       "subscores": {
         "value": 100.0,
-        "quality": 100.0,
+        "quality": 0.0,
         "growth": 0.0,
         "momentum": 75.0,
         "volatility": 0.0,
@@ -763,22 +830,23 @@
       },
       "convergence_bonus": 0.0,
       "conflicts": [
-        "Value vs Quality: potential value trap"
+        "Value vs Quality: potential value trap",
+        "Growth vs Volatility: high-growth with elevated vol risk"
       ]
     },
     "COP": {
       "ticker": "COP",
-      "case_score": 43.0,
-      "environment": "Neutral",
-      "active_categories": 4,
-      "fired_signals": 7,
-      "total_signals": 60,
+      "case_score": 25.2,
+      "environment": "Weak",
+      "active_categories": 5,
+      "fired_signals": 12,
+      "total_signals": 68,
       "sector": "Energy",
       "name": "ConocoPhillips",
       "subscores": {
         "value": 75.0,
-        "quality": 100.0,
-        "growth": 0.0,
+        "quality": 0.0,
+        "growth": 38.9,
         "momentum": 75.0,
         "volatility": 0.0,
         "flow": 0.0,
@@ -787,21 +855,21 @@
       },
       "convergence_bonus": 0.0,
       "conflicts": [
-        "Value vs Quality: potential value trap"
+        "Momentum vs Value: high momentum ignoring stretched valuation"
       ]
     },
     "SLB": {
       "ticker": "SLB",
-      "case_score": 36.7,
+      "case_score": 22.8,
       "environment": "Weak",
       "active_categories": 4,
-      "fired_signals": 7,
-      "total_signals": 60,
+      "fired_signals": 8,
+      "total_signals": 68,
       "sector": "Energy",
       "name": "SLB Limited",
       "subscores": {
-        "value": 75.0,
-        "quality": 75.0,
+        "value": 95.0,
+        "quality": 0.0,
         "growth": 0.0,
         "momentum": 75.0,
         "volatility": 0.0,
@@ -816,81 +884,15 @@
     },
     "PG": {
       "ticker": "PG",
-      "case_score": 57.0,
+      "case_score": 41.7,
       "environment": "Neutral",
       "active_categories": 4,
-      "fired_signals": 7,
-      "total_signals": 60,
+      "fired_signals": 9,
+      "total_signals": 68,
       "sector": "Consumer Defensive",
       "name": "Procter & Gamble Company (The)",
       "subscores": {
-        "value": 100.0,
-        "quality": 100.0,
-        "growth": 0.0,
-        "momentum": 75.0,
-        "volatility": 0.0,
-        "flow": 0.0,
-        "event": 0.0,
-        "macro": 0.0
-      },
-      "convergence_bonus": 0.0,
-      "conflicts": []
-    },
-    "KO": {
-      "ticker": "KO",
-      "case_score": 57.0,
-      "environment": "Neutral",
-      "active_categories": 3,
-      "fired_signals": 6,
-      "total_signals": 60,
-      "sector": "Consumer Defensive",
-      "name": "Coca-Cola Company (The)",
-      "subscores": {
-        "value": 100.0,
-        "quality": 100.0,
-        "growth": 0.0,
-        "momentum": 75.0,
-        "volatility": 0.0,
-        "flow": 0.0,
-        "event": 0.0,
-        "macro": 0.0
-      },
-      "convergence_bonus": 0.0,
-      "conflicts": []
-    },
-    "PEP": {
-      "ticker": "PEP",
-      "case_score": 64.0,
-      "environment": "Strong Opportunity",
-      "active_categories": 4,
-      "fired_signals": 7,
-      "total_signals": 60,
-      "sector": "Consumer Defensive",
-      "name": "Pepsico, Inc.",
-      "subscores": {
-        "value": 100.0,
-        "quality": 100.0,
-        "growth": 0.0,
-        "momentum": 75.0,
-        "volatility": 0.0,
-        "flow": 0.0,
-        "event": 100.0,
-        "macro": 0.0
-      },
-      "convergence_bonus": 0.0,
-      "conflicts": []
-    },
-    "COST": {
-      "ticker": "COST",
-      "case_score": 17.8,
-      "environment": "Negative Signal Environment",
-      "active_categories": 3,
-      "fired_signals": 9,
-      "total_signals": 60,
-      "sector": "Consumer Defensive",
-      "name": "Costco Wholesale Corporation",
-      "subscores": {
-        "value": 0.0,
+        "value": 95.0,
         "quality": 75.0,
         "growth": 0.0,
         "momentum": 75.0,
@@ -904,13 +906,86 @@
         "Value vs Quality: potential value trap"
       ]
     },
-    "DIS": {
-      "ticker": "DIS",
-      "case_score": 36.7,
+    "KO": {
+      "ticker": "KO",
+      "case_score": 43.8,
+      "environment": "Neutral",
+      "active_categories": 3,
+      "fired_signals": 8,
+      "total_signals": 68,
+      "sector": "Consumer Defensive",
+      "name": "Coca-Cola Company (The)",
+      "subscores": {
+        "value": 95.0,
+        "quality": 75.0,
+        "growth": 0.0,
+        "momentum": 83.3,
+        "volatility": 0.0,
+        "flow": 0.0,
+        "event": 0.0,
+        "macro": 0.0
+      },
+      "convergence_bonus": 0.0,
+      "conflicts": [
+        "Value vs Quality: potential value trap"
+      ]
+    },
+    "PEP": {
+      "ticker": "PEP",
+      "case_score": 40.5,
+      "environment": "Neutral",
+      "active_categories": 4,
+      "fired_signals": 8,
+      "total_signals": 68,
+      "sector": "Consumer Defensive",
+      "name": "Pepsico, Inc.",
+      "subscores": {
+        "value": 95.0,
+        "quality": 75.0,
+        "growth": 0.0,
+        "momentum": 75.0,
+        "volatility": 0.0,
+        "flow": 0.0,
+        "event": 100.0,
+        "macro": 0.0
+      },
+      "convergence_bonus": 0.0,
+      "conflicts": [
+        "Value vs Quality: potential value trap",
+        "Quality vs Event: quality degradation event detected"
+      ]
+    },
+    "COST": {
+      "ticker": "COST",
+      "case_score": 20.5,
       "environment": "Weak",
       "active_categories": 4,
-      "fired_signals": 7,
-      "total_signals": 60,
+      "fired_signals": 10,
+      "total_signals": 68,
+      "sector": "Consumer Defensive",
+      "name": "Costco Wholesale Corporation",
+      "subscores": {
+        "value": 0.0,
+        "quality": 75.0,
+        "growth": 14.4,
+        "momentum": 75.0,
+        "volatility": 0.0,
+        "flow": 0.0,
+        "event": 0.0,
+        "macro": 0.0
+      },
+      "convergence_bonus": 0.0,
+      "conflicts": [
+        "Value vs Quality: potential value trap"
+      ]
+    },
+    "DIS": {
+      "ticker": "DIS",
+      "case_score": 30.4,
+      "environment": "Weak",
+      "active_categories": 4,
+      "fired_signals": 9,
+      "total_signals": 68,
       "sector": "Communication Services",
       "name": "Walt Disney Company (The)",
       "subscores": {
@@ -925,20 +1000,21 @@
       },
       "convergence_bonus": 0.0,
       "conflicts": [
-        "Value vs Quality: potential value trap"
+        "Value vs Quality: potential value trap",
+        "Momentum vs Value: high momentum ignoring stretched valuation"
       ]
     },
     "NFLX": {
       "ticker": "NFLX",
-      "case_score": 40.2,
+      "case_score": 42.6,
       "environment": "Neutral",
       "active_categories": 5,
       "fired_signals": 12,
-      "total_signals": 60,
+      "total_signals": 68,
       "sector": "Communication Services",
       "name": "Netflix, Inc.",
       "subscores": {
-        "value": 0.0,
+        "value": 79.4,
         "quality": 100.0,
         "growth": 0.0,
         "momentum": 75.0,
@@ -947,16 +1023,19 @@
         "event": 100.0,
         "macro": 0.0
       },
-      "convergence_bonus": 3.0,
-      "conflicts": []
+      "convergence_bonus": 0.0,
+      "conflicts": [
+        "Value vs Quality: potential value trap",
+        "Momentum vs Value: high momentum ignoring stretched valuation"
+      ]
     },
     "CMCSA": {
       "ticker": "CMCSA",
-      "case_score": 44.3,
-      "environment": "Neutral",
+      "case_score": 37.1,
+      "environment": "Weak",
       "active_categories": 4,
       "fired_signals": 11,
-      "total_signals": 60,
+      "total_signals": 68,
       "sector": "Communication Services",
       "name": "Comcast Corporation",
       "subscores": {
@@ -971,43 +1050,46 @@
       },
       "convergence_bonus": 0.0,
       "conflicts": [
-        "Value vs Quality: potential value trap"
+        "Value vs Quality: potential value trap",
+        "Momentum vs Value: high momentum ignoring stretched valuation"
       ]
     },
     "NEE": {
       "ticker": "NEE",
-      "case_score": 64.0,
-      "environment": "Strong Opportunity",
-      "active_categories": 4,
-      "fired_signals": 6,
-      "total_signals": 60,
+      "case_score": 53.2,
+      "environment": "Neutral",
+      "active_categories": 6,
+      "fired_signals": 12,
+      "total_signals": 68,
       "sector": "Utilities",
       "name": "NextEra Energy, Inc.",
       "subscores": {
         "value": 100.0,
-        "quality": 100.0,
-        "growth": 0.0,
-        "momentum": 75.0,
+        "quality": 7.2,
+        "growth": 100.0,
+        "momentum": 83.3,
         "volatility": 0.0,
         "flow": 0.0,
         "event": 100.0,
         "macro": 0.0
       },
       "convergence_bonus": 0.0,
-      "conflicts": []
+      "conflicts": [
+        "Value vs Quality: potential value trap"
+      ]
     },
     "DUK": {
       "ticker": "DUK",
-      "case_score": 57.0,
-      "environment": "Neutral",
-      "active_categories": 4,
-      "fired_signals": 5,
-      "total_signals": 60,
+      "case_score": 18.1,
+      "environment": "Negative Signal Environment",
+      "active_categories": 5,
+      "fired_signals": 9,
+      "total_signals": 68,
       "sector": "Utilities",
       "name": "Duke Energy Corporation (Holdin",
       "subscores": {
-        "value": 100.0,
-        "quality": 100.0,
+        "value": 95.0,
+        "quality": 0.0,
         "growth": 0.0,
         "momentum": 75.0,
         "volatility": 0.0,
@@ -1016,22 +1098,25 @@
         "macro": 0.0
       },
       "convergence_bonus": 0.0,
-      "conflicts": []
+      "conflicts": [
+        "Value vs Quality: potential value trap",
+        "Growth vs Volatility: high-growth with elevated vol risk"
+      ]
     },
     "APD": {
       "ticker": "APD",
-      "case_score": 17.8,
+      "case_score": 4.2,
       "environment": "Negative Signal Environment",
-      "active_categories": 3,
-      "fired_signals": 6,
-      "total_signals": 60,
+      "active_categories": 4,
+      "fired_signals": 9,
+      "total_signals": 68,
       "sector": "Basic Materials",
       "name": "Air Products and Chemicals, Inc",
       "subscores": {
         "value": 0.0,
-        "quality": 75.0,
-        "growth": 0.0,
-        "momentum": 75.0,
+        "quality": 0.0,
+        "growth": 17.3,
+        "momentum": 83.3,
         "volatility": 0.0,
         "flow": 0.0,
         "event": 0.0,
@@ -1044,17 +1129,17 @@
     },
     "PLD": {
       "ticker": "PLD",
-      "case_score": 57.0,
+      "case_score": 50.7,
       "environment": "Neutral",
-      "active_categories": 3,
-      "fired_signals": 6,
-      "total_signals": 60,
+      "active_categories": 4,
+      "fired_signals": 8,
+      "total_signals": 68,
       "sector": "Real Estate",
       "name": "Prologis, Inc.",
       "subscores": {
         "value": 100.0,
-        "quality": 100.0,
-        "growth": 0.0,
+        "quality": 75.0,
+        "growth": 40.6,
         "momentum": 75.0,
         "volatility": 0.0,
         "flow": 0.0,
@@ -1062,19 +1147,21 @@
         "macro": 0.0
       },
       "convergence_bonus": 0.0,
-      "conflicts": []
+      "conflicts": [
+        "Value vs Quality: potential value trap"
+      ]
     },
     "AMT": {
       "ticker": "AMT",
-      "case_score": 57.0,
+      "case_score": 55.6,
       "environment": "Neutral",
       "active_categories": 4,
-      "fired_signals": 8,
-      "total_signals": 60,
+      "fired_signals": 10,
+      "total_signals": 68,
       "sector": "Real Estate",
       "name": "American Tower Corporation (REI",
       "subscores": {
-        "value": 100.0,
+        "value": 95.0,
         "quality": 100.0,
         "growth": 0.0,
         "momentum": 75.0,
@@ -1090,7 +1177,7 @@
   "outcomes": [
     {
       "ticker": "AAPL",
-      "case_score": 89.2,
+      "case_score": 94.2,
       "environment": "Very Strong Opportunity",
       "sector": "Technology",
       "horizon": "5D",
@@ -1105,7 +1192,7 @@
     },
     {
       "ticker": "AAPL",
-      "case_score": 89.2,
+      "case_score": 94.2,
       "environment": "Very Strong Opportunity",
       "sector": "Technology",
       "horizon": "20D",
@@ -1120,7 +1207,7 @@
     },
     {
       "ticker": "AAPL",
-      "case_score": 89.2,
+      "case_score": 94.2,
       "environment": "Very Strong Opportunity",
       "sector": "Technology",
       "horizon": "60D",
@@ -1135,8 +1222,8 @@
     },
     {
       "ticker": "MSFT",
-      "case_score": 66.1,
-      "environment": "Strong Opportunity",
+      "case_score": 52.5,
+      "environment": "Neutral",
       "sector": "Technology",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -1150,8 +1237,8 @@
     },
     {
       "ticker": "MSFT",
-      "case_score": 66.1,
-      "environment": "Strong Opportunity",
+      "case_score": 52.5,
+      "environment": "Neutral",
       "sector": "Technology",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -1165,8 +1252,8 @@
     },
     {
       "ticker": "MSFT",
-      "case_score": 66.1,
-      "environment": "Strong Opportunity",
+      "case_score": 52.5,
+      "environment": "Neutral",
       "sector": "Technology",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -1180,8 +1267,8 @@
     },
     {
       "ticker": "NVDA",
-      "case_score": 47.2,
-      "environment": "Neutral",
+      "case_score": 37.1,
+      "environment": "Weak",
       "sector": "Technology",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -1195,8 +1282,8 @@
     },
     {
       "ticker": "NVDA",
-      "case_score": 47.2,
-      "environment": "Neutral",
+      "case_score": 37.1,
+      "environment": "Weak",
       "sector": "Technology",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -1210,8 +1297,8 @@
     },
     {
       "ticker": "NVDA",
-      "case_score": 47.2,
-      "environment": "Neutral",
+      "case_score": 37.1,
+      "environment": "Weak",
       "sector": "Technology",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -1225,7 +1312,7 @@
     },
     {
       "ticker": "GOOGL",
-      "case_score": 72.4,
+      "case_score": 62.6,
       "environment": "Strong Opportunity",
       "sector": "Communication Services",
       "horizon": "5D",
@@ -1240,7 +1327,7 @@
     },
     {
       "ticker": "GOOGL",
-      "case_score": 72.4,
+      "case_score": 62.6,
       "environment": "Strong Opportunity",
       "sector": "Communication Services",
       "horizon": "20D",
@@ -1255,7 +1342,7 @@
     },
     {
       "ticker": "GOOGL",
-      "case_score": 72.4,
+      "case_score": 62.6,
       "environment": "Strong Opportunity",
       "sector": "Communication Services",
       "horizon": "60D",
@@ -1270,8 +1357,8 @@
     },
     {
       "ticker": "META",
-      "case_score": 66.1,
-      "environment": "Strong Opportunity",
+      "case_score": 52.5,
+      "environment": "Neutral",
       "sector": "Communication Services",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -1285,8 +1372,8 @@
     },
     {
       "ticker": "META",
-      "case_score": 66.1,
-      "environment": "Strong Opportunity",
+      "case_score": 52.5,
+      "environment": "Neutral",
       "sector": "Communication Services",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -1300,8 +1387,8 @@
     },
     {
       "ticker": "META",
-      "case_score": 66.1,
-      "environment": "Strong Opportunity",
+      "case_score": 52.5,
+      "environment": "Neutral",
       "sector": "Communication Services",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -1315,7 +1402,7 @@
     },
     {
       "ticker": "AVGO",
-      "case_score": 74.5,
+      "case_score": 64.4,
       "environment": "Strong Opportunity",
       "sector": "Technology",
       "horizon": "5D",
@@ -1330,7 +1417,7 @@
     },
     {
       "ticker": "AVGO",
-      "case_score": 74.5,
+      "case_score": 64.4,
       "environment": "Strong Opportunity",
       "sector": "Technology",
       "horizon": "20D",
@@ -1345,7 +1432,7 @@
     },
     {
       "ticker": "AVGO",
-      "case_score": 74.5,
+      "case_score": 64.4,
       "environment": "Strong Opportunity",
       "sector": "Technology",
       "horizon": "60D",
@@ -1360,8 +1447,8 @@
     },
     {
       "ticker": "ADBE",
-      "case_score": 67.4,
-      "environment": "Strong Opportunity",
+      "case_score": 59.2,
+      "environment": "Neutral",
       "sector": "Technology",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -1375,8 +1462,8 @@
     },
     {
       "ticker": "ADBE",
-      "case_score": 67.4,
-      "environment": "Strong Opportunity",
+      "case_score": 59.2,
+      "environment": "Neutral",
       "sector": "Technology",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -1390,8 +1477,8 @@
     },
     {
       "ticker": "ADBE",
-      "case_score": 67.4,
-      "environment": "Strong Opportunity",
+      "case_score": 59.2,
+      "environment": "Neutral",
       "sector": "Technology",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -1405,8 +1492,8 @@
     },
     {
       "ticker": "CRM",
-      "case_score": 68.2,
-      "environment": "Strong Opportunity",
+      "case_score": 52.5,
+      "environment": "Neutral",
       "sector": "Technology",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -1420,8 +1507,8 @@
     },
     {
       "ticker": "CRM",
-      "case_score": 68.2,
-      "environment": "Strong Opportunity",
+      "case_score": 52.5,
+      "environment": "Neutral",
       "sector": "Technology",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -1435,8 +1522,8 @@
     },
     {
       "ticker": "CRM",
-      "case_score": 68.2,
-      "environment": "Strong Opportunity",
+      "case_score": 52.5,
+      "environment": "Neutral",
       "sector": "Technology",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -1450,7 +1537,7 @@
     },
     {
       "ticker": "CSCO",
-      "case_score": 89.2,
+      "case_score": 80.1,
       "environment": "Very Strong Opportunity",
       "sector": "Technology",
       "horizon": "5D",
@@ -1465,7 +1552,7 @@
     },
     {
       "ticker": "CSCO",
-      "case_score": 89.2,
+      "case_score": 80.1,
       "environment": "Very Strong Opportunity",
       "sector": "Technology",
       "horizon": "20D",
@@ -1480,7 +1567,7 @@
     },
     {
       "ticker": "CSCO",
-      "case_score": 89.2,
+      "case_score": 80.1,
       "environment": "Very Strong Opportunity",
       "sector": "Technology",
       "horizon": "60D",
@@ -1495,8 +1582,8 @@
     },
     {
       "ticker": "INTC",
-      "case_score": 43.0,
-      "environment": "Neutral",
+      "case_score": 27.0,
+      "environment": "Weak",
       "sector": "Technology",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -1510,8 +1597,8 @@
     },
     {
       "ticker": "INTC",
-      "case_score": 43.0,
-      "environment": "Neutral",
+      "case_score": 27.0,
+      "environment": "Weak",
       "sector": "Technology",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -1525,8 +1612,8 @@
     },
     {
       "ticker": "INTC",
-      "case_score": 43.0,
-      "environment": "Neutral",
+      "case_score": 27.0,
+      "environment": "Weak",
       "sector": "Technology",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -1540,8 +1627,8 @@
     },
     {
       "ticker": "JPM",
-      "case_score": 66.1,
-      "environment": "Strong Opportunity",
+      "case_score": 52.7,
+      "environment": "Neutral",
       "sector": "Financial Services",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -1555,8 +1642,8 @@
     },
     {
       "ticker": "JPM",
-      "case_score": 66.1,
-      "environment": "Strong Opportunity",
+      "case_score": 52.7,
+      "environment": "Neutral",
       "sector": "Financial Services",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -1570,8 +1657,8 @@
     },
     {
       "ticker": "JPM",
-      "case_score": 66.1,
-      "environment": "Strong Opportunity",
+      "case_score": 52.7,
+      "environment": "Neutral",
       "sector": "Financial Services",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -1585,8 +1672,8 @@
     },
     {
       "ticker": "V",
-      "case_score": 83.6,
-      "environment": "Very Strong Opportunity",
+      "case_score": 58.1,
+      "environment": "Neutral",
       "sector": "Financial Services",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -1600,8 +1687,8 @@
     },
     {
       "ticker": "V",
-      "case_score": 83.6,
-      "environment": "Very Strong Opportunity",
+      "case_score": 58.1,
+      "environment": "Neutral",
       "sector": "Financial Services",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -1615,8 +1702,8 @@
     },
     {
       "ticker": "V",
-      "case_score": 83.6,
-      "environment": "Very Strong Opportunity",
+      "case_score": 58.1,
+      "environment": "Neutral",
       "sector": "Financial Services",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -1630,8 +1717,8 @@
     },
     {
       "ticker": "MA",
-      "case_score": 82.2,
-      "environment": "Very Strong Opportunity",
+      "case_score": 61.5,
+      "environment": "Strong Opportunity",
       "sector": "Financial Services",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -1645,8 +1732,8 @@
     },
     {
       "ticker": "MA",
-      "case_score": 82.2,
-      "environment": "Very Strong Opportunity",
+      "case_score": 61.5,
+      "environment": "Strong Opportunity",
       "sector": "Financial Services",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -1660,8 +1747,8 @@
     },
     {
       "ticker": "MA",
-      "case_score": 82.2,
-      "environment": "Very Strong Opportunity",
+      "case_score": 61.5,
+      "environment": "Strong Opportunity",
       "sector": "Financial Services",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -1675,8 +1762,8 @@
     },
     {
       "ticker": "BAC",
-      "case_score": 73.5,
-      "environment": "Strong Opportunity",
+      "case_score": 42.2,
+      "environment": "Neutral",
       "sector": "Financial Services",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -1690,8 +1777,8 @@
     },
     {
       "ticker": "BAC",
-      "case_score": 73.5,
-      "environment": "Strong Opportunity",
+      "case_score": 42.2,
+      "environment": "Neutral",
       "sector": "Financial Services",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -1705,8 +1792,8 @@
     },
     {
       "ticker": "BAC",
-      "case_score": 73.5,
-      "environment": "Strong Opportunity",
+      "case_score": 42.2,
+      "environment": "Neutral",
       "sector": "Financial Services",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -1720,8 +1807,8 @@
     },
     {
       "ticker": "GS",
-      "case_score": 68.2,
-      "environment": "Strong Opportunity",
+      "case_score": 36.0,
+      "environment": "Weak",
       "sector": "Financial Services",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -1735,8 +1822,8 @@
     },
     {
       "ticker": "GS",
-      "case_score": 68.2,
-      "environment": "Strong Opportunity",
+      "case_score": 36.0,
+      "environment": "Weak",
       "sector": "Financial Services",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -1750,8 +1837,8 @@
     },
     {
       "ticker": "GS",
-      "case_score": 68.2,
-      "environment": "Strong Opportunity",
+      "case_score": 36.0,
+      "environment": "Weak",
       "sector": "Financial Services",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -1765,8 +1852,8 @@
     },
     {
       "ticker": "BLK",
-      "case_score": 67.4,
-      "environment": "Strong Opportunity",
+      "case_score": 36.0,
+      "environment": "Weak",
       "sector": "Financial Services",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -1780,8 +1867,8 @@
     },
     {
       "ticker": "BLK",
-      "case_score": 67.4,
-      "environment": "Strong Opportunity",
+      "case_score": 36.0,
+      "environment": "Weak",
       "sector": "Financial Services",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -1795,8 +1882,8 @@
     },
     {
       "ticker": "BLK",
-      "case_score": 67.4,
-      "environment": "Strong Opportunity",
+      "case_score": 36.0,
+      "environment": "Weak",
       "sector": "Financial Services",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -1810,8 +1897,8 @@
     },
     {
       "ticker": "UNH",
-      "case_score": 55.6,
-      "environment": "Neutral",
+      "case_score": 19.2,
+      "environment": "Negative Signal Environment",
       "sector": "Healthcare",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -1825,8 +1912,8 @@
     },
     {
       "ticker": "UNH",
-      "case_score": 55.6,
-      "environment": "Neutral",
+      "case_score": 19.2,
+      "environment": "Negative Signal Environment",
       "sector": "Healthcare",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -1840,8 +1927,8 @@
     },
     {
       "ticker": "UNH",
-      "case_score": 55.6,
-      "environment": "Neutral",
+      "case_score": 19.2,
+      "environment": "Negative Signal Environment",
       "sector": "Healthcare",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -1855,8 +1942,8 @@
     },
     {
       "ticker": "JNJ",
-      "case_score": 64.0,
-      "environment": "Strong Opportunity",
+      "case_score": 42.3,
+      "environment": "Neutral",
       "sector": "Healthcare",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -1870,8 +1957,8 @@
     },
     {
       "ticker": "JNJ",
-      "case_score": 64.0,
-      "environment": "Strong Opportunity",
+      "case_score": 42.3,
+      "environment": "Neutral",
       "sector": "Healthcare",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -1885,8 +1972,8 @@
     },
     {
       "ticker": "JNJ",
-      "case_score": 64.0,
-      "environment": "Strong Opportunity",
+      "case_score": 42.3,
+      "environment": "Neutral",
       "sector": "Healthcare",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -1900,7 +1987,7 @@
     },
     {
       "ticker": "LLY",
-      "case_score": 64.0,
+      "case_score": 61.5,
       "environment": "Strong Opportunity",
       "sector": "Healthcare",
       "horizon": "5D",
@@ -1915,7 +2002,7 @@
     },
     {
       "ticker": "LLY",
-      "case_score": 64.0,
+      "case_score": 61.5,
       "environment": "Strong Opportunity",
       "sector": "Healthcare",
       "horizon": "20D",
@@ -1930,7 +2017,7 @@
     },
     {
       "ticker": "LLY",
-      "case_score": 64.0,
+      "case_score": 61.5,
       "environment": "Strong Opportunity",
       "sector": "Healthcare",
       "horizon": "60D",
@@ -1945,8 +2032,8 @@
     },
     {
       "ticker": "PFE",
-      "case_score": 43.0,
-      "environment": "Neutral",
+      "case_score": 15.4,
+      "environment": "Negative Signal Environment",
       "sector": "Healthcare",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -1960,8 +2047,8 @@
     },
     {
       "ticker": "PFE",
-      "case_score": 43.0,
-      "environment": "Neutral",
+      "case_score": 15.4,
+      "environment": "Negative Signal Environment",
       "sector": "Healthcare",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -1975,8 +2062,8 @@
     },
     {
       "ticker": "PFE",
-      "case_score": 43.0,
-      "environment": "Neutral",
+      "case_score": 15.4,
+      "environment": "Negative Signal Environment",
       "sector": "Healthcare",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -1990,8 +2077,8 @@
     },
     {
       "ticker": "ABBV",
-      "case_score": 40.9,
-      "environment": "Neutral",
+      "case_score": 38.8,
+      "environment": "Weak",
       "sector": "Healthcare",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -2005,8 +2092,8 @@
     },
     {
       "ticker": "ABBV",
-      "case_score": 40.9,
-      "environment": "Neutral",
+      "case_score": 38.8,
+      "environment": "Weak",
       "sector": "Healthcare",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -2020,8 +2107,8 @@
     },
     {
       "ticker": "ABBV",
-      "case_score": 40.9,
-      "environment": "Neutral",
+      "case_score": 38.8,
+      "environment": "Weak",
       "sector": "Healthcare",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -2035,8 +2122,8 @@
     },
     {
       "ticker": "MRK",
-      "case_score": 57.0,
-      "environment": "Neutral",
+      "case_score": 32.2,
+      "environment": "Weak",
       "sector": "Healthcare",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -2050,8 +2137,8 @@
     },
     {
       "ticker": "MRK",
-      "case_score": 57.0,
-      "environment": "Neutral",
+      "case_score": 32.2,
+      "environment": "Weak",
       "sector": "Healthcare",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -2065,8 +2152,8 @@
     },
     {
       "ticker": "MRK",
-      "case_score": 57.0,
-      "environment": "Neutral",
+      "case_score": 32.2,
+      "environment": "Weak",
       "sector": "Healthcare",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -2080,7 +2167,7 @@
     },
     {
       "ticker": "AMZN",
-      "case_score": 29.0,
+      "case_score": 25.4,
       "environment": "Weak",
       "sector": "Consumer Cyclical",
       "horizon": "5D",
@@ -2095,7 +2182,7 @@
     },
     {
       "ticker": "AMZN",
-      "case_score": 29.0,
+      "case_score": 25.4,
       "environment": "Weak",
       "sector": "Consumer Cyclical",
       "horizon": "20D",
@@ -2110,7 +2197,7 @@
     },
     {
       "ticker": "AMZN",
-      "case_score": 29.0,
+      "case_score": 25.4,
       "environment": "Weak",
       "sector": "Consumer Cyclical",
       "horizon": "60D",
@@ -2125,8 +2212,8 @@
     },
     {
       "ticker": "TSLA",
-      "case_score": 34.6,
-      "environment": "Weak",
+      "case_score": 2.4,
+      "environment": "Negative Signal Environment",
       "sector": "Consumer Cyclical",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -2140,8 +2227,8 @@
     },
     {
       "ticker": "TSLA",
-      "case_score": 34.6,
-      "environment": "Weak",
+      "case_score": 2.4,
+      "environment": "Negative Signal Environment",
       "sector": "Consumer Cyclical",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -2155,8 +2242,8 @@
     },
     {
       "ticker": "TSLA",
-      "case_score": 34.6,
-      "environment": "Weak",
+      "case_score": 2.4,
+      "environment": "Negative Signal Environment",
       "sector": "Consumer Cyclical",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -2170,8 +2257,8 @@
     },
     {
       "ticker": "NKE",
-      "case_score": 57.0,
-      "environment": "Neutral",
+      "case_score": 15.4,
+      "environment": "Negative Signal Environment",
       "sector": "Consumer Cyclical",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -2185,8 +2272,8 @@
     },
     {
       "ticker": "NKE",
-      "case_score": 57.0,
-      "environment": "Neutral",
+      "case_score": 15.4,
+      "environment": "Negative Signal Environment",
       "sector": "Consumer Cyclical",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -2200,8 +2287,8 @@
     },
     {
       "ticker": "NKE",
-      "case_score": 57.0,
-      "environment": "Neutral",
+      "case_score": 15.4,
+      "environment": "Negative Signal Environment",
       "sector": "Consumer Cyclical",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -2215,7 +2302,7 @@
     },
     {
       "ticker": "SBUX",
-      "case_score": 36.7,
+      "case_score": 36.0,
       "environment": "Weak",
       "sector": "Consumer Cyclical",
       "horizon": "5D",
@@ -2230,7 +2317,7 @@
     },
     {
       "ticker": "SBUX",
-      "case_score": 36.7,
+      "case_score": 36.0,
       "environment": "Weak",
       "sector": "Consumer Cyclical",
       "horizon": "20D",
@@ -2245,7 +2332,7 @@
     },
     {
       "ticker": "SBUX",
-      "case_score": 36.7,
+      "case_score": 36.0,
       "environment": "Weak",
       "sector": "Consumer Cyclical",
       "horizon": "60D",
@@ -2260,8 +2347,8 @@
     },
     {
       "ticker": "CAT",
-      "case_score": 68.2,
-      "environment": "Strong Opportunity",
+      "case_score": 56.3,
+      "environment": "Neutral",
       "sector": "Industrials",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -2275,8 +2362,8 @@
     },
     {
       "ticker": "CAT",
-      "case_score": 68.2,
-      "environment": "Strong Opportunity",
+      "case_score": 56.3,
+      "environment": "Neutral",
       "sector": "Industrials",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -2290,8 +2377,8 @@
     },
     {
       "ticker": "CAT",
-      "case_score": 68.2,
-      "environment": "Strong Opportunity",
+      "case_score": 56.3,
+      "environment": "Neutral",
       "sector": "Industrials",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -2305,8 +2392,8 @@
     },
     {
       "ticker": "GE",
-      "case_score": 64.0,
-      "environment": "Strong Opportunity",
+      "case_score": 89.2,
+      "environment": "Very Strong Opportunity",
       "sector": "Industrials",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -2320,8 +2407,8 @@
     },
     {
       "ticker": "GE",
-      "case_score": 64.0,
-      "environment": "Strong Opportunity",
+      "case_score": 89.2,
+      "environment": "Very Strong Opportunity",
       "sector": "Industrials",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -2335,8 +2422,8 @@
     },
     {
       "ticker": "GE",
-      "case_score": 64.0,
-      "environment": "Strong Opportunity",
+      "case_score": 89.2,
+      "environment": "Very Strong Opportunity",
       "sector": "Industrials",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -2350,7 +2437,7 @@
     },
     {
       "ticker": "HON",
-      "case_score": 57.0,
+      "case_score": 41.7,
       "environment": "Neutral",
       "sector": "Industrials",
       "horizon": "5D",
@@ -2365,7 +2452,7 @@
     },
     {
       "ticker": "HON",
-      "case_score": 57.0,
+      "case_score": 41.7,
       "environment": "Neutral",
       "sector": "Industrials",
       "horizon": "20D",
@@ -2380,7 +2467,7 @@
     },
     {
       "ticker": "HON",
-      "case_score": 57.0,
+      "case_score": 41.7,
       "environment": "Neutral",
       "sector": "Industrials",
       "horizon": "60D",
@@ -2395,8 +2482,8 @@
     },
     {
       "ticker": "UPS",
-      "case_score": 45.1,
-      "environment": "Neutral",
+      "case_score": 34.2,
+      "environment": "Weak",
       "sector": "Industrials",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -2410,8 +2497,8 @@
     },
     {
       "ticker": "UPS",
-      "case_score": 45.1,
-      "environment": "Neutral",
+      "case_score": 34.2,
+      "environment": "Weak",
       "sector": "Industrials",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -2425,8 +2512,8 @@
     },
     {
       "ticker": "UPS",
-      "case_score": 45.1,
-      "environment": "Neutral",
+      "case_score": 34.2,
+      "environment": "Weak",
       "sector": "Industrials",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -2440,8 +2527,8 @@
     },
     {
       "ticker": "BA",
-      "case_score": 36.1,
-      "environment": "Weak",
+      "case_score": 49.3,
+      "environment": "Neutral",
       "sector": "Industrials",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -2455,8 +2542,8 @@
     },
     {
       "ticker": "BA",
-      "case_score": 36.1,
-      "environment": "Weak",
+      "case_score": 49.3,
+      "environment": "Neutral",
       "sector": "Industrials",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -2470,8 +2557,8 @@
     },
     {
       "ticker": "BA",
-      "case_score": 36.1,
-      "environment": "Weak",
+      "case_score": 49.3,
+      "environment": "Neutral",
       "sector": "Industrials",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -2485,8 +2572,8 @@
     },
     {
       "ticker": "XOM",
-      "case_score": 43.0,
-      "environment": "Neutral",
+      "case_score": 36.7,
+      "environment": "Weak",
       "sector": "Energy",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -2500,8 +2587,8 @@
     },
     {
       "ticker": "XOM",
-      "case_score": 43.0,
-      "environment": "Neutral",
+      "case_score": 36.7,
+      "environment": "Weak",
       "sector": "Energy",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -2515,8 +2602,8 @@
     },
     {
       "ticker": "XOM",
-      "case_score": 43.0,
-      "environment": "Neutral",
+      "case_score": 36.7,
+      "environment": "Weak",
       "sector": "Energy",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -2530,8 +2617,8 @@
     },
     {
       "ticker": "CVX",
-      "case_score": 49.3,
-      "environment": "Neutral",
+      "case_score": 19.2,
+      "environment": "Negative Signal Environment",
       "sector": "Energy",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -2545,8 +2632,8 @@
     },
     {
       "ticker": "CVX",
-      "case_score": 49.3,
-      "environment": "Neutral",
+      "case_score": 19.2,
+      "environment": "Negative Signal Environment",
       "sector": "Energy",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -2560,8 +2647,8 @@
     },
     {
       "ticker": "CVX",
-      "case_score": 49.3,
-      "environment": "Neutral",
+      "case_score": 19.2,
+      "environment": "Negative Signal Environment",
       "sector": "Energy",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -2575,8 +2662,8 @@
     },
     {
       "ticker": "COP",
-      "case_score": 43.0,
-      "environment": "Neutral",
+      "case_score": 25.2,
+      "environment": "Weak",
       "sector": "Energy",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -2590,8 +2677,8 @@
     },
     {
       "ticker": "COP",
-      "case_score": 43.0,
-      "environment": "Neutral",
+      "case_score": 25.2,
+      "environment": "Weak",
       "sector": "Energy",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -2605,8 +2692,8 @@
     },
     {
       "ticker": "COP",
-      "case_score": 43.0,
-      "environment": "Neutral",
+      "case_score": 25.2,
+      "environment": "Weak",
       "sector": "Energy",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -2620,7 +2707,7 @@
     },
     {
       "ticker": "SLB",
-      "case_score": 36.7,
+      "case_score": 22.8,
       "environment": "Weak",
       "sector": "Energy",
       "horizon": "5D",
@@ -2635,7 +2722,7 @@
     },
     {
       "ticker": "SLB",
-      "case_score": 36.7,
+      "case_score": 22.8,
       "environment": "Weak",
       "sector": "Energy",
       "horizon": "20D",
@@ -2650,7 +2737,7 @@
     },
     {
       "ticker": "SLB",
-      "case_score": 36.7,
+      "case_score": 22.8,
       "environment": "Weak",
       "sector": "Energy",
       "horizon": "60D",
@@ -2665,7 +2752,7 @@
     },
     {
       "ticker": "PG",
-      "case_score": 57.0,
+      "case_score": 41.7,
       "environment": "Neutral",
       "sector": "Consumer Defensive",
       "horizon": "5D",
@@ -2680,7 +2767,7 @@
     },
     {
       "ticker": "PG",
-      "case_score": 57.0,
+      "case_score": 41.7,
       "environment": "Neutral",
       "sector": "Consumer Defensive",
       "horizon": "20D",
@@ -2695,7 +2782,7 @@
     },
     {
       "ticker": "PG",
-      "case_score": 57.0,
+      "case_score": 41.7,
       "environment": "Neutral",
       "sector": "Consumer Defensive",
       "horizon": "60D",
@@ -2710,7 +2797,7 @@
     },
     {
       "ticker": "KO",
-      "case_score": 57.0,
+      "case_score": 43.8,
       "environment": "Neutral",
       "sector": "Consumer Defensive",
       "horizon": "5D",
@@ -2725,7 +2812,7 @@
     },
     {
       "ticker": "KO",
-      "case_score": 57.0,
+      "case_score": 43.8,
       "environment": "Neutral",
       "sector": "Consumer Defensive",
       "horizon": "20D",
@@ -2740,7 +2827,7 @@
     },
     {
       "ticker": "KO",
-      "case_score": 57.0,
+      "case_score": 43.8,
       "environment": "Neutral",
       "sector": "Consumer Defensive",
       "horizon": "60D",
@@ -2755,8 +2842,8 @@
     },
     {
       "ticker": "PEP",
-      "case_score": 64.0,
-      "environment": "Strong Opportunity",
+      "case_score": 40.5,
+      "environment": "Neutral",
       "sector": "Consumer Defensive",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -2770,8 +2857,8 @@
     },
     {
       "ticker": "PEP",
-      "case_score": 64.0,
-      "environment": "Strong Opportunity",
+      "case_score": 40.5,
+      "environment": "Neutral",
       "sector": "Consumer Defensive",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -2785,8 +2872,8 @@
     },
     {
       "ticker": "PEP",
-      "case_score": 64.0,
-      "environment": "Strong Opportunity",
+      "case_score": 40.5,
+      "environment": "Neutral",
       "sector": "Consumer Defensive",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -2800,8 +2887,8 @@
     },
     {
       "ticker": "COST",
-      "case_score": 17.8,
-      "environment": "Negative Signal Environment",
+      "case_score": 20.5,
+      "environment": "Weak",
       "sector": "Consumer Defensive",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -2815,8 +2902,8 @@
     },
     {
       "ticker": "COST",
-      "case_score": 17.8,
-      "environment": "Negative Signal Environment",
+      "case_score": 20.5,
+      "environment": "Weak",
       "sector": "Consumer Defensive",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -2830,8 +2917,8 @@
     },
     {
       "ticker": "COST",
-      "case_score": 17.8,
-      "environment": "Negative Signal Environment",
+      "case_score": 20.5,
+      "environment": "Weak",
       "sector": "Consumer Defensive",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -2845,7 +2932,7 @@
     },
     {
       "ticker": "DIS",
-      "case_score": 36.7,
+      "case_score": 30.4,
       "environment": "Weak",
       "sector": "Communication Services",
       "horizon": "5D",
@@ -2860,7 +2947,7 @@
     },
     {
       "ticker": "DIS",
-      "case_score": 36.7,
+      "case_score": 30.4,
       "environment": "Weak",
       "sector": "Communication Services",
       "horizon": "20D",
@@ -2875,7 +2962,7 @@
     },
     {
       "ticker": "DIS",
-      "case_score": 36.7,
+      "case_score": 30.4,
       "environment": "Weak",
       "sector": "Communication Services",
       "horizon": "60D",
@@ -2890,7 +2977,7 @@
     },
     {
       "ticker": "NFLX",
-      "case_score": 40.2,
+      "case_score": 42.6,
       "environment": "Neutral",
       "sector": "Communication Services",
       "horizon": "5D",
@@ -2905,7 +2992,7 @@
     },
     {
       "ticker": "NFLX",
-      "case_score": 40.2,
+      "case_score": 42.6,
       "environment": "Neutral",
       "sector": "Communication Services",
       "horizon": "20D",
@@ -2920,7 +3007,7 @@
     },
     {
       "ticker": "NFLX",
-      "case_score": 40.2,
+      "case_score": 42.6,
       "environment": "Neutral",
       "sector": "Communication Services",
       "horizon": "60D",
@@ -2935,8 +3022,8 @@
     },
     {
       "ticker": "CMCSA",
-      "case_score": 44.3,
-      "environment": "Neutral",
+      "case_score": 37.1,
+      "environment": "Weak",
       "sector": "Communication Services",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -2950,8 +3037,8 @@
     },
     {
       "ticker": "CMCSA",
-      "case_score": 44.3,
-      "environment": "Neutral",
+      "case_score": 37.1,
+      "environment": "Weak",
       "sector": "Communication Services",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -2965,8 +3052,8 @@
     },
     {
       "ticker": "CMCSA",
-      "case_score": 44.3,
-      "environment": "Neutral",
+      "case_score": 37.1,
+      "environment": "Weak",
       "sector": "Communication Services",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -2980,8 +3067,8 @@
     },
     {
       "ticker": "NEE",
-      "case_score": 64.0,
-      "environment": "Strong Opportunity",
+      "case_score": 53.2,
+      "environment": "Neutral",
       "sector": "Utilities",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -2995,8 +3082,8 @@
     },
     {
       "ticker": "NEE",
-      "case_score": 64.0,
-      "environment": "Strong Opportunity",
+      "case_score": 53.2,
+      "environment": "Neutral",
       "sector": "Utilities",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -3010,8 +3097,8 @@
     },
     {
       "ticker": "NEE",
-      "case_score": 64.0,
-      "environment": "Strong Opportunity",
+      "case_score": 53.2,
+      "environment": "Neutral",
       "sector": "Utilities",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -3025,8 +3112,8 @@
     },
     {
       "ticker": "DUK",
-      "case_score": 57.0,
-      "environment": "Neutral",
+      "case_score": 18.1,
+      "environment": "Negative Signal Environment",
       "sector": "Utilities",
       "horizon": "5D",
       "signal_date": "2026-03-06",
@@ -3040,8 +3127,8 @@
     },
     {
       "ticker": "DUK",
-      "case_score": 57.0,
-      "environment": "Neutral",
+      "case_score": 18.1,
+      "environment": "Negative Signal Environment",
       "sector": "Utilities",
       "horizon": "20D",
       "signal_date": "2026-02-12",
@@ -3055,8 +3142,8 @@
     },
     {
       "ticker": "DUK",
-      "case_score": 57.0,
-      "environment": "Neutral",
+      "case_score": 18.1,
+      "environment": "Negative Signal Environment",
       "sector": "Utilities",
       "horizon": "60D",
       "signal_date": "2025-12-15",
@@ -3070,7 +3157,7 @@
     },
     {
       "ticker": "APD",
-      "case_score": 17.8,
+      "case_score": 4.2,
       "environment": "Negative Signal Environment",
       "sector": "Basic Materials",
       "horizon": "5D",
@@ -3085,7 +3172,7 @@
     },
     {
       "ticker": "APD",
-      "case_score": 17.8,
+      "case_score": 4.2,
       "environment": "Negative Signal Environment",
       "sector": "Basic Materials",
       "horizon": "20D",
@@ -3100,7 +3187,7 @@
     },
     {
       "ticker": "APD",
-      "case_score": 17.8,
+      "case_score": 4.2,
       "environment": "Negative Signal Environment",
       "sector": "Basic Materials",
       "horizon": "60D",
@@ -3115,7 +3202,7 @@
     },
     {
       "ticker": "PLD",
-      "case_score": 57.0,
+      "case_score": 50.7,
       "environment": "Neutral",
       "sector": "Real Estate",
       "horizon": "5D",
@@ -3130,7 +3217,7 @@
     },
     {
       "ticker": "PLD",
-      "case_score": 57.0,
+      "case_score": 50.7,
       "environment": "Neutral",
       "sector": "Real Estate",
       "horizon": "20D",
@@ -3145,7 +3232,7 @@
     },
     {
       "ticker": "PLD",
-      "case_score": 57.0,
+      "case_score": 50.7,
       "environment": "Neutral",
       "sector": "Real Estate",
       "horizon": "60D",
@@ -3160,7 +3247,7 @@
     },
     {
       "ticker": "AMT",
-      "case_score": 57.0,
+      "case_score": 55.6,
       "environment": "Neutral",
       "sector": "Real Estate",
       "horizon": "5D",
@@ -3175,7 +3262,7 @@
     },
     {
       "ticker": "AMT",
-      "case_score": 57.0,
+      "case_score": 55.6,
       "environment": "Neutral",
       "sector": "Real Estate",
       "horizon": "20D",
@@ -3190,7 +3277,7 @@
     },
     {
       "ticker": "AMT",
-      "case_score": 57.0,
+      "case_score": 55.6,
       "environment": "Neutral",
       "sector": "Real Estate",
       "horizon": "60D",
@@ -3208,186 +3295,186 @@
     "by_bucket_and_horizon": {
       "5D": {
         "0\u201320 (Negative)": {
-          "count": 2,
-          "hit_rate": 1.0,
-          "avg_return": 0.0342,
-          "median_return": 0.0342,
-          "avg_excess_return": 0.049206,
+          "count": 7,
+          "hit_rate": 0.2857,
+          "avg_return": 0.001007,
+          "median_return": -0.007669,
+          "avg_excess_return": 0.016013,
           "win_count": 2,
-          "loss_count": 0
+          "loss_count": 4
         },
         "20\u201340 (Weak)": {
-          "count": 6,
-          "hit_rate": 0.0,
-          "avg_return": -0.033128,
-          "median_return": -0.024072,
-          "avg_excess_return": -0.018121,
-          "win_count": 0,
-          "loss_count": 5
+          "count": 15,
+          "hit_rate": 0.3333,
+          "avg_return": -0.011583,
+          "median_return": -0.022159,
+          "avg_excess_return": 0.003424,
+          "win_count": 5,
+          "loss_count": 8
         },
         "40\u201360 (Neutral)": {
-          "count": 19,
-          "hit_rate": 0.3158,
-          "avg_return": -0.007365,
-          "median_return": -0.007669,
-          "avg_excess_return": 0.007641,
-          "win_count": 6,
-          "loss_count": 10
+          "count": 18,
+          "hit_rate": 0.1667,
+          "avg_return": -0.026588,
+          "median_return": -0.021514,
+          "avg_excess_return": -0.011582,
+          "win_count": 3,
+          "loss_count": 12
         },
         "60\u201380 (Strong)": {
-          "count": 16,
-          "hit_rate": 0.1875,
-          "avg_return": -0.026943,
-          "median_return": -0.028984,
-          "avg_excess_return": -0.011936,
-          "win_count": 3,
-          "loss_count": 11
+          "count": 4,
+          "hit_rate": 0.25,
+          "avg_return": -0.015946,
+          "median_return": -0.015239,
+          "avg_excess_return": -0.00094,
+          "win_count": 1,
+          "loss_count": 3
         },
         "80\u2013100 (Very Strong)": {
-          "count": 4,
+          "count": 3,
           "hit_rate": 0.0,
-          "avg_return": -0.027818,
-          "median_return": -0.030356,
-          "avg_excess_return": -0.012812,
+          "avg_return": -0.034528,
+          "median_return": -0.028509,
+          "avg_excess_return": -0.019521,
           "win_count": 0,
-          "loss_count": 3
+          "loss_count": 2
         }
       },
       "20D": {
         "0\u201320 (Negative)": {
-          "count": 2,
-          "hit_rate": 0.5,
-          "avg_return": -0.001247,
-          "median_return": -0.001247,
-          "avg_excess_return": 0.026613,
-          "win_count": 1,
-          "loss_count": 1
-        },
-        "20\u201340 (Weak)": {
-          "count": 6,
-          "hit_rate": 0.3333,
-          "avg_return": -0.043409,
-          "median_return": -0.046105,
-          "avg_excess_return": -0.01555,
+          "count": 7,
+          "hit_rate": 0.2857,
+          "avg_return": -0.009006,
+          "median_return": -0.012075,
+          "avg_excess_return": 0.018853,
           "win_count": 2,
           "loss_count": 4
         },
-        "40\u201360 (Neutral)": {
-          "count": 19,
-          "hit_rate": 0.2632,
-          "avg_return": -0.003542,
-          "median_return": -0.020086,
-          "avg_excess_return": 0.024318,
+        "20\u201340 (Weak)": {
+          "count": 15,
+          "hit_rate": 0.3333,
+          "avg_return": -0.033315,
+          "median_return": -0.030443,
+          "avg_excess_return": -0.005456,
           "win_count": 5,
-          "loss_count": 13
+          "loss_count": 10
+        },
+        "40\u201360 (Neutral)": {
+          "count": 18,
+          "hit_rate": 0.1667,
+          "avg_return": -0.023867,
+          "median_return": -0.034593,
+          "avg_excess_return": 0.003993,
+          "win_count": 3,
+          "loss_count": 15
         },
         "60\u201380 (Strong)": {
-          "count": 16,
-          "hit_rate": 0.125,
-          "avg_return": -0.046767,
-          "median_return": -0.045219,
-          "avg_excess_return": -0.018907,
-          "win_count": 2,
-          "loss_count": 14
+          "count": 4,
+          "hit_rate": 0.0,
+          "avg_return": -0.038446,
+          "median_return": -0.038427,
+          "avg_excess_return": -0.010586,
+          "win_count": 0,
+          "loss_count": 4
         },
         "80\u2013100 (Very Strong)": {
-          "count": 4,
-          "hit_rate": 0.25,
-          "avg_return": -0.027098,
-          "median_return": -0.048461,
-          "avg_excess_return": 0.000761,
+          "count": 3,
+          "hit_rate": 0.3333,
+          "avg_return": -0.013584,
+          "median_return": -0.040792,
+          "avg_excess_return": 0.014276,
           "win_count": 1,
-          "loss_count": 3
+          "loss_count": 2
         }
       },
       "60D": {
         "0\u201320 (Negative)": {
-          "count": 2,
-          "hit_rate": 1.0,
-          "avg_return": 0.178696,
-          "median_return": 0.178696,
-          "avg_excess_return": 0.202909,
-          "win_count": 2,
-          "loss_count": 0
+          "count": 7,
+          "hit_rate": 0.5714,
+          "avg_return": 0.020251,
+          "median_return": 0.022521,
+          "avg_excess_return": 0.044465,
+          "win_count": 4,
+          "loss_count": 3
         },
         "20\u201340 (Weak)": {
-          "count": 6,
-          "hit_rate": 0.5,
-          "avg_return": 0.000185,
-          "median_return": -0.022728,
-          "avg_excess_return": 0.024398,
-          "win_count": 3,
-          "loss_count": 3
+          "count": 15,
+          "hit_rate": 0.6,
+          "avg_return": 0.081179,
+          "median_return": 0.153102,
+          "avg_excess_return": 0.105392,
+          "win_count": 9,
+          "loss_count": 6
         },
         "40\u201360 (Neutral)": {
-          "count": 19,
-          "hit_rate": 0.7895,
-          "avg_return": 0.088499,
-          "median_return": 0.045405,
-          "avg_excess_return": 0.112712,
-          "win_count": 15,
-          "loss_count": 4
+          "count": 18,
+          "hit_rate": 0.6111,
+          "avg_return": -0.009743,
+          "median_return": 0.018893,
+          "avg_excess_return": 0.014471,
+          "win_count": 11,
+          "loss_count": 7
         },
         "60\u201380 (Strong)": {
-          "count": 16,
-          "hit_rate": 0.25,
-          "avg_return": -0.055287,
-          "median_return": -0.061623,
-          "avg_excess_return": -0.031073,
-          "win_count": 4,
-          "loss_count": 11
+          "count": 4,
+          "hit_rate": 0.0,
+          "avg_return": -0.06586,
+          "median_return": -0.060587,
+          "avg_excess_return": -0.041646,
+          "win_count": 0,
+          "loss_count": 4
         },
         "80\u2013100 (Very Strong)": {
-          "count": 4,
-          "hit_rate": 0.25,
-          "avg_return": -0.079184,
-          "median_return": -0.099715,
-          "avg_excess_return": -0.05497,
+          "count": 3,
+          "hit_rate": 0.3333,
+          "avg_return": -0.027327,
+          "median_return": -0.001695,
+          "avg_excess_return": -0.003113,
           "win_count": 1,
-          "loss_count": 3
+          "loss_count": 1
         }
       }
     },
     "by_sector": {
       "Basic Materials": {
         "count": 1,
-        "avg_case": 17.8,
+        "avg_case": 4.2,
         "hit_rate": 0.0,
         "avg_return": -0.012075
       },
       "Communication Services": {
         "count": 5,
-        "avg_case": 51.9,
+        "avg_case": 45.0,
         "hit_rate": 0.2,
         "avg_return": 0.019486
       },
       "Consumer Cyclical": {
         "count": 4,
-        "avg_case": 39.3,
+        "avg_case": 19.8,
         "hit_rate": 0.5,
         "avg_return": -0.025239
       },
       "Consumer Defensive": {
         "count": 4,
-        "avg_case": 49.0,
+        "avg_case": 36.6,
         "hit_rate": 0.25,
         "avg_return": -0.02636
       },
       "Energy": {
         "count": 4,
-        "avg_case": 43.0,
+        "avg_case": 26.0,
         "hit_rate": 0.75,
         "avg_return": 0.030587
       },
       "Financial Services": {
         "count": 6,
-        "avg_case": 73.5,
+        "avg_case": 47.8,
         "hit_rate": 0.0,
         "avg_return": -0.087949
       },
       "Healthcare": {
         "count": 6,
-        "avg_case": 54.1,
+        "avg_case": 34.9,
         "hit_rate": 0.0,
         "avg_return": -0.025718
       },
@@ -3399,19 +3486,19 @@
       },
       "Real Estate": {
         "count": 2,
-        "avg_case": 57.0,
+        "avg_case": 53.2,
         "hit_rate": 0.0,
         "avg_return": -0.027017
       },
       "Technology": {
         "count": 8,
-        "avg_case": 68.1,
+        "avg_case": 58.4,
         "hit_rate": 0.25,
         "avg_return": -0.012736
       },
       "Utilities": {
         "count": 2,
-        "avg_case": 60.5,
+        "avg_case": 35.7,
         "hit_rate": 1.0,
         "avg_return": 0.040473
       }
@@ -3440,24 +3527,23 @@
       "5D": {
         "is_monotonic": false,
         "violations": [
-          "20\u201340 (Weak) (avg=-0.0331) < 0\u201320 (Negative) (avg=0.0342)",
-          "60\u201380 (Strong) (avg=-0.0269) < 40\u201360 (Neutral) (avg=-0.0074)",
-          "80\u2013100 (Very Strong) (avg=-0.0278) < 60\u201380 (Strong) (avg=-0.0269)"
+          "20\u201340 (Weak) (avg=-0.0116) < 0\u201320 (Negative) (avg=0.0010)",
+          "40\u201360 (Neutral) (avg=-0.0266) < 20\u201340 (Weak) (avg=-0.0116)",
+          "80\u2013100 (Very Strong) (avg=-0.0345) < 60\u201380 (Strong) (avg=-0.0159)"
         ]
       },
       "20D": {
         "is_monotonic": false,
         "violations": [
-          "20\u201340 (Weak) (avg=-0.0434) < 0\u201320 (Negative) (avg=-0.0012)",
-          "60\u201380 (Strong) (avg=-0.0468) < 40\u201360 (Neutral) (avg=-0.0035)"
+          "20\u201340 (Weak) (avg=-0.0333) < 0\u201320 (Negative) (avg=-0.0090)",
+          "60\u201380 (Strong) (avg=-0.0384) < 40\u201360 (Neutral) (avg=-0.0239)"
         ]
       },
       "60D": {
         "is_monotonic": false,
         "violations": [
-          "20\u201340 (Weak) (avg=0.0002) < 0\u201320 (Negative) (avg=0.1787)",
-          "60\u201380 (Strong) (avg=-0.0553) < 40\u201360 (Neutral) (avg=0.0885)",
-          "80\u2013100 (Very Strong) (avg=-0.0792) < 60\u201380 (Strong) (avg=-0.0553)"
+          "40\u201360 (Neutral) (avg=-0.0097) < 20\u201340 (Weak) (avg=0.0812)",
+          "60\u201380 (Strong) (avg=-0.0659) < 40\u201360 (Neutral) (avg=-0.0097)"
         ]
       }
     }

@@ -78,4 +78,35 @@ def extract_technical_features(
 
         # TradingView consensus
         tv_recommendation=ind.tv_recommendation,
+
+        # C7: Price cycle positioning from OHLCV bars
+        pct_from_52w_high=_compute_pct_from_52w_high(bars, price_history.current_price or ind.close),
+        mean_reversion_z=_compute_mean_reversion_z(bars, price_history.current_price or ind.close),
     )
+
+
+def _compute_pct_from_52w_high(bars: list[dict], current_price: float) -> float | None:
+    """How far current price is from 52-week high (negative = below)."""
+    if not bars or current_price <= 0:
+        return None
+    highs = [b.get("high", 0) for b in bars[-252:] if b.get("high")]
+    if not highs:
+        return None
+    high_52w = max(highs)
+    if high_52w <= 0:
+        return None
+    return round((current_price - high_52w) / high_52w, 6)
+
+
+def _compute_mean_reversion_z(bars: list[dict], current_price: float) -> float | None:
+    """Z-score of current price vs 1-year average (positive = above mean)."""
+    if not bars or current_price <= 0:
+        return None
+    closes = [b.get("close", 0) for b in bars[-252:] if b.get("close")]
+    if len(closes) < 50:
+        return None
+    avg = sum(closes) / len(closes)
+    std = (sum((c - avg) ** 2 for c in closes) / len(closes)) ** 0.5
+    if std <= 0:
+        return None
+    return round((current_price - avg) / std, 4)

@@ -55,6 +55,13 @@ class FundamentalFeatureSet(BaseModel):
     # Earnings Stability proxy
     earnings_stability: float | None = None
 
+    # C4: Sector-relative valuation adjustment factor (1.0 = no adjustment)
+    sector_pe_adjustment: float = 1.0
+
+    # C6: Fundamental momentum / acceleration
+    revenue_acceleration: float | None = None   # QoQ change in revenue growth rate
+    margin_expansion_rate: float | None = None   # Same as margin_trend but expressed as rate
+
     # Context
     sector: str = ""
     industry: str = ""
@@ -112,6 +119,10 @@ class TechnicalFeatureSet(BaseModel):
 
     # Derived risk features
     sma50_below_sma200: float = 0.0  # (sma_50 / sma_200) - 1 ; negative = death cross
+
+    # C7: Price cycle positioning
+    pct_from_52w_high: float | None = None   # negative = below high
+    mean_reversion_z: float | None = None     # z-score vs 1yr mean price
 
     @property
     def _compute_sma50_below_sma200(self) -> float:

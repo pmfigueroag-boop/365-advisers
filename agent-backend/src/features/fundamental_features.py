@@ -119,4 +119,50 @@ def extract_fundamental_features(financials: FinancialStatements) -> Fundamental
         # Derived
         margin_trend=margin_trend,
         earnings_stability=earnings_stability,
+
+        # C4: Sector-relative P/E adjustment
+        sector_pe_adjustment=_sector_pe_factor(financials.sector),
+
+        # C6: Fundamental momentum / acceleration
+        revenue_acceleration=_compute_revenue_acceleration(financials.cashflow_series),
+        margin_expansion_rate=margin_trend,  # reuse margin trend as the rate
     )
+
+
+# ── C4: Sector-relative P/E adjustment factors ──────────────────────────────
+# Multipliers applied to P/E thresholds by sector. > 1.0 means the sector
+# typically has higher P/E (so value thresholds should be relaxed).
+_SECTOR_PE_FACTORS = {
+    "Technology": 1.8,
+    "Communication Services": 1.5,
+    "Healthcare": 1.4,
+    "Consumer Cyclical": 1.3,
+    "Consumer Defensive": 1.1,
+    "Financial Services": 0.9,
+    "Industrials": 1.1,
+    "Energy": 0.7,
+    "Utilities": 0.8,
+    "Real Estate": 1.0,
+    "Basic Materials": 0.9,
+}
+
+
+def _sector_pe_factor(sector: str) -> float:
+    """Return the P/E adjustment factor for the given sector."""
+    return _SECTOR_PE_FACTORS.get(sector, 1.0)
+
+
+# ── C6: Revenue acceleration ────────────────────────────────────────────────
+def _compute_revenue_acceleration(cashflow_series: list) -> float | None:
+    """Compute revenue acceleration (change in growth rate) from cashflow."""
+    if len(cashflow_series) < 3:
+        return None
+    try:
+        revs = [e.revenue for e in cashflow_series[-3:] if e.revenue and e.revenue > 0]
+        if len(revs) < 3:
+            return None
+        g1 = (revs[-2] - revs[-3]) / revs[-3]  # Earlier growth rate
+        g2 = (revs[-1] - revs[-2]) / revs[-2]  # Recent growth rate
+        return round(g2 - g1, 6)  # Positive = accelerating
+    except (ZeroDivisionError, TypeError, AttributeError):
+        return None
