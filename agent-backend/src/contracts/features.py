@@ -55,8 +55,10 @@ class FundamentalFeatureSet(BaseModel):
     # Earnings Stability proxy
     earnings_stability: float | None = None
 
-    # C4: Sector-relative valuation adjustment factor (1.0 = no adjustment)
+    # C4: Sector-relative adjustment factors (1.0 = no adjustment)
     sector_pe_adjustment: float = 1.0
+    sector_roic_adjustment: float = 1.0   # company_roic / sector_median_roic
+    sector_dte_adjustment: float = 1.0    # company_dte / sector_median_dte
 
     # C6: Fundamental momentum / acceleration
     revenue_acceleration: float | None = None   # slope(growth_rate_series)

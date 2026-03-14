@@ -115,18 +115,44 @@ class SignalEvaluator:
 
         # C4: Sector-relative threshold adjustment for valuation signals
         adjusted_def = signal_def
-        if (
-            fundamental is not None
-            and signal_def.category == SignalCategory.VALUE
-            and fundamental.sector_pe_adjustment != 1.0
-            and any(kw in signal_def.feature_path for kw in ("pe_ratio", "ev_ebitda", "pb_ratio", "ev_revenue"))
-        ):
-            factor = fundamental.sector_pe_adjustment
+        if fundamental is not None:
             from copy import copy
-            adjusted_def = copy(signal_def)
-            adjusted_def.threshold = signal_def.threshold * factor
-            if signal_def.strong_threshold is not None:
-                adjusted_def.strong_threshold = signal_def.strong_threshold * factor
+
+            # C4a: Valuation (PE, EV/EBITDA, PB, EV/Revenue)
+            if (
+                signal_def.category == SignalCategory.VALUE
+                and fundamental.sector_pe_adjustment != 1.0
+                and any(kw in signal_def.feature_path for kw in ("pe_ratio", "ev_ebitda", "pb_ratio", "ev_revenue"))
+            ):
+                factor = fundamental.sector_pe_adjustment
+                adjusted_def = copy(signal_def)
+                adjusted_def.threshold = signal_def.threshold * factor
+                if signal_def.strong_threshold is not None:
+                    adjusted_def.strong_threshold = signal_def.strong_threshold * factor
+
+            # C4b: Quality (ROIC, ROE) — sector-relative profitability
+            elif (
+                signal_def.category == SignalCategory.QUALITY
+                and fundamental.sector_roic_adjustment != 1.0
+                and any(kw in signal_def.feature_path for kw in ("roic", "roe"))
+            ):
+                factor = fundamental.sector_roic_adjustment
+                adjusted_def = copy(signal_def)
+                adjusted_def.threshold = signal_def.threshold * factor
+                if signal_def.strong_threshold is not None:
+                    adjusted_def.strong_threshold = signal_def.strong_threshold * factor
+
+            # C4c: Leverage (Debt/Equity) — sector-relative leverage
+            elif (
+                signal_def.category == SignalCategory.QUALITY
+                and fundamental.sector_dte_adjustment != 1.0
+                and "debt_to_equity" in signal_def.feature_path
+            ):
+                factor = fundamental.sector_dte_adjustment
+                adjusted_def = copy(signal_def)
+                adjusted_def.threshold = signal_def.threshold * factor
+                if signal_def.strong_threshold is not None:
+                    adjusted_def.strong_threshold = signal_def.strong_threshold * factor
 
         fired = self._check_fired(adjusted_def, value)
         strength = self._compute_strength(signal_def, value) if fired else SignalStrength.WEAK

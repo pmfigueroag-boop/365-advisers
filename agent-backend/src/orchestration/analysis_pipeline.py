@@ -377,12 +377,21 @@ class AnalysisPipeline:
                 pass
 
             if fundamental_features or technical_features:
+                # Compute worst-case data age for freshness penalty
+                _ages = [
+                    getattr(fundamental_features, 'data_age_hours', None),
+                    getattr(technical_features, 'data_age_hours', None),
+                ]
+                _max_age = max((a for a in _ages if a is not None), default=None)
+
                 # Evaluate signals
                 profile = await asyncio.to_thread(
                     _evaluator.evaluate, symbol, fundamental_features, technical_features,
                 )
                 composite = _combiner.combine(profile)
-                case_result = _composite_engine.compute(profile, decay_engine=_decay_engine)
+                case_result = _composite_engine.compute(
+                    profile, decay_engine=_decay_engine, data_age_hours=_max_age,
+                )
 
                 # Build response data for memo agents
                 signal_data = {

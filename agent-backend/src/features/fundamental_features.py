@@ -161,6 +161,36 @@ _SECTOR_MEDIAN_PE = {
     "Basic Materials": 15.0,
 }
 
+# Sector median ROIC benchmarks (for sector-relative quality thresholds)
+_SECTOR_MEDIAN_ROIC = {
+    "Technology": 0.20,
+    "Communication Services": 0.12,
+    "Healthcare": 0.14,
+    "Consumer Cyclical": 0.12,
+    "Consumer Defensive": 0.10,
+    "Financial Services": 0.08,
+    "Industrials": 0.12,
+    "Energy": 0.10,
+    "Utilities": 0.06,
+    "Real Estate": 0.04,
+    "Basic Materials": 0.08,
+}
+
+# Sector median Debt/Equity benchmarks
+_SECTOR_MEDIAN_DTE = {
+    "Technology": 0.5,
+    "Communication Services": 1.0,
+    "Healthcare": 0.6,
+    "Consumer Cyclical": 1.2,
+    "Consumer Defensive": 1.0,
+    "Financial Services": 3.0,   # Banks naturally leverage more
+    "Industrials": 1.0,
+    "Energy": 0.8,
+    "Utilities": 1.5,
+    "Real Estate": 1.2,
+    "Basic Materials": 0.7,
+}
+
 
 def _compute_sector_pe_adjustment(pe_ratio: float | None, sector: str) -> float:
     """
@@ -236,6 +266,17 @@ def extract_fundamental_features(financials: FinancialStatements) -> Fundamental
     # extreme PE values producing absurd threshold multipliers.
     # Factor capped to [0.5, 3.0] to avoid threshold inflation.
     sector_pe_adj = _compute_sector_pe_adjustment(pe_ratio, financials.sector)
+
+    # C4b: Sector-relative quality adjustments
+    roic_val = _to_float(p.roic)
+    sector_roic_med = _SECTOR_MEDIAN_ROIC.get(financials.sector, 0.12)
+    sector_roic_adj = round(
+        max(0.5, min(3.0, roic_val / sector_roic_med)) if roic_val and sector_roic_med > 0 else 1.0, 4
+    )
+    sector_dte_med = _SECTOR_MEDIAN_DTE.get(financials.sector, 1.0)
+    sector_dte_adj = round(
+        max(0.5, min(3.0, dte / sector_dte_med)) if dte and sector_dte_med > 0 else 1.0, 4
+    )
     beta = _winsorize(_to_float(q.beta), -1, 4)
     dte = _winsorize(dte, 0, 10)
     debt_to_ebitda = _winsorize(debt_to_ebitda, 0, 30)
@@ -307,8 +348,10 @@ def extract_fundamental_features(financials: FinancialStatements) -> Fundamental
         margin_trend=margin_trend,
         earnings_stability=earnings_stability,
 
-        # C4: Sector-relative PE adjustment (dynamic)
+        # C4: Sector-relative adjustments (dynamic)
         sector_pe_adjustment=sector_pe_adj,
+        sector_roic_adjustment=sector_roic_adj,
+        sector_dte_adjustment=sector_dte_adj,
 
         # C6: Fundamental momentum
         revenue_acceleration=revenue_accel,

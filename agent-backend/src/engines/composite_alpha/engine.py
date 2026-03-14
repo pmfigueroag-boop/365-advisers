@@ -96,6 +96,7 @@ class CompositeAlphaEngine:
         profile: SignalProfile,
         weights: CASEWeightConfig | None = None,
         decay_engine: "DecayEngine | None" = None,
+        data_age_hours: float | None = None,
     ) -> CompositeAlphaResult:
         """
         Run the full pipeline (6 stages when decay is active).
@@ -167,6 +168,22 @@ class CompositeAlphaEngine:
         regime_mult = _REGIME_MULTIPLIER.get(regime, 1.0)
         if regime_mult != 1.0:
             final_score = round(max(0.0, min(100.0, final_score * regime_mult)), 1)
+
+        # Stage 6b: Data Freshness Penalty
+        # Penalise scores based on stale underlying data. Uses exponential
+        # decay with half-life of 90 days (2160 hours).
+        # - Fresh (<24h): no penalty
+        # - 30 days: ~80% retained
+        # - 90 days: ~50% retained
+        # - 180 days: ~25% retained
+        freshness_discount = 1.0
+        if data_age_hours is not None and data_age_hours > 24.0:
+            import math
+            half_life_hours = 2160.0  # 90 days
+            freshness_discount = math.pow(0.5, data_age_hours / half_life_hours)
+            freshness_discount = max(0.25, freshness_discount)  # Floor at 25%
+            final_score *= freshness_discount
+            final_score = round(max(0.0, min(100.0, final_score)), 1)
 
         # Stage 7: Classify
         environment = self._classify(final_score)
