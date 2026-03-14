@@ -41,6 +41,25 @@ def extract_technical_features(
         bars, ind.volume
     )
 
+    # F1: Winsorize outlier-prone values
+    volume_surprise = max(-5.0, min(5.0, volume_surprise))    # clip z-score to ±5σ
+    rsi = max(0.0, min(100.0, ind.rsi))                       # definition bounds
+    stoch_k = max(0.0, min(100.0, ind.stoch_k))
+    stoch_d = max(0.0, min(100.0, ind.stoch_d))
+
+    # Compute price cycle features
+    pct_52w = _compute_pct_from_52w_high(bars, current_price)
+    mr_z = _compute_mean_reversion_z_log(bars, current_price)
+    # F1: Winsorize z-score
+    if mr_z is not None:
+        mr_z = max(-5.0, min(5.0, mr_z))
+
+    # F2: Completeness score (fraction of meaningful non-zero features)
+    feature_vals = [current_price, ind.sma50, ind.sma200, rsi, ind.macd,
+                    ind.atr, volume_avg_20, ind.obv]
+    non_zero = sum(1 for v in feature_vals if v and v != 0)
+    completeness = round(non_zero / len(feature_vals), 3)
+
     return TechnicalFeatureSet(
         ticker=price_history.ticker,
         current_price=current_price,
@@ -50,10 +69,10 @@ def extract_technical_features(
         sma_200=ind.sma200,
         ema_20=ind.ema20,
 
-        # Momentum
-        rsi=ind.rsi,
-        stoch_k=ind.stoch_k,
-        stoch_d=ind.stoch_d,
+        # Momentum (F1: winsorized)
+        rsi=rsi,
+        stoch_k=stoch_k,
+        stoch_d=stoch_d,
 
         # MACD
         macd=ind.macd,
@@ -66,7 +85,7 @@ def extract_technical_features(
         bb_basis=ind.bb_basis,
         atr=ind.atr,
 
-        # Volume (upgraded)
+        # Volume (upgraded + F1: winsorized)
         volume=ind.volume,
         obv=ind.obv,
         volume_avg_20=volume_avg_20,
@@ -84,9 +103,12 @@ def extract_technical_features(
         # TradingView consensus
         tv_recommendation=ind.tv_recommendation,
 
-        # C7: Price cycle positioning from OHLCV bars
-        pct_from_52w_high=_compute_pct_from_52w_high(bars, current_price),
-        mean_reversion_z=_compute_mean_reversion_z_log(bars, current_price),
+        # C7: Price cycle positioning (F1: winsorized)
+        pct_from_52w_high=pct_52w,
+        mean_reversion_z=mr_z,
+
+        # F2: Feature validation
+        completeness_score=completeness,
     )
 
 

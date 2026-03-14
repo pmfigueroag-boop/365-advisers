@@ -423,7 +423,11 @@ class CompositeAlphaEngine:
             if span <= 0:
                 return 50.0 if value > threshold else 0.0
             ratio = (value - threshold) / span
-            # P1 fix T1: sigmoid normalization for more natural sensitivity
+            # S3: Sigmoid normalization — k=5.0 calibrated so that:
+            #   ratio=0.0 (at threshold) → ~7%  (barely fires)
+            #   ratio=0.5 (midpoint)     → ~50% (moderate signal)
+            #   ratio=1.0 (at strong)    → ~93% (strong signal)
+            #   ratio>1.5                → ~99% (diminishing returns)
             import math
             return max(0.0, min(100.0, 100.0 / (1.0 + math.exp(-5.0 * (ratio - 0.5)))))
 
@@ -494,8 +498,18 @@ class CompositeAlphaEngine:
                 sig_def = registry.get(sig.signal_id)
                 max_weight_sum += sig_def.weight if sig_def else 1.0
 
-            # Sum of effective scores
-            effective_sum = sum(score for _, score in fired_entries)
+            # Sum of effective scores with P1 redundancy discount:
+            # When >2 signals fire in a category, apply √n diminishing
+            # returns to prevent correlated signals inflating the score.
+            scores = [score for _, score in fired_entries]
+            if len(scores) <= 2:
+                effective_sum = sum(scores)
+            else:
+                # Sort descending, first 2 count fully, rest diminished
+                scores.sort(reverse=True)
+                effective_sum = sum(scores[:2])
+                for i, s in enumerate(scores[2:], start=1):
+                    effective_sum += s / (i + 1) ** 0.5  # √(n) discount
 
             # Raw category score
             if max_weight_sum > 0:
@@ -505,7 +519,11 @@ class CompositeAlphaEngine:
 
             # Coverage penalty
             coverage = fired_count / total if total > 0 else 0.0
-            # P1 fix T2: smooth sigmoid coverage penalty (replaces hard 0.3 cutoff)
+            # S3: Smooth sigmoid coverage penalty — k=10.0, midpoint=0.25
+            #   coverage=0.0  → factor ~0.08 (almost no signal coverage)
+            #   coverage=0.25 → factor ~0.50 (midpoint — typical for most categories)
+            #   coverage=0.50 → factor ~0.92 (good coverage)
+            #   coverage=1.0  → factor ~1.0  (full coverage)
             import math
             coverage_factor = 1.0 / (1.0 + math.exp(-10.0 * (coverage - 0.25)))
             raw_score *= coverage_factor

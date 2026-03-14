@@ -36,6 +36,13 @@ def _to_float(value) -> float | None:
         return None
 
 
+def _winsorize(value: float | None, low: float, high: float) -> float | None:
+    """F1: Clip value to [low, high] to suppress outliers. Returns None if input is None."""
+    if value is None:
+        return None
+    return max(low, min(high, value))
+
+
 # ═════════════════════════════════════════════════════════════════════════════
 # Statistical helpers
 # ═════════════════════════════════════════════════════════════════════════════
@@ -220,6 +227,38 @@ def extract_fundamental_features(financials: FinancialStatements) -> Fundamental
     sector_pe_adj = _compute_sector_pe_adjustment(pe_ratio, financials.sector)
     revenue_accel = _compute_revenue_acceleration(series)
 
+    # ── F1: Winsorize outlier-prone values ─────────────────────────────────
+    pe_ratio = _winsorize(pe_ratio, 0, 80)
+    ev_ebitda = _winsorize(_to_float(v.ev_ebitda), 0, 50)
+    beta = _winsorize(_to_float(q.beta), -1, 4)
+    dte = _winsorize(dte, 0, 10)
+    debt_to_ebitda = _winsorize(debt_to_ebitda, 0, 30)
+
+    # Collect all feature values for completeness computation
+    features = {
+        "roic": _to_float(p.roic),
+        "roe": _to_float(p.roe),
+        "gross_margin": _to_float(p.gross_margin),
+        "ebit_margin": _to_float(p.ebit_margin),
+        "net_margin": _to_float(p.net_margin),
+        "fcf_yield": _to_float(v.fcf_yield),
+        "debt_to_equity": dte,
+        "debt_to_ebitda": debt_to_ebitda,
+        "pe_ratio": pe_ratio,
+        "pb_ratio": _to_float(v.pb_ratio),
+        "ev_ebitda": ev_ebitda,
+        "revenue_growth_yoy": _to_float(q.revenue_growth_yoy),
+        "earnings_growth_yoy": _to_float(q.earnings_growth_yoy),
+        "beta": beta,
+        "margin_trend": margin_trend,
+        "earnings_stability": earnings_stability,
+        "revenue_acceleration": revenue_accel,
+    }
+
+    # F2: Completeness score
+    non_none = sum(1 for v in features.values() if v is not None)
+    completeness = round(non_none / len(features), 3) if features else 0.0
+
     return FundamentalFeatureSet(
         ticker=financials.ticker,
         name=financials.name,
@@ -229,34 +268,34 @@ def extract_fundamental_features(financials: FinancialStatements) -> Fundamental
         market_cap=v.market_cap,
 
         # Profitability
-        roic=_to_float(p.roic),
-        roe=_to_float(p.roe),
-        gross_margin=_to_float(p.gross_margin),
-        ebit_margin=_to_float(p.ebit_margin),
-        net_margin=_to_float(p.net_margin),
+        roic=features["roic"],
+        roe=features["roe"],
+        gross_margin=features["gross_margin"],
+        ebit_margin=features["ebit_margin"],
+        net_margin=features["net_margin"],
 
         # Cash Flow
-        fcf_yield=_to_float(v.fcf_yield),
+        fcf_yield=features["fcf_yield"],
 
-        # Leverage
+        # Leverage (F1: winsorized)
         debt_to_equity=dte,
         debt_to_ebitda=debt_to_ebitda,
         current_ratio=_to_float(l.current_ratio),
         quick_ratio=_to_float(l.quick_ratio),
 
         # Growth
-        revenue_growth_yoy=_to_float(q.revenue_growth_yoy),
-        earnings_growth_yoy=_to_float(q.earnings_growth_yoy),
+        revenue_growth_yoy=features["revenue_growth_yoy"],
+        earnings_growth_yoy=features["earnings_growth_yoy"],
 
-        # Valuation
+        # Valuation (F1: winsorized)
         pe_ratio=pe_ratio,
-        pb_ratio=_to_float(v.pb_ratio),
-        ev_ebitda=_to_float(v.ev_ebitda),
+        pb_ratio=features["pb_ratio"],
+        ev_ebitda=ev_ebitda,
 
-        # Quality
+        # Quality (F1: winsorized)
         dividend_yield=q.dividend_yield,
         payout_ratio=q.payout_ratio,
-        beta=_to_float(q.beta),
+        beta=beta,
 
         # Derived (v2 — statistically rigorous)
         margin_trend=margin_trend,
@@ -267,5 +306,8 @@ def extract_fundamental_features(financials: FinancialStatements) -> Fundamental
 
         # C6: Fundamental momentum
         revenue_acceleration=revenue_accel,
-        margin_expansion_rate=margin_trend,
+
+        # F2: Feature validation
+        completeness_score=completeness,
     )
+

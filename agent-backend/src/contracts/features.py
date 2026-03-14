@@ -59,8 +59,7 @@ class FundamentalFeatureSet(BaseModel):
     sector_pe_adjustment: float = 1.0
 
     # C6: Fundamental momentum / acceleration
-    revenue_acceleration: float | None = None   # QoQ change in revenue growth rate
-    margin_expansion_rate: float | None = None   # Same as margin_trend but expressed as rate
+    revenue_acceleration: float | None = None   # slope(growth_rate_series)
 
     # Context
     sector: str = ""
@@ -68,6 +67,11 @@ class FundamentalFeatureSet(BaseModel):
     market_cap: float | None = None
     name: str = ""
     description: str = ""
+
+    # F2: Feature validation metadata
+    completeness_score: float = 1.0  # 0–1, fraction of non-None features
+    # P2: Data freshness
+    data_age_hours: float = 0.0      # hours since data was fetched
 
 
 # ─── Technical Features ───────────────────────────────────────────────────────
@@ -79,6 +83,11 @@ class TechnicalFeatureSet(BaseModel):
     """
     ticker: str
     current_price: float = 0.0
+
+    # F2: Feature validation metadata
+    completeness_score: float = 1.0  # 0–1, fraction of non-None features
+    # P2: Data freshness
+    data_age_hours: float = 0.0      # hours since data was fetched
 
     # Moving Averages
     sma_50: float = 0.0

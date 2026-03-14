@@ -52,17 +52,25 @@ class CASEWeightConfig(BaseModel):
     """
     Configurable weight profile for category aggregation.
 
-    Weights must sum to 1.0.  Default profile reflects institutional
-    priorities: Value + Quality + Momentum as core pillars.
+    Weights must sum to 1.0.  Default profile reflects academic factor
+    research consensus:
+      - Value (25%):      Most-documented factor (Fama-French 1993, 2015)
+      - Quality (22%):    High persistence (Novy-Marx 2013, Asness et al 2019)
+      - Momentum (20%):   Strong returns, crash risk (Jegadeesh & Titman 1993)
+      - Growth (15%):     Noisy without quality adjustment
+      - Flow (8%):        Signal strength varies
+      - Volatility (5%):  Informative but not directionally predictive
+      - Event (3%):       Low signal/noise ratio
+      - Macro (2%):       Background context, not stock-specific
     """
-    value: float = 0.20
-    quality: float = 0.20
+    value: float = 0.25
+    quality: float = 0.22
     momentum: float = 0.20
     growth: float = 0.15
-    flow: float = 0.10
+    flow: float = 0.08
     volatility: float = 0.05
-    event: float = 0.05
-    macro: float = 0.05
+    event: float = 0.03
+    macro: float = 0.02
 
     @model_validator(mode="after")
     def weights_must_sum_to_one(self) -> CASEWeightConfig:
