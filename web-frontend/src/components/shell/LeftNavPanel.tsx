@@ -11,6 +11,7 @@
 
 import { useState } from "react";
 import {
+    Activity,
     ChevronLeft,
     ChevronRight,
     Monitor,
@@ -46,6 +47,7 @@ const VIEW_CONTEXT: Record<ViewId, LeftNavContext> = {
     "strategy-lab": { icon: <FlaskConical size={18} />, label: "Strategy Lab" },
     marketplace: { icon: <Store size={18} />, label: "Marketplace" },
     "ai-assistant": { icon: <Sparkles size={18} />, label: "AI Assistant" },
+    "alpha-engine": { icon: <Activity size={18} />, label: "Alpha Engine" },
 };
 
 // ─── Sub-navigation items per view ────────────────────────────────────────
@@ -87,7 +89,7 @@ export default function LeftNavPanel({
     onTickerSelect,
 }: LeftNavPanelProps) {
     const [expanded, setExpanded] = useState(false);
-    const context = VIEW_CONTEXT[activeView];
+    const context = VIEW_CONTEXT[activeView] ?? { icon: <Monitor size={18} />, label: activeView };
 
     return (
         <nav
