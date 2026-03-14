@@ -155,6 +155,13 @@ export default function TerminalView({
                         const sigDotColor =
                             sig === "BUY" ? "#22c55e" : sig === "SELL" ? "#ef4444" : sig === "HOLD" ? "#eab308" : "#4b5563";
 
+                        // Signal transition indicator
+                        const prev = item.prevSignal;
+                        const SIGNAL_RANK: Record<string, number> = { SELL: 0, HOLD: 1, BUY: 2 };
+                        const hasTransition = prev && prev !== sig;
+                        const isUpgrade = hasTransition && (SIGNAL_RANK[sig] ?? 1) > (SIGNAL_RANK[prev] ?? 1);
+                        const isDowngrade = hasTransition && (SIGNAL_RANK[sig] ?? 1) < (SIGNAL_RANK[prev] ?? 1);
+
                         return (
                             <button
                                 key={item.ticker}
@@ -185,11 +192,22 @@ export default function TerminalView({
                                             <p className="text-[10px] text-gray-600 truncate max-w-[140px]">{item.name ?? item.ticker}</p>
                                         </div>
                                     </div>
-                                    {sig !== "—" && (
-                                        <span className={`text-[9px] font-black px-2 py-1 rounded-md border uppercase flex-shrink-0 ${sigColor}`}>
-                                            {sig}
-                                        </span>
-                                    )}
+                                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                                        {/* Signal transition indicator */}
+                                        {hasTransition && (
+                                            <span
+                                                className={`text-[8px] font-mono ${isUpgrade ? "text-green-400" : "text-red-400"}`}
+                                                title={`${prev} → ${sig}`}
+                                            >
+                                                {isUpgrade ? "▲" : "▼"} {prev}
+                                            </span>
+                                        )}
+                                        {sig !== "—" && (
+                                            <span className={`text-[9px] font-black px-2 py-1 rounded-md border uppercase ${sigColor}`}>
+                                                {sig}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-gray-600 group-hover:text-[#d4af37] transition-colors">
                                     <Zap size={10} />

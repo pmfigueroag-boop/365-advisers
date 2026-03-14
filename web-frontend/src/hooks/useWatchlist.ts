@@ -10,6 +10,7 @@ export interface WatchlistItem {
     name: string;
     addedAt: string;
     lastSignal?: string;        // "BUY" | "SELL" | "HOLD" | "NEUTRAL"
+    prevSignal?: string;        // Previous signal for change tracking
     lastAnalyzedAt?: string;    // ISO timestamp
     lastScore?: number;         // 0-10 committee score
     prevScore?: number;         // previous score for delta display
@@ -109,6 +110,7 @@ export function useWatchlist() {
                     i.ticker === symbol
                         ? {
                             ...i,
+                            prevSignal: i.lastSignal,
                             lastSignal: signal,
                             lastAnalyzedAt: new Date().toISOString(),
                             prevScore: i.lastScore,
