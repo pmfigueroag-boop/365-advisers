@@ -174,7 +174,9 @@ def _compute_sector_pe_adjustment(pe_ratio: float | None, sector: str) -> float:
     sector_median = _SECTOR_MEDIAN_PE.get(sector, 18.0)
     if sector_median <= 0:
         return 1.0
-    return round(pe_ratio / sector_median, 4)
+    raw_factor = pe_ratio / sector_median
+    # Cap to [0.5, 3.0] to prevent extreme threshold inflation
+    return round(max(0.5, min(3.0, raw_factor)), 4)
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -224,12 +226,16 @@ def extract_fundamental_features(financials: FinancialStatements) -> Fundamental
     dte = _to_float(l.debt_to_equity)
     debt_to_ebitda = _compute_debt_to_ebitda(series, dte)
     pe_ratio = _to_float(v.pe_ratio)
-    sector_pe_adj = _compute_sector_pe_adjustment(pe_ratio, financials.sector)
     revenue_accel = _compute_revenue_acceleration(series)
 
-    # ── F1: Winsorize outlier-prone values ─────────────────────────────────
+    # ── F1: Winsorize outlier-prone values BEFORE derived computations ─────
     pe_ratio = _winsorize(pe_ratio, 0, 80)
     ev_ebitda = _winsorize(_to_float(v.ev_ebitda), 0, 50)
+
+    # C4: Sector PE adjustment computed AFTER winsorization to prevent
+    # extreme PE values producing absurd threshold multipliers.
+    # Factor capped to [0.5, 3.0] to avoid threshold inflation.
+    sector_pe_adj = _compute_sector_pe_adjustment(pe_ratio, financials.sector)
     beta = _winsorize(_to_float(q.beta), -1, 4)
     dte = _winsorize(dte, 0, 10)
     debt_to_ebitda = _winsorize(debt_to_ebitda, 0, 30)

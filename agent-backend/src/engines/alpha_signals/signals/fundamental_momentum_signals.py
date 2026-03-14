@@ -37,8 +37,8 @@ FUNDAMENTAL_MOMENTUM_SIGNALS = [
         description="Profit margins expanding — operational leverage improving",
         feature_path="fundamental.margin_trend",
         direction=SignalDirection.ABOVE,
-        threshold=0.01,
-        strong_threshold=0.05,
+        threshold=0.10,        # margin trend quality > 0.10 = meaningful expansion
+        strong_threshold=0.50,  # strong expansion signal
         weight=1.1,
         tags=["fundamental_momentum", "margin"],
     ),
@@ -63,8 +63,8 @@ FUNDAMENTAL_MOMENTUM_SIGNALS = [
         description="Profit margins contracting — pricing power or cost pressure",
         feature_path="fundamental.margin_trend",
         direction=SignalDirection.BELOW,
-        threshold=-0.01,
-        strong_threshold=-0.05,
+        threshold=-0.10,       # margin trend quality < -0.10 = meaningful compression
+        strong_threshold=-0.50, # strong compression signal
         weight=1.0,
         tags=["fundamental_momentum", "margin", "risk"],
     ),
