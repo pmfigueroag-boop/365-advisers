@@ -104,7 +104,9 @@ class TechnicalFeatureSet(BaseModel):
     # Volume
     volume: float = 0.0
     obv: float = 0.0
-    volume_avg_20: float = 0.0  # 20-period average volume
+    volume_avg_20: float = 0.0        # 20-period average volume
+    volume_surprise: float = 0.0      # (vol - mean_20) / std_20 — z-score
+    relative_volume: float = 1.0      # vol / vol_avg_20 — ratio
 
     # OHLCV bars (for structure analysis)
     ohlcv: list[dict] = Field(default_factory=list)
@@ -117,20 +119,20 @@ class TechnicalFeatureSet(BaseModel):
     # TradingView consensus
     tv_recommendation: str = "UNKNOWN"
 
-    # Derived risk features
-    sma50_below_sma200: float = 0.0  # (sma_50 / sma_200) - 1 ; negative = death cross
+    # Trend alignment (continuous spread, not boolean)
+    sma_50_200_spread: float = 0.0  # (sma_50 / sma_200) - 1 ; negative = death cross
 
     # C7: Price cycle positioning
     pct_from_52w_high: float | None = None   # negative = below high
-    mean_reversion_z: float | None = None     # z-score vs 1yr mean price
+    mean_reversion_z: float | None = None     # z-score of log(price) vs 1yr rolling mean
 
     @property
-    def _compute_sma50_below_sma200(self) -> float:
+    def _compute_sma_spread(self) -> float:
         if self.sma_200 > 0:
             return (self.sma_50 / self.sma_200) - 1.0
         return 0.0
 
     def model_post_init(self, __context) -> None:
         """Compute derived features after initialization."""
-        if self.sma_200 > 0 and self.sma50_below_sma200 == 0.0:
-            self.sma50_below_sma200 = round((self.sma_50 / self.sma_200) - 1.0, 6)
+        if self.sma_200 > 0 and self.sma_50_200_spread == 0.0:
+            self.sma_50_200_spread = round((self.sma_50 / self.sma_200) - 1.0, 6)
