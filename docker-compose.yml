@@ -1,0 +1,75 @@
+# 365 Advisers — Full Stack Development & Production Services
+services:
+  # ── Database ─────────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: advisers365
+      POSTGRES_USER: advisers
+      POSTGRES_PASSWORD: advisers
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U advisers -d advisers365"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis (shared cache + rate limiting) ─────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+
+  # ── Backend API ──────────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./agent-backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./agent-backend/.env
+    environment:
+      - DATABASE_URL=postgresql+psycopg://advisers:advisers@postgres:5432/advisers365
+      - REDIS_URL=redis://redis:6379/0
+      - CACHE_BACKEND=redis
+      - AUTH_ENABLED=true
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/ready"]
+      interval: 10s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+
+  # ── Frontend ─────────────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./web-frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  redisdata:

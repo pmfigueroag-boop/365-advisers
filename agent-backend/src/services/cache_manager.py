@@ -128,20 +128,46 @@ class CacheManager:
     Single facade for all caching in 365 Advisers.
 
     Subsystems:
-      - analysis: in-memory, TTL 5min (legacy LangGraph results + ticker info)
-      - decision: in-memory, TTL 15min (CIO memo results)
+      - analysis: in-memory or Redis, TTL 5min (legacy LangGraph results + ticker info)
+      - decision: in-memory or Redis, TTL 15min (CIO memo results)
       - fundamental: DB-backed, TTL 24h (fundamental engine events)
       - technical: DB-backed, TTL 15min (technical engine data)
+
+    Backend selection: set CACHE_BACKEND=redis in .env to use Redis.
     """
 
     def __init__(self):
-        self.analysis = _AnalysisMemoryCache()
-        self.decision = _MemoryTTLCache("DecisionCache", 900)
+        self._backend = self._detect_backend()
+
+        if self._backend == "redis":
+            from src.services.redis_cache import RedisTTLCache, is_redis_available
+            if is_redis_available():
+                self.analysis = _AnalysisMemoryCache()  # Keep specialized interface
+                self.decision = RedisTTLCache("DecisionCache", 900)
+                logger.info("CacheManager: Redis backend active for decision cache")
+            else:
+                self.analysis = _AnalysisMemoryCache()
+                self.decision = _MemoryTTLCache("DecisionCache", 900)
+                self._backend = "memory"
+                logger.warning("CacheManager: Redis unavailable, falling back to memory")
+        else:
+            self.analysis = _AnalysisMemoryCache()
+            self.decision = _MemoryTTLCache("DecisionCache", 900)
+
         self.fundamental = FundamentalDBCache()
         self.technical = TechnicalDBCache()
 
+    @staticmethod
+    def _detect_backend() -> str:
+        try:
+            from src.config import get_settings
+            return get_settings().CACHE_BACKEND
+        except Exception:
+            return "memory"
+
     def status_all(self) -> dict:
         return {
+            "backend": self._backend,
             "analysis": self.analysis.status(),
             "decision": self.decision.status(),
         }
@@ -157,4 +183,5 @@ class CacheManager:
 
 # Singleton instance
 cache_manager = CacheManager()
+
 

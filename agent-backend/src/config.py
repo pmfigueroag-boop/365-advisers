@@ -116,6 +116,11 @@ class Settings(BaseSettings):
     OTEL_EXPORTER: str = "console"                 # "console" | "otlp"
     OTEL_ENDPOINT: str = "http://localhost:4318"    # OTLP HTTP endpoint
 
+    # ── Cache & Redis ──────────────────────────────────────────────────────
+    CACHE_BACKEND: str = "memory"                  # "memory" | "redis"
+    REDIS_URL: str = "redis://localhost:6379/0"
+    PROMPT_CACHE_ENABLED: bool = True              # Gemini system instruction caching
+
     # ── Database
     DATABASE_URL: str = "sqlite:///advisers.db"  # Override with postgresql+psycopg://... in .env
 
