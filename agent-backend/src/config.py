@@ -101,6 +101,21 @@ class Settings(BaseSettings):
     EDPL_ENABLE_ALTERNATIVE: bool = True
     EDPL_ENABLE_VOLATILITY: bool = True
 
+    # ── Authentication & Authorization ─────────────────────────────────
+    AUTH_ENABLED: bool = False                     # Set True to enforce JWT auth
+    JWT_SECRET_KEY: str = "365-advisers-dev-secret-CHANGE-IN-PRODUCTION"
+    JWT_EXPIRATION_MINUTES: int = 480              # 8 hours
+    ADMIN_USERNAME: str = "admin"
+    ADMIN_PASSWORD_HASH: str = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918"  # sha256("admin")
+    ANALYST_PASSWORD_HASH: str = "d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65c4e16e7807340fa"  # sha256("analyst")
+    VIEWER_PASSWORD_HASH: str = "7ef92d2a918b0388dab463e6fd0b3e0a7a1e07bc593c1ca5a524ad391e22e5c3"  # sha256("viewer")
+
+    # ── Observability ─────────────────────────────────────────────────────
+    OTEL_ENABLED: bool = True
+    OTEL_SERVICE_NAME: str = "365-advisers-api"
+    OTEL_EXPORTER: str = "console"                 # "console" | "otlp"
+    OTEL_ENDPOINT: str = "http://localhost:4318"    # OTLP HTTP endpoint
+
     # ── Database
     DATABASE_URL: str = "sqlite:///advisers.db"  # Override with postgresql+psycopg://... in .env
 

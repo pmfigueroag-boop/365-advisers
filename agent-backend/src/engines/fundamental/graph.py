@@ -133,8 +133,10 @@ def _safe_agent_call(ticker: str, agent_name: str, framework: str, focus: str, d
         "is_fallback": True,
     }
     try:
+        from src.observability import traced_llm_call
         prompt = _agent_prompt(ticker, agent_name, framework, focus, data, extra)
-        raw = _llm_agent.invoke(prompt).content
+        result = traced_llm_call("gemini-2.5-flash", prompt, _llm_agent.invoke)
+        raw = result.content
         parsed = extract_json(raw)
         if not parsed:
             return fallback
@@ -327,7 +329,9 @@ Respond ONLY with valid JSON:
     }
 
     try:
-        raw = _llm_supervisor.invoke(prompt).content
+        from src.observability import traced_llm_call
+        result = traced_llm_call("gemini-2.5-pro", prompt, _llm_supervisor.invoke)
+        raw = result.content
         parsed = extract_json(raw)
         if not parsed:
             return {"committee_output": fallback}

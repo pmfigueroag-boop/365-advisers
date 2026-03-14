@@ -44,10 +44,11 @@ class AnalysisPipeline:
     Produces SSE events as an async generator.
     """
 
-    def __init__(self, fund_cache, tech_cache, decision_cache):
+    def __init__(self, fund_cache, tech_cache, decision_cache, edpl_router=None):
         self.fund_cache = fund_cache
         self.tech_cache = tech_cache
         self.decision_cache = decision_cache
+        self._edpl_router = edpl_router  # Use app.state singleton when available
 
     async def run_combined_stream(self, ticker: str, force: bool = False):
         """
@@ -217,7 +218,7 @@ class AnalysisPipeline:
             tracker = CoverageTracker(ticker=symbol)
 
             # Try to fetch enrichment data from EDPL (non-blocking)
-            edpl_results = await self._fetch_edpl_enrichment(symbol)
+            edpl_results = await self._fetch_edpl_enrichment(symbol, self._edpl_router)
 
             filing_data = edpl_results.get("filing_events")
             geopolitical_data = edpl_results.get("geopolitical")
@@ -368,11 +369,10 @@ class AnalysisPipeline:
             except Exception:
                 pass
 
+            # OPTIMIZATION: Reuse existing tech_data instead of re-fetching
             try:
-                from src.data.market_data import fetch_technical_data as fetch_tech_for_signals
-                tech_raw = await asyncio.to_thread(fetch_tech_for_signals, symbol)
-                if tech_raw and "error" not in tech_raw:
-                    technical_features = _ige._build_technical_features(symbol, tech_raw)
+                if tech_data and "error" not in tech_data:
+                    technical_features = _ige._build_technical_features(symbol, tech_data)
             except Exception:
                 pass
 
@@ -534,24 +534,28 @@ class AnalysisPipeline:
     # ── EDPL Enrichment Helper ────────────────────────────────────────────
 
     @staticmethod
-    async def _fetch_edpl_enrichment(ticker: str) -> dict:
+    async def _fetch_edpl_enrichment(ticker: str, edpl_router=None) -> dict:
         """
         Non-blocking EDPL fetch for enrichment data.
 
-        Returns a dict with domain keys → contract objects.
-        Falls back gracefully if EDPL is not configured.
+        Uses the provided edpl_router (from app.state singleton) when available,
+        avoiding the creation of fresh instances that reset circuit breaker state.
         """
         results: dict = {"_responses": {}}
 
         try:
             from src.data.external.base import DataDomain, ProviderRequest
-            from src.data.external.registry import ProviderRegistry
-            from src.data.external.health import HealthChecker
-            from src.data.external.fallback import FallbackRouter
 
-            registry = ProviderRegistry()
-            health = HealthChecker()
-            router = FallbackRouter(registry, health)
+            router = edpl_router
+
+            # Fallback: create new instances if no router provided
+            if router is None:
+                from src.data.external.registry import ProviderRegistry
+                from src.data.external.health import HealthChecker
+                from src.data.external.fallback import FallbackRouter
+                registry = ProviderRegistry()
+                health = HealthChecker()
+                router = FallbackRouter(registry, health)
 
             # Fetch domains concurrently (timeout 5s each)
             async def _safe_fetch(domain: DataDomain) -> tuple:

@@ -307,7 +307,9 @@ Respond ONLY with valid JSON (NO markdown code blocks, strict JSON) containing t
     }
 
     try:
-        raw_response = _llm_cio.invoke(prompt).content
+        from src.observability import traced_llm_call
+        result = traced_llm_call("gemini-2.5-pro", prompt, _llm_cio.invoke)
+        raw_response = result.content
         parsed = extract_json(raw_response)
         
         if not parsed:

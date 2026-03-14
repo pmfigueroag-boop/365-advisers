@@ -37,8 +37,12 @@ logger = logging.getLogger("365advisers.main")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Initialise the database and EDPL on startup."""
+    """Initialise the database, EDPL, and observability on startup."""
     init_db()
+
+    # ── OpenTelemetry Initialisation ──────────────────────────────────
+    from src.observability import init_telemetry
+    init_telemetry(settings.OTEL_SERVICE_NAME)
 
     # ── EDPL Initialisation ───────────────────────────────────────────────
     from src.data.external.registry import ProviderRegistry
@@ -203,13 +207,13 @@ async def lifespan(app: FastAPI):
     logger.info("EDPL initialised — %d adapters registered across %d domains", sum(
         len(registry.get_all(d)) for d in registry.list_domains()
     ), len(registry.list_domains()))
-    logger.info("365 Advisers API started (v3.3 — multi-source integration layer)")
+    logger.info("365 Advisers API started (v3.4 — auth + observability + agent tools)")
     yield
 
 
 # ── App Creation ─────────────────────────────────────────────────────────────
 
-app = FastAPI(title="365 Advisers API", version="3.0.0", lifespan=lifespan)
+app = FastAPI(title="365 Advisers API", version="3.4.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -275,8 +279,11 @@ from src.routes.investment_brain import router as investment_brain_router
 from src.routes.autonomous_pm import router as autonomous_pm_router
 from src.routes.ideas_backtest import router as ideas_backtest_router
 from src.routes.screener import router as screener_router
+from src.routes.auth import router as auth_router
+from src.routes.agents import router as agents_router
 
 app.include_router(health_router)
+app.include_router(auth_router)
 app.include_router(analysis_router)
 app.include_router(cache_router)
 app.include_router(portfolio_router)
@@ -324,8 +331,9 @@ app.include_router(investment_brain_router)
 app.include_router(autonomous_pm_router)
 app.include_router(ideas_backtest_router)
 app.include_router(screener_router)
+app.include_router(agents_router)
 
-logger.info(f"Mounted {len(app.routes)} routes across 48 routers")
+logger.info(f"Mounted {len(app.routes)} routes across 50 routers (auth + agents added)")
 
 
 # ── Dev Server ───────────────────────────────────────────────────────────────
