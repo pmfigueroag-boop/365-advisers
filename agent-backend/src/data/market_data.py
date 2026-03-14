@@ -164,11 +164,38 @@ def fetch_fundamental_data(ticker: str) -> dict:
                                 ni = is_.loc[ni_key[0], col]
                                 fcf_val = float(ni) if pd.notnull(ni) else None
 
+                        # Extract net_income for earnings stability
+                        ni_val = 0.0
+                        ni_keys = [k for k in ["Net Income", "Net Income Common Stockholders"] if k in is_.index]
+                        if ni_keys:
+                            _ni = is_.loc[ni_keys[0], col]
+                            ni_val = float(_ni) if pd.notnull(_ni) else 0.0
+
+                        # Extract EBIT for debt coverage
+                        ebit_val = 0.0
+                        ebit_keys = [k for k in ["EBIT", "Operating Income"] if k in is_.index]
+                        if ebit_keys:
+                            _eb = is_.loc[ebit_keys[0], col]
+                            ebit_val = float(_eb) if pd.notnull(_eb) else 0.0
+
+                        # Extract operating cashflow
+                        ocf_val = 0.0
+                        if cf is not None and not cf.empty:
+                            ocf_keys = [k for k in ["Total Cash From Operating Activities",
+                                                      "Operating Cash Flow",
+                                                      "Cash Flow From Continuing Operating Activities"] if k in cf.index]
+                            if ocf_keys and col in cf.columns:
+                                _ocf = cf.loc[ocf_keys[0], col]
+                                ocf_val = float(_ocf) if pd.notnull(_ocf) else 0.0
+
                         if rev_val is not None or fcf_val is not None:
                             cashflow_series.append({
                                 "year": year_label,
                                 "fcf": fcf_val or 0.0,
                                 "revenue": rev_val or 0.0,
+                                "net_income": ni_val,
+                                "ebit": ebit_val,
+                                "operating_cashflow": ocf_val,
                             })
                     except Exception:
                         continue

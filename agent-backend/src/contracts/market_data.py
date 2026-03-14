@@ -74,6 +74,9 @@ class CashFlowEntry(BaseModel):
     year: str
     fcf: float = 0.0
     revenue: float = 0.0
+    net_income: float = 0.0         # For earnings stability computation
+    ebit: float = 0.0               # For debt/EBIT coverage
+    operating_cashflow: float = 0.0  # For debt/OCF coverage
 
 
 class FinancialStatements(BaseModel):
