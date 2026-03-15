@@ -79,7 +79,7 @@ class UniverseRequest:
         default_factory=lambda: [UniverseSource.STATIC_INDEX]
     )
     max_tickers: int = 200
-    max_per_source: int = 100
+    max_per_source: int = 300
     strategy_profile: str | None = None
     custom_tickers: list[str] = field(default_factory=list)
 
@@ -187,25 +187,71 @@ _INDEX_CATALOG = {
     "dow30": _DOW30,
 }
 
+# Convenience aliases for combined indices
+_INDEX_ALIASES = {
+    "all": ["sp500", "nasdaq100", "dow30"],
+    "us_full": ["sp500", "nasdaq100", "dow30"],
+}
+
+
+def _resolve_index_names(index_name: str) -> list[str]:
+    """Resolve an index_name into a list of concrete index keys.
+
+    Supports:
+      - Single index:  "sp500"
+      - Combined:      "sp500+nasdaq100+dow30"
+      - Aliases:       "all", "us_full"
+    """
+    key = index_name.lower().strip()
+    if key in _INDEX_ALIASES:
+        return _INDEX_ALIASES[key]
+    if "+" in key:
+        return [k.strip() for k in key.split("+") if k.strip()]
+    return [key]
+
 
 class StaticIndexProvider:
-    """Provides tickers from well-known equity indices."""
+    """Provides tickers from well-known equity indices.
+
+    Supports combined indices via ``+`` separator or the ``all`` alias::
+
+        index_name="sp500"                    # single index
+        index_name="sp500+nasdaq100+dow30"    # combined
+        index_name="all"                      # alias for all three
+    """
     name = "static_index"
     source = UniverseSource.STATIC_INDEX
-    description = "S&P 500, NASDAQ 100, and Dow 30 constituents"
+    description = "S&P 500, NASDAQ 100, and Dow 30 constituents (combinable via '+')"
 
     def discover(self, request: UniverseRequest) -> list[TickerEntry]:
-        index_name = request.index_name.lower()
-        tickers = _INDEX_CATALOG.get(index_name, _SP500_TOP)
+        index_keys = _resolve_index_names(request.index_name)
         cap = request.max_per_source
+
+        # Merge tickers from all requested indices, dedup preserving order
+        seen: set[str] = set()
+        merged: list[str] = []
+        sources_used: list[str] = []
+
+        for key in index_keys:
+            tickers = _INDEX_CATALOG.get(key, [])
+            if not tickers:
+                continue
+            sources_used.append(key)
+            for t in tickers:
+                if t not in seen:
+                    seen.add(t)
+                    merged.append(t)
+
+        label = "+".join(sources_used) if len(sources_used) > 1 else (sources_used[0] if sources_used else "unknown")
+
         return [
             TickerEntry(
                 ticker=t,
                 source=self.source,
                 score=1.0,
-                reason=f"{index_name} constituent",
+                reason=f"{label} constituent",
             )
-            for t in tickers[:cap]
+            for t in merged[:cap]
         ]
 
 

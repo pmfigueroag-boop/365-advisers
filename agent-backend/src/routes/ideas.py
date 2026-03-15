@@ -465,7 +465,7 @@ class AutoScanRequest(BaseModel):
         None,
         description="Strategy profile key (e.g. 'swing', 'deep_value')",
     )
-    max_tickers: int = Field(200, ge=1, le=500)
+    max_tickers: int = Field(300, ge=1, le=500)
     custom_tickers: list[str] = Field(
         default_factory=list,
         description="Explicit tickers when 'custom' source is included",
