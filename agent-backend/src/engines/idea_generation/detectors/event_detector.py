@@ -7,7 +7,7 @@ Signals tracked:
   • Opportunity Score significant change (Δ > 1.5 vs last reading)
   • Earnings surprise (EPS growth > 20 % YoY)
   • Volatility contraction (BB Width squeeze — pre-expansion setup)
-  • Large beta in sector rotation context
+  • Large price dislocation (mean reversion z-score > 2σ)
 """
 
 from __future__ import annotations
@@ -34,6 +34,7 @@ class EventDetector(BaseDetector):
     SCORE_DELTA_THRESHOLD = 1.5
     EARNINGS_SURPRISE_THRESHOLD = 0.20   # 20 %
     BB_WIDTH_SQUEEZE_THRESHOLD = 0.04    # Tight BB width
+    MEAN_REVERSION_Z_THRESHOLD = 2.0     # > 2σ price dislocation
 
     def scan(
         self,
@@ -91,15 +92,20 @@ class EventDetector(BaseDetector):
                     ),
                 ))
 
-        # 4. High beta indicates sector-rotation sensitivity
-        if fundamental is not None and fundamental.beta is not None:
-            if fundamental.beta > 1.5:
+        # 4. Mean reversion z-score extreme (statistically rare price dislocation)
+        # |z| > 2.0 means the price is >2σ from its 1-year rolling mean —
+        # by definition a rare event (~2.3% under normality), indicating
+        # a genuine price dislocation that may catalyse reversion.
+        if technical is not None and technical.mean_reversion_z is not None:
+            z = abs(technical.mean_reversion_z)
+            if z > self.MEAN_REVERSION_Z_THRESHOLD:
+                direction = "overextended" if technical.mean_reversion_z > 0 else "depressed"
                 signals.append(SignalDetail(
-                    name="high_beta_catalyst",
-                    description=f"Beta {fundamental.beta:.2f} — sensitive to sector rotation",
-                    value=fundamental.beta,
-                    threshold=1.5,
-                    strength=self._strength_from_value(fundamental.beta, 1.5),
+                    name="price_dislocation",
+                    description=f"Mean reversion z={technical.mean_reversion_z:+.2f} — price {direction} (>{self.MEAN_REVERSION_Z_THRESHOLD}σ)",
+                    value=z,
+                    threshold=self.MEAN_REVERSION_Z_THRESHOLD,
+                    strength=self._strength_from_value(z, self.MEAN_REVERSION_Z_THRESHOLD),
                 ))
 
         if not signals:

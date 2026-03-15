@@ -40,9 +40,25 @@ class FactorBreakdown(BaseModel):
     institutional_flow: float = 5.0
 
 
+class SourceDecomposition(BaseModel):
+    """Epistemological source breakdown for score transparency."""
+    quantitative_metrics: float = 0.5   # % of score from verifiable metrics
+    agent_conviction: float = 0.5       # % from LLM agent convictions
+    alpha_signal_bridge: float = 0.0    # % from CASE/signal blending
+
+
 class OpportunityScoreResult(BaseModel):
     """Complete output of the 12-Factor Institutional Scoring Engine (Layer 4)."""
     opportunity_score: float = 5.0      # 0.0 – 10.0
     dimensions: DimensionScores = Field(default_factory=DimensionScores)
     factors: FactorBreakdown = Field(default_factory=FactorBreakdown)
+    dimension_weights: dict[str, float] = Field(default_factory=lambda: {
+        "business_quality": 0.25,
+        "valuation": 0.25,
+        "financial_strength": 0.25,
+        "market_behavior": 0.25,
+    })
+    source_decomposition: SourceDecomposition = Field(
+        default_factory=SourceDecomposition,
+    )
     recorded_at: str = ""

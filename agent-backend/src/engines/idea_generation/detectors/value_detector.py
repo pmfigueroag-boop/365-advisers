@@ -47,7 +47,15 @@ class ValueDetector(BaseDetector):
         signals: list[SignalDetail] = []
         total_checks = 4
 
-        # 1. FCF Yield
+        # Sector-relative adjustment: scale valuation thresholds by sector
+        # median.  Technology (PE ~30) gets a higher PE threshold than
+        # Energy (PE ~12), matching how Alpha Signals C4 already operates.
+        adj = fundamental.sector_pe_adjustment  # 1.0 = no adjustment
+        pe_thr = self.PE_THRESHOLD * adj
+        ev_thr = self.EV_EBITDA_THRESHOLD * adj
+        pb_thr = self.PB_THRESHOLD * adj
+
+        # 1. FCF Yield (not sector-adjusted — cash is cash)
         if fundamental.fcf_yield is not None and fundamental.fcf_yield > self.FCF_YIELD_THRESHOLD:
             signals.append(SignalDetail(
                 name="fcf_yield_high",
@@ -59,42 +67,42 @@ class ValueDetector(BaseDetector):
                 ),
             ))
 
-        # 2. Low P/E
-        if fundamental.pe_ratio is not None and 0 < fundamental.pe_ratio < self.PE_THRESHOLD:
+        # 2. Low P/E (sector-adjusted)
+        if fundamental.pe_ratio is not None and 0 < fundamental.pe_ratio < pe_thr:
             signals.append(SignalDetail(
                 name="pe_low",
-                description=f"P/E {fundamental.pe_ratio:.1f} below {self.PE_THRESHOLD:.0f}",
+                description=f"P/E {fundamental.pe_ratio:.1f} below {pe_thr:.0f} (sector-adj)",
                 value=fundamental.pe_ratio,
-                threshold=self.PE_THRESHOLD,
+                threshold=pe_thr,
                 strength=self._strength_from_value(
-                    self.PE_THRESHOLD - fundamental.pe_ratio,
-                    self.PE_THRESHOLD * 0.3,
+                    pe_thr - fundamental.pe_ratio,
+                    pe_thr * 0.3,
                 ),
             ))
 
-        # 3. Low EV/EBITDA
-        if fundamental.ev_ebitda is not None and 0 < fundamental.ev_ebitda < self.EV_EBITDA_THRESHOLD:
+        # 3. Low EV/EBITDA (sector-adjusted)
+        if fundamental.ev_ebitda is not None and 0 < fundamental.ev_ebitda < ev_thr:
             signals.append(SignalDetail(
                 name="ev_ebitda_low",
-                description=f"EV/EBITDA {fundamental.ev_ebitda:.1f} below {self.EV_EBITDA_THRESHOLD:.0f}",
+                description=f"EV/EBITDA {fundamental.ev_ebitda:.1f} below {ev_thr:.0f} (sector-adj)",
                 value=fundamental.ev_ebitda,
-                threshold=self.EV_EBITDA_THRESHOLD,
+                threshold=ev_thr,
                 strength=self._strength_from_value(
-                    self.EV_EBITDA_THRESHOLD - fundamental.ev_ebitda,
-                    self.EV_EBITDA_THRESHOLD * 0.3,
+                    ev_thr - fundamental.ev_ebitda,
+                    ev_thr * 0.3,
                 ),
             ))
 
-        # 4. Low P/B
-        if fundamental.pb_ratio is not None and 0 < fundamental.pb_ratio < self.PB_THRESHOLD:
+        # 4. Low P/B (sector-adjusted)
+        if fundamental.pb_ratio is not None and 0 < fundamental.pb_ratio < pb_thr:
             signals.append(SignalDetail(
                 name="pb_low",
-                description=f"P/B {fundamental.pb_ratio:.2f} below {self.PB_THRESHOLD:.1f}",
+                description=f"P/B {fundamental.pb_ratio:.2f} below {pb_thr:.1f} (sector-adj)",
                 value=fundamental.pb_ratio,
-                threshold=self.PB_THRESHOLD,
+                threshold=pb_thr,
                 strength=self._strength_from_value(
-                    self.PB_THRESHOLD - fundamental.pb_ratio,
-                    self.PB_THRESHOLD * 0.3,
+                    pb_thr - fundamental.pb_ratio,
+                    pb_thr * 0.3,
                 ),
             ))
 

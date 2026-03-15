@@ -45,6 +45,7 @@ class OpportunityModel:
         technical_summary: dict,
         signal_profile: SignalProfile | None = None,
         composite_alpha: CompositeAlphaResult | None = None,
+        dimension_weights: dict[str, float] | None = None,
     ) -> OpportunityScoreResult:
         
         # 1. Extract Agent Subscores
@@ -153,6 +154,9 @@ class OpportunityModel:
         }
 
         # 4b. Alpha Signals adjustment — prefer CASE result if available
+        # Track source contributions for decomposition
+        _case_alpha_weight = 0.0
+
         if composite_alpha is not None:
             try:
                 from src.engines.scoring.signal_bridge import (
@@ -161,10 +165,10 @@ class OpportunityModel:
                     blend_signal_adjustments,
                 )
                 signal_adjustments = compute_case_factor_adjustments(composite_alpha)
-                alpha_weight = compute_case_alpha_weight(composite_alpha)
+                _case_alpha_weight = compute_case_alpha_weight(composite_alpha)
                 if signal_adjustments:
                     factors = blend_signal_adjustments(
-                        factors, signal_adjustments, alpha_weight=alpha_weight
+                        factors, signal_adjustments, alpha_weight=_case_alpha_weight
                     )
             except Exception:
                 pass  # Graceful degradation
@@ -176,6 +180,7 @@ class OpportunityModel:
                 )
                 signal_adjustments = compute_signal_factor_adjustments(signal_profile)
                 if signal_adjustments:
+                    _case_alpha_weight = 0.3
                     factors = blend_signal_adjustments(
                         factors, signal_adjustments, alpha_weight=0.3
                     )
@@ -191,17 +196,53 @@ class OpportunityModel:
         )
 
         # 6. Calculate Final Opportunity Score (0-10)
-        weights = 0.25
-        opportunity_score = (
-            (dimensions["business_quality"] * weights) +
-            (dimensions["valuation"] * weights) +
-            (dimensions["financial_strength"] * weights) +
-            (dimensions["market_behavior"] * weights)
+        _weights = dimension_weights or {
+            "business_quality": 0.25,
+            "valuation": 0.25,
+            "financial_strength": 0.25,
+            "market_behavior": 0.25,
+        }
+        opportunity_score = sum(
+            dimensions[dim] * _weights.get(dim, 0.25)  # type: ignore
+            for dim in dimensions
         )
+
+        # 7. Source decomposition — approximate contribution by epistemological source
+        # Metrics-based factors: fcf_yield, balance_sheet_strength, earnings_stability,
+        #   trend_strength, momentum, institutional_flow
+        _metric_factors = [
+            "fcf_yield", "balance_sheet_strength", "earnings_stability",
+            "trend_strength", "momentum", "institutional_flow",
+        ]
+        # Agent-based factors: competitive_moat, management_capital_allocation,
+        #   industry_structure, relative_valuation, intrinsic_value_gap, growth_quality
+        _agent_factors = [
+            "competitive_moat", "management_capital_allocation",
+            "industry_structure", "relative_valuation",
+            "intrinsic_value_gap", "growth_quality",
+        ]
+
+        _metric_contrib = cls._safe_average([factors[k] for k in _metric_factors])
+        _agent_contrib = cls._safe_average([factors[k] for k in _agent_factors])
+        _total_base = _metric_contrib + _agent_contrib
+        if _total_base > 0:
+            _pct_quant = round(_metric_contrib / _total_base * (1.0 - _case_alpha_weight), 4)
+            _pct_agent = round(_agent_contrib / _total_base * (1.0 - _case_alpha_weight), 4)
+        else:
+            _pct_quant = round(0.5 * (1.0 - _case_alpha_weight), 4)
+            _pct_agent = round(0.5 * (1.0 - _case_alpha_weight), 4)
+
+        source_decomposition = {
+            "quantitative_metrics": _pct_quant,
+            "agent_conviction": _pct_agent,
+            "alpha_signal_bridge": round(_case_alpha_weight, 4),
+        }
 
         return {
             "opportunity_score": round(opportunity_score, 2),
             "dimensions": {k: round(v, 2) for k, v in dimensions.items()}, # type: ignore
             "factors": {k: round(v, 2) for k, v in factors.items()},
+            "dimension_weights": {k: round(v, 4) for k, v in _weights.items()},
+            "source_decomposition": source_decomposition,
             "recorded_at": datetime.now(timezone.utc).isoformat()
         }

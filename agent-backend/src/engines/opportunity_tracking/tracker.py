@@ -98,6 +98,102 @@ class OpportunityTracker:
         )
         return record_id
 
+    # ── Pipeline Registration (no IdeaCandidate required) ───────────────
+
+    def register_from_analysis(
+        self,
+        ticker: str,
+        opportunity_score: float | None = None,
+        case_score: float | None = None,
+        fundamental_score: float | None = None,
+        technical_score: float | None = None,
+    ) -> int | None:
+        """
+        Register an analysis result for forward return tracking.
+
+        Unlike ``register_idea``, this does not require an IdeaCandidate.
+        It creates a lightweight tracking record directly from the pipeline
+        outputs so every analysis is tracked for hit-rate validation.
+
+        Parameters
+        ----------
+        ticker : str
+            The symbol that was analyzed.
+        opportunity_score : float | None
+            Unified Opportunity Score at analysis time (0–10).
+        case_score : float | None
+            Composite Alpha Score from the CASE engine (0–100).
+        fundamental_score : float | None
+            Committee verdict score (0–10).
+        technical_score : float | None
+            Technical engine score (0–10).
+
+        Returns
+        -------
+        int | None
+            Persisted record ID, or None if registration failed.
+        """
+        import hashlib
+
+        price = self._fetch_current_price(ticker)
+        if price <= 0:
+            logger.warning("OPP-TRACKER: Skipping registration — no price for %s", ticker)
+            return None
+
+        now = datetime.now(timezone.utc)
+        # Deterministic UID from ticker + date to avoid duplicate entries
+        uid_src = f"{ticker}:{now.strftime('%Y%m%d%H%M')}"
+        uid = hashlib.sha256(uid_src.encode()).hexdigest()[:16]
+
+        # Derive idea_type from the strongest score dimension
+        idea_type = "analysis"
+        if case_score is not None and case_score >= 70:
+            idea_type = "alpha_strong"
+        elif opportunity_score is not None and opportunity_score >= 7.5:
+            idea_type = "opportunity_high"
+
+        # Derive confidence from score convergence
+        scores = [s for s in [opportunity_score, fundamental_score, technical_score] if s is not None]
+        if scores:
+            avg = sum(scores) / len(scores)
+            if avg >= 7.0:
+                confidence = "high"
+            elif avg >= 5.0:
+                confidence = "medium"
+            else:
+                confidence = "low"
+        else:
+            confidence = "medium"
+
+        # Signal strength from opportunity_score (normalized to 0–1)
+        signal_strength = (opportunity_score / 10.0) if opportunity_score else 0.5
+
+        try:
+            record_id = self._repo.save_opportunity(
+                idea_uid=uid,
+                ticker=ticker,
+                idea_type=idea_type,
+                confidence=confidence,
+                signal_strength=round(signal_strength, 4),
+                price_at_gen=price,
+                generated_at=now,
+                opportunity_score=opportunity_score,
+                suggested_alloc=None,
+            )
+            logger.info(
+                "OPP-TRACKER: Registered analysis %s (%s) @ $%.2f  "
+                "opp=%.1f case=%s fund=%s tech=%s",
+                uid[:8], ticker, price,
+                opportunity_score or 0,
+                f"{case_score:.0f}" if case_score else "N/A",
+                f"{fundamental_score:.1f}" if fundamental_score else "N/A",
+                f"{technical_score:.1f}" if technical_score else "N/A",
+            )
+            return record_id
+        except Exception as exc:
+            logger.warning("OPP-TRACKER: Registration failed for %s — %s", ticker, exc)
+            return None
+
     # ── Async Return Updates ──────────────────────────────────────────────
 
     async def update_returns(self, max_age_days: int = 90) -> int:

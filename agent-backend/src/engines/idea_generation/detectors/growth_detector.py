@@ -6,8 +6,8 @@ Detects high-growth equities using fundamental growth signals.
 Signals tracked:
   • Revenue Acceleration (QoQ growth rate increasing)
   • Earnings Surprise (EPS beat > 5%)
-  • Operating Leverage (EBIT growth > Revenue growth)
-  • CapEx Intensity (CapEx / D&A > 1.3)
+  • Operating Leverage (Earnings growth > Revenue growth)
+  • Revenue Acceleration (second-derivative of revenue growth positive)
 """
 
 from __future__ import annotations
@@ -32,8 +32,8 @@ class GrowthDetector(BaseDetector):
     # ── Thresholds ────────────────────────────────────────────────────────
     REVENUE_GROWTH_THRESHOLD = 0.10       # 10% YoY
     EARNINGS_SURPRISE_THRESHOLD = 0.05    # 5% EPS beat
-    OPERATING_LEVERAGE_THRESHOLD = 1.5    # EBIT growth / Rev growth
-    CAPEX_INTENSITY_THRESHOLD = 1.3       # CapEx / D&A
+    OPERATING_LEVERAGE_MIN = 1.0          # Earnings growth / Revenue growth
+    REVENUE_ACCEL_THRESHOLD = 0.0         # Positive acceleration
 
     def scan(
         self,
@@ -47,7 +47,7 @@ class GrowthDetector(BaseDetector):
         signals: list[SignalDetail] = []
         total_checks = 4
 
-        # 1. Revenue Growth / Acceleration
+        # 1. Revenue Growth
         rev_growth = getattr(fundamental, "revenue_growth_yoy", None)
         if rev_growth is not None and rev_growth > self.REVENUE_GROWTH_THRESHOLD:
             signals.append(SignalDetail(
@@ -73,26 +73,36 @@ class GrowthDetector(BaseDetector):
                 ),
             ))
 
-        # 3. Operating Leverage (proxy: margin_trend > 0 implies EBIT growing faster)
-        margin_trend = getattr(fundamental, "margin_trend", None)
-        if margin_trend is not None and margin_trend > 0.03:
-            signals.append(SignalDetail(
-                name="operating_leverage",
-                description=f"Margin expansion {margin_trend:.1%} signals operating leverage",
-                value=margin_trend,
-                threshold=0.03,
-                strength=self._strength_from_value(margin_trend, 0.03),
-            ))
+        # 3. Operating Leverage (earnings growing faster than revenue)
+        # True operating leverage = Earnings growth / Revenue growth > 1.0
+        # This means each unit of revenue growth translates into more than
+        # proportional earnings growth — the fundamental definition.
+        if (
+            rev_growth is not None and rev_growth > 0.01
+            and earnings_growth is not None and earnings_growth > 0
+        ):
+            op_leverage = earnings_growth / rev_growth
+            if op_leverage > self.OPERATING_LEVERAGE_MIN:
+                signals.append(SignalDetail(
+                    name="operating_leverage",
+                    description=f"Operating leverage {op_leverage:.1f}× (EPS growth {earnings_growth:.1%} / Rev growth {rev_growth:.1%})",
+                    value=op_leverage,
+                    threshold=self.OPERATING_LEVERAGE_MIN,
+                    strength=self._strength_from_value(op_leverage, self.OPERATING_LEVERAGE_MIN),
+                ))
 
-        # 4. CapEx Intensity (proxy: high beta often correlates with growth investment)
-        roic = getattr(fundamental, "roic", None)
-        if roic is not None and roic > 0.20:
+        # 4. Revenue Acceleration (second derivative — growth is accelerating)
+        # Uses the slope of the growth rate series computed in feature extraction.
+        # Positive acceleration means the company is not just growing, but
+        # growing *faster* — the strongest growth signal.
+        rev_accel = getattr(fundamental, "revenue_acceleration", None)
+        if rev_accel is not None and rev_accel > self.REVENUE_ACCEL_THRESHOLD:
             signals.append(SignalDetail(
-                name="high_growth_returns",
-                description=f"ROIC {roic:.1%} indicates high-return growth investment",
-                value=roic,
-                threshold=0.20,
-                strength=self._strength_from_value(roic, 0.20),
+                name="revenue_accelerating",
+                description=f"Revenue acceleration {rev_accel:+.4f} — growth rate increasing",
+                value=rev_accel,
+                threshold=self.REVENUE_ACCEL_THRESHOLD,
+                strength=self._strength_from_value(max(rev_accel, 0.001), 0.01),
             ))
 
         if not signals:

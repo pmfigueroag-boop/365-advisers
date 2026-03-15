@@ -319,11 +319,17 @@ class SignalEvaluator:
             total = len(cat_signals)
             fired_count = len(fired)
 
-            # Composite strength: weighted average of fired signals
+            # Composite strength: confidence-weighted average of fired signals.
+            # Each signal's strength enum (STRONG=1.0, MODERATE=0.6, WEAK=0.3)
+            # is scaled by its individual sigmoid confidence (0.0–1.0), so a
+            # signal that barely fired (conf ~0.35) contributes less than one
+            # that fired decisively (conf ~0.9).
+            # Divided by total (not fired count) to penalize sparse activation.
             if fired:
                 composite = sum(
-                    _STRENGTH_NUMERIC.get(s.strength, 0.3) for s in fired
-                ) / total  # divided by total, not fired count, to penalize gaps
+                    _STRENGTH_NUMERIC.get(s.strength, 0.3) * max(s.confidence, 0.1)
+                    for s in fired
+                ) / total
             else:
                 composite = 0.0
 

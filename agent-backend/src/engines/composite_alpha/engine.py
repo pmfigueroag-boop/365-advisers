@@ -63,8 +63,7 @@ _CROSS_CATEGORY_CONFLICTS = [
 
 # ── Convergence bonus thresholds ─────────────────────────────────────────────
 
-_CONVERGENCE_BONUS_5 = 3.0   # +3 when >= 5 active categories
-_CONVERGENCE_BONUS_7 = 5.0   # +5 when >= 7 active categories
+_CONVERGENCE_MAX_BONUS = 6.0    # Max entropy bonus (when perfectly diverse)
 
 # ── Spread amplifier (P0 fix: widen narrow score clustering) ─────────────
 _SPREAD_FACTOR = 1.4          # Push scores 40% away from midpoint
@@ -149,10 +148,26 @@ class CompositeAlphaEngine:
             subscores, weight_dict
         )
 
-        # Apply cross-category conflict penalty
-        conflict_penalty = max(0, len(conflict_list))
-        if conflict_penalty > 0:
-            penalty_factor = 1.0 - min(conflict_penalty, 2) * 0.10
+        # Apply cross-category conflict penalty (proportional to intensity).
+        # Penalty scales with the geometric mean of both conflicting categories'
+        # scores: √(score_a × score_b) / 100.  Two high-conviction opposing
+        # signals produce a large penalty; two weak ones barely register.
+        # Max penalty per conflict pair: 10% of raw score (capped at 2 pairs).
+        if conflict_list:
+            total_conflict_intensity = 0.0
+            for desc in conflict_list:
+                # Find the two categories from the conflict pair
+                pair = self._find_conflict_pair(desc)
+                if pair:
+                    cat_a, cat_b = pair
+                    score_a = subscores.get(cat_a, CategorySubscore(category=SignalCategory.VALUE)).score
+                    score_b = subscores.get(cat_b, CategorySubscore(category=SignalCategory.VALUE)).score
+                    # Geometric mean normalised to [0, 1]
+                    import math
+                    intensity = math.sqrt(score_a * score_b) / 100.0
+                    total_conflict_intensity += intensity
+            # Cap cumulative intensity-weighted penalty at 20% (same floor as before)
+            penalty_factor = 1.0 - min(total_conflict_intensity * 0.10, 0.20)
             raw_score *= penalty_factor
 
         final_score = min(100.0, raw_score + convergence_bonus)
@@ -656,6 +671,14 @@ class CompositeAlphaEngine:
 
         return subscores, conflict_descriptions
 
+    @staticmethod
+    def _find_conflict_pair(description: str) -> tuple[str, str] | None:
+        """Reverse-map a conflict description to its category pair."""
+        for cat_a, cat_b, desc in _CROSS_CATEGORY_CONFLICTS:
+            if desc == description:
+                return cat_a, cat_b
+        return None
+
     # ═════════════════════════════════════════════════════════════════════════
     # Stage 4: Weighted Scorer
     # ═════════════════════════════════════════════════════════════════════════
@@ -676,17 +699,29 @@ class CompositeAlphaEngine:
             if subscore is not None:
                 weighted_sum += subscore.score * weight
 
-        # P1 fix C5: quality-weighted convergence (only meaningful categories count)
-        meaningful_active = sum(
-            1 for s in subscores.values() if s.fired > 0 and s.score >= 40.0
-        )
-        bonus = 0.0
-        if meaningful_active >= 7:
-            bonus = _CONVERGENCE_BONUS_7
-        elif meaningful_active >= 5:
-            bonus = _CONVERGENCE_BONUS_5
+        # Shannon entropy convergence bonus.
+        # H(p) = -Σ p_i × log2(p_i), normalised by H_max = log2(k).
+        # Measures how DIVERSE the signal distribution is across categories.
+        # A score of 60 spread evenly across 5 categories is more robust
+        # than 60 concentrated in 1–2 categories.
+        # Scaled to [0, _CONVERGENCE_MAX_BONUS] points.
+        import math
 
-        return weighted_sum, bonus
+        meaningful_scores = [
+            s.score for s in subscores.values() if s.fired > 0 and s.score >= 20.0
+        ]
+        bonus = 0.0
+        k = len(meaningful_scores)
+        if k >= 2:
+            total = sum(meaningful_scores)
+            if total > 0:
+                probs = [s / total for s in meaningful_scores]
+                entropy = -sum(p * math.log2(p) for p in probs if p > 0)
+                max_entropy = math.log2(k)  # uniform distribution
+                normalised_entropy = entropy / max_entropy  # 0–1
+                bonus = normalised_entropy * _CONVERGENCE_MAX_BONUS
+
+        return weighted_sum, round(bonus, 2)
 
     # ═════════════════════════════════════════════════════════════════════════
     # Stage 5: Classifier

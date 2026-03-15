@@ -93,16 +93,46 @@ def _compute_margin_trend(series) -> float | None:
 
 
 # ═════════════════════════════════════════════════════════════════════════════
-# Feature 2: earnings_stability (v2 — std of net income margin, not beta)
+# Feature 2: earnings_stability (v3 — sector-relative scaling)
 # ═════════════════════════════════════════════════════════════════════════════
 
-def _compute_earnings_stability(series) -> float | None:
-    """
-    Earnings stability = -std(net_income_margin) scaled to 0–10.
+# Sector median std(net income margin), calibrated from S&P 500 (2015–2024).
+# The scaling cap is set at 1.5× the sector median (≈ p90), so a company
+# with volatility at its sector median scores ~6.7/10 ("normal"), while
+# a company at the sector p90 scores ~0/10 ("highly volatile for its sector").
+_SECTOR_MEDIAN_NI_MARGIN_STD = {
+    "Technology": 0.08,              # High, stable margins
+    "Communication Services": 0.10, # Media + telecom mix
+    "Healthcare": 0.15,             # R&D pipeline variance
+    "Consumer Cyclical": 0.10,      # Demand-cyclical
+    "Consumer Defensive": 0.05,     # Inelastic demand, stable margins
+    "Financial Services": 0.12,     # Interest-rate sensitive
+    "Industrials": 0.08,            # Moderate cycle exposure
+    "Energy": 0.20,                 # Commodity-driven, highly cyclical
+    "Utilities": 0.04,              # Regulated, narrow and stable
+    "Real Estate": 0.06,            # REITs stable, developers variable
+    "Basic Materials": 0.12,        # Commodity exposure
+}
 
-    Uses actual variance of net income margins across years.
-    Lower volatility → higher stability score.
-    Max = 10 (perfectly stable), Min = 0 (highly volatile).
+_EARNINGS_STABILITY_FALLBACK_STD = 0.10  # Universal fallback (≈ cross-sector median)
+
+
+def _compute_earnings_stability(series, sector: str = "") -> float | None:
+    """
+    Earnings stability = -std(net_income_margin) scaled 0–10, sector-relative.
+
+    Uses actual variance of net income margins across years, compared against
+    the sector-typical volatility (median std) to produce a fair score:
+      - std = 0           → score 10 (perfectly stable)
+      - std = sector p90  → score  0 (highly volatile for this sector)
+
+    Parameters
+    ----------
+    series : list[CashFlowEntry]
+        Cashflow series with revenue and net_income.
+    sector : str
+        GICS sector name (e.g. "Technology", "Energy").
+        Used to select sector-appropriate scaling.
     """
     ni_margins = []
     for entry in series:
@@ -111,8 +141,14 @@ def _compute_earnings_stability(series) -> float | None:
     if len(ni_margins) < 2:
         return None
     std_val = _std(ni_margins)
-    # Scale: std of 0 → score 10, std of 0.5 → score 0
-    score = 10.0 * (1.0 - min(std_val / 0.5, 1.0))
+
+    # Sector-relative scaling: cap at 1.5× sector median (≈ p90)
+    sector_median_std = _SECTOR_MEDIAN_NI_MARGIN_STD.get(
+        sector, _EARNINGS_STABILITY_FALLBACK_STD
+    )
+    sector_cap = sector_median_std * 1.5
+
+    score = 10.0 * (1.0 - min(std_val / sector_cap, 1.0))
     return round(max(0.0, score), 2)
 
 
@@ -252,7 +288,7 @@ def extract_fundamental_features(financials: FinancialStatements) -> Fundamental
 
     # ── Derived features (v2 — statistically rigorous) ────────────────────
     margin_trend = _compute_margin_trend(series)
-    earnings_stability = _compute_earnings_stability(series)
+    earnings_stability = _compute_earnings_stability(series, sector=financials.sector)
     dte = _to_float(l.debt_to_equity)
     debt_to_ebitda = _compute_debt_to_ebitda(series, dte)
     pe_ratio = _to_float(v.pe_ratio)

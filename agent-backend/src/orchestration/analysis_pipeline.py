@@ -466,6 +466,40 @@ class AnalysisPipeline:
 
         await asyncio.sleep(0)
 
+        # ── Part 4c: Register for performance tracking ───────────────────
+        try:
+            from src.engines.opportunity_tracking.tracker import OpportunityTracker
+
+            _opp_tracker = OpportunityTracker()
+            _opp_score = (
+                opportunity_data.get("opportunity_score")
+                if opportunity_data and isinstance(opportunity_data, dict)
+                else None
+            )
+            _case = (
+                alpha_stack_context.get("case_score")
+                if alpha_stack_context else None
+            )
+            _fund_score = fund_committee.get("score")
+            _tech_score = (
+                tech_data.get("summary", {}).get("technical_score",
+                    tech_data.get("technical_score"))
+                if tech_data else None
+            )
+
+            await asyncio.to_thread(
+                _opp_tracker.register_from_analysis,
+                ticker=symbol,
+                opportunity_score=_opp_score,
+                case_score=_case,
+                fundamental_score=_fund_score,
+                technical_score=_tech_score,
+            )
+            logger.info(f"PIPELINE: Registered {symbol} for performance tracking")
+        except Exception as exc:
+            logger.debug(f"PIPELINE: Performance tracking registration failed: {exc}")
+            # Non-fatal — analysis continues without tracking
+
         # ── Part 5: Decision Engine (CIO Memo — Enriched) ──────────────
         decision_data = self.decision_cache.get(symbol) if not force else None
         if decision_data and is_from_cache:
