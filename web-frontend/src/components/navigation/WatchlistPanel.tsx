@@ -43,7 +43,7 @@ interface WatchlistPanelProps {
     ideasError: string | null;
     onIdeasScan: () => void;
     onIdeasAnalyze: (ticker: string) => void;
-    onIdeasDismiss: (id: number) => void;
+    onIdeasDismiss: (id: string) => void;
     // Panel state
     collapsed: boolean;
     onToggle: () => void;

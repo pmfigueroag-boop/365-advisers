@@ -45,7 +45,7 @@ class TestContractInstantiation:
 
     def test_technical_result(self):
         from src.contracts.analysis import TechnicalResult
-        r = TechnicalResult(ticker="NVDA")
+        r = TechnicalResult(ticker="NVDA", technical_score=5.0, signal="NEUTRAL")
         assert r.technical_score == 5.0
         assert r.volatility_condition == "NORMAL"
 

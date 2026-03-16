@@ -16,7 +16,7 @@ from src.engines.oms.engine import OMSEngine
 
 def _run(coro):
     """Run async in sync test."""
-    return asyncio.get_event_loop().run_until_complete(coro)
+    return asyncio.run(coro)
 
 
 def _order(ticker="AAPL", side=OrderSide.BUY, qty=100, order_type=OrderType.MARKET):

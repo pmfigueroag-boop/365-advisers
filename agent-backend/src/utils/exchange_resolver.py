@@ -13,13 +13,17 @@ from __future__ import annotations
 # ── Exchange code → TradingView exchange name ────────────────────────────────
 
 _EXCHANGE_MAP: dict[str, str] = {
-    # US
+    # US (raw yfinance codes)
     "NYQ": "NYSE",
     "NMS": "NASDAQ",
     "NGM": "NASDAQ",
     "ASQ": "AMEX",
     "PCX": "NYSE",       # NYSE Arca
     "BTS": "NYSE",       # BATS
+    # US (identity — already resolved TradingView names)
+    "NYSE": "NYSE",
+    "NASDAQ": "NASDAQ",
+    "AMEX": "AMEX",
     # Europe
     "LSE": "LSE",
     "LON": "LSE",
@@ -135,7 +139,7 @@ def resolve_exchange(exchange_code: str) -> str:
         TradingView exchange name (e.g. "NYSE", "LSE", "BMFBOVESPA").
         Falls back to "NASDAQ" for unknown codes.
     """
-    return _EXCHANGE_MAP.get(exchange_code, exchange_code)
+    return _EXCHANGE_MAP.get(exchange_code, "NASDAQ")
 
 
 def resolve_screener(exchange: str) -> str:

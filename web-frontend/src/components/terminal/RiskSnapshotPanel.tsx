@@ -92,8 +92,8 @@ export default function RiskSnapshotPanel({ positionSizing, technical, crowding,
                                 <span className="text-[9px] uppercase text-gray-600">Volatility (ATR)</span>
                             </InfoTooltip>
                         </div>
-                        <span className={`text-[10px] font-mono font-bold ${atrPct > 3 ? "text-red-400" : atrPct > 1.5 ? "text-yellow-400" : "text-green-400"}`}>
-                            {atrPct.toFixed(2)}%
+                        <span className={`text-[10px] font-mono font-bold ${(atrPct * 100) > 3 ? "text-red-400" : (atrPct * 100) > 1.5 ? "text-yellow-400" : "text-green-400"}`}>
+                            {(atrPct * 100).toFixed(2)}%
                         </span>
                     </div>
                 )}

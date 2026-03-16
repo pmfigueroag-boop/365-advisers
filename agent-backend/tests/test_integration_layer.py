@@ -198,7 +198,7 @@ class TestStubAdapters:
         from src.data.external.base import ProviderRequest, DataDomain
         a = MorningstarAdapter()
         req = ProviderRequest(domain=DataDomain.FUNDAMENTAL, ticker="AAPL")
-        resp = asyncio.get_event_loop().run_until_complete(a.fetch(req))
+        resp = asyncio.run(a.fetch(req))
         assert not resp.ok
         assert "stub" in resp.error.lower() or "commercial" in resp.error.lower()
 
@@ -206,7 +206,7 @@ class TestStubAdapters:
         import asyncio
         from src.data.external.adapters.stubs import SimilarwebAdapter
         a = SimilarwebAdapter()
-        h = asyncio.get_event_loop().run_until_complete(a.health_check())
+        h = asyncio.run(a.health_check())
         assert h.status.value == "disabled"
 
 

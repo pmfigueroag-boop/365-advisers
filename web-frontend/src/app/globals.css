@@ -2334,3 +2334,45 @@ body>* {
     padding: 12px;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   P2 — Typography Floor & Responsive Nav
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Typography Floor (minimum 10px for interactive elements) ────────────── */
+
+:root {
+  --density-scale: 1;
+}
+
+/* Apply density scale to common text elements */
+body {
+  font-size: calc(14px * var(--density-scale));
+}
+
+/* Responsive Nav: scrollable strip with snap at < 1024px */
+@media (max-width: 1024px) {
+  .nav-tab-strip {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;          /* Firefox */
+    -ms-overflow-style: none;       /* IE/Edge */
+  }
+
+  .nav-tab-strip::-webkit-scrollbar {
+    display: none;                  /* Chrome/Safari */
+  }
+
+  .nav-tab-strip > * {
+    scroll-snap-align: start;
+    flex-shrink: 0;
+  }
+}
+
+/* At very narrow widths hide group dividers */
+@media (max-width: 768px) {
+  .nav-tab-strip .w-px {
+    display: none;
+  }
+}

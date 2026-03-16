@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
 import {
     TrendingUp,
     Search,
@@ -21,6 +22,7 @@ import {
     Sparkles,
     Rocket,
     Activity,
+    ChevronDown,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -51,21 +53,175 @@ interface TopNavProps {
     analysisLoading?: boolean;
 }
 
-// ─── Tab Config ───────────────────────────────────────────────────────────────
+// ─── Tab Group Config ─────────────────────────────────────────────────────────
 
-const TABS: { id: ViewId; label: string; icon: React.ReactNode; title: string }[] = [
-    { id: "terminal", label: "Terminal", icon: <Monitor size={13} />, title: "Investment decisions — score, verdict, allocation" },
-    { id: "ideas", label: "Ideas", icon: <Lightbulb size={13} />, title: "AI-ranked investment opportunities" },
-    { id: "market", label: "Market", icon: <Map size={13} />, title: "Market regime, sector heatmap, signal clusters" },
-    { id: "analysis", label: "Analysis", icon: <Microscope size={13} />, title: "Full fundamental + technical evidence" },
-    { id: "portfolio", label: "Portfolio", icon: <Briefcase size={13} />, title: "Risk analysis & position sizing" },
-    { id: "system", label: "System", icon: <Brain size={13} />, title: "Signal health, drift alerts, providers" },
-    { id: "pilot", label: "Pilot", icon: <Rocket size={13} />, title: "12-week paper trading validation" },
-    { id: "strategy-lab", label: "Strategy Lab", icon: <FlaskConical size={13} />, title: "Bloomberg-style research workspace" },
-    { id: "marketplace", label: "Marketplace", icon: <Store size={13} />, title: "Pre-built institutional strategies" },
-    { id: "ai-assistant", label: "AI Assistant", icon: <Sparkles size={13} />, title: "Knowledge Graph conversational AI" },
-    { id: "alpha-engine", label: "Alpha Engine", icon: <Activity size={13} />, title: "8-factor quantitative alpha scoring and ranking" },
+interface TabItem {
+    id: ViewId;
+    label: string;
+    icon: React.ReactNode;
+    title: string;
+}
+
+interface TabGroup {
+    groupLabel: string;
+    items: TabItem[];
+}
+
+const TAB_GROUPS: TabGroup[] = [
+    {
+        groupLabel: "Invest",
+        items: [
+            { id: "terminal", label: "Terminal", icon: <Monitor size={13} />, title: "Investment decisions — score, verdict, allocation" },
+            { id: "ideas", label: "Ideas", icon: <Lightbulb size={13} />, title: "AI-ranked investment opportunities" },
+            { id: "analysis", label: "Analysis", icon: <Microscope size={13} />, title: "Full fundamental + technical evidence" },
+            { id: "portfolio", label: "Portfolio", icon: <Briefcase size={13} />, title: "Risk analysis & position sizing" },
+        ],
+    },
+    {
+        groupLabel: "Research",
+        items: [
+            { id: "market", label: "Market", icon: <Map size={13} />, title: "Market regime, sector heatmap, signal clusters" },
+            { id: "strategy-lab", label: "Strategy Lab", icon: <FlaskConical size={13} />, title: "Bloomberg-style research workspace" },
+            { id: "alpha-engine", label: "Alpha Engine", icon: <Activity size={13} />, title: "8-factor quantitative alpha scoring and ranking" },
+            { id: "ai-assistant", label: "AI Assistant", icon: <Sparkles size={13} />, title: "Knowledge Graph conversational AI" },
+        ],
+    },
+    {
+        groupLabel: "Ops",
+        items: [
+            { id: "system", label: "System", icon: <Brain size={13} />, title: "Signal health, drift alerts, providers" },
+            { id: "pilot", label: "Pilot", icon: <Rocket size={13} />, title: "12-week paper trading validation" },
+            { id: "marketplace", label: "Marketplace", icon: <Store size={13} />, title: "Pre-built institutional strategies" },
+        ],
+    },
 ];
+
+// ─── Group Dropdown ───────────────────────────────────────────────────────────
+
+function NavGroup({
+    group,
+    activeView,
+    onViewChange,
+    analysisScore,
+    analysisLoading,
+}: {
+    group: TabGroup;
+    activeView: ViewId;
+    onViewChange: (view: ViewId) => void;
+    analysisScore?: number | null;
+    analysisLoading?: boolean;
+}) {
+    const [open, setOpen] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+    const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+    // Close on click outside
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+        };
+        document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
+    }, []);
+
+    const activeInGroup = group.items.some((t) => t.id === activeView);
+    // The "anchor" is the active item in this group, or the first item
+    const anchor = group.items.find((t) => t.id === activeView) ?? group.items[0];
+    const secondaryItems = group.items.filter((t) => t.id !== anchor.id);
+
+    const handleEnter = () => {
+        clearTimeout(timeoutRef.current);
+        setOpen(true);
+    };
+    const handleLeave = () => {
+        timeoutRef.current = setTimeout(() => setOpen(false), 200);
+    };
+
+    return (
+        <div
+            ref={ref}
+            className="relative"
+            onMouseEnter={handleEnter}
+            onMouseLeave={handleLeave}
+        >
+            {/* Anchor Tab (always visible) */}
+            <button
+                onClick={() => onViewChange(anchor.id)}
+                aria-current={activeView === anchor.id ? "page" : undefined}
+                title={anchor.title}
+                className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeInGroup
+                    ? "tab-active"
+                    : "text-gray-500 tab-inactive"
+                    }`}
+            >
+                {activeInGroup && (
+                    <span
+                        className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#d4af37]"
+                        style={{ boxShadow: '0 0 6px 1px rgba(212,175,55,0.6)' }}
+                    />
+                )}
+                {anchor.icon}
+                {anchor.label}
+                {anchor.id === "analysis" && analysisLoading && (
+                    <Loader2 size={9} className="animate-spin" />
+                )}
+                {anchor.id === "analysis" && analysisScore != null && !analysisLoading && (
+                    <span className="bg-[#d4af37]/20 text-[#d4af37] rounded-md px-1.5 text-[9px] font-mono font-bold">
+                        {analysisScore.toFixed(1)}
+                    </span>
+                )}
+                {secondaryItems.length > 0 && (
+                    <ChevronDown
+                        size={9}
+                        className={`transition-transform ${open ? "rotate-180" : ""} ${activeInGroup ? "text-black/50" : "text-gray-600"}`}
+                    />
+                )}
+            </button>
+
+            {/* Dropdown */}
+            {open && secondaryItems.length > 0 && (
+                <div
+                    className="absolute top-full left-0 mt-1.5 min-w-[180px] py-1 z-50 glass-card border border-[#30363d] rounded-xl"
+                    style={{
+                        boxShadow: '0 12px 40px -8px rgba(0,0,0,0.6), 0 0 0 1px rgba(212,175,55,0.06)',
+                        backdropFilter: 'blur(20px) saturate(1.3)',
+                    }}
+                >
+                    {/* Group label */}
+                    <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-600">
+                        {group.groupLabel}
+                    </div>
+                    <div className="separator-gold mx-2 mb-1" />
+                    {secondaryItems.map((tab) => {
+                        const isActive = activeView === tab.id;
+                        return (
+                            <button
+                                key={tab.id}
+                                onClick={() => { onViewChange(tab.id); setOpen(false); }}
+                                title={tab.title}
+                                className={`w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold transition-all ${isActive
+                                    ? "text-[#d4af37] bg-[#d4af37]/8"
+                                    : "text-gray-400 hover:text-gray-200 hover:bg-white/4"
+                                    }`}
+                            >
+                                {tab.icon}
+                                {tab.label}
+                                {tab.id === "analysis" && analysisLoading && (
+                                    <Loader2 size={9} className="animate-spin ml-auto" />
+                                )}
+                                {tab.id === "analysis" && analysisScore != null && !analysisLoading && (
+                                    <span className="bg-[#d4af37]/20 text-[#d4af37] rounded-md px-1.5 text-[9px] font-mono font-bold ml-auto">
+                                        {analysisScore.toFixed(1)}
+                                    </span>
+                                )}
+                            </button>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+}
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -110,7 +266,7 @@ export default function TopNav({
                         <h1 className="text-2xl font-black gold-gradient tracking-tighter leading-none">
                             365 ADVISERS
                         </h1>
-                        <p className="text-[8px] font-mono text-gray-600 uppercase tracking-[0.2em] mt-0.5">
+                        <p className="text-[9px] font-mono text-gray-600 uppercase tracking-[0.2em] mt-0.5">
                             Investment Intelligence Terminal
                         </p>
                     </div>
@@ -204,41 +360,22 @@ export default function TopNav({
                 </div>
             </div>
 
-            {/* ── Row 2: Tab Navigation ── */}
-            <div className="flex gap-1 p-1 glass-card border-[#30363d] rounded-2xl w-full overflow-x-auto scan-lines">
-                {TABS.map((tab) => {
-                    const isActive = activeView === tab.id;
-                    return (
-                        <button
-                            key={tab.id}
-                            onClick={() => onViewChange(tab.id)}
-                            aria-current={isActive ? "page" : undefined}
-                            title={tab.title}
-                            className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${isActive
-                                ? "tab-active"
-                                : "text-gray-500 tab-inactive"
-                                }`}
-                        >
-                            {/* Active dot indicator */}
-                            {isActive && (
-                                <span
-                                    className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#d4af37]"
-                                    style={{ boxShadow: '0 0 6px 1px rgba(212,175,55,0.6)' }}
-                                />
-                            )}
-                            {tab.icon}
-                            {tab.label}
-                            {tab.id === "analysis" && analysisLoading && (
-                                <Loader2 size={9} className="animate-spin" />
-                            )}
-                            {tab.id === "analysis" && analysisScore != null && !analysisLoading && (
-                                <span className="bg-[#d4af37]/20 text-[#d4af37] rounded-md px-1.5 text-[8px] font-mono font-bold">
-                                    {analysisScore.toFixed(1)}
-                                </span>
-                            )}
-                        </button>
-                    );
-                })}
+            {/* ── Row 2: Grouped Tab Navigation ── */}
+            <div className="flex gap-1 p-1 glass-card border-[#30363d] rounded-2xl w-full flex-wrap nav-tab-strip" style={{ overflow: 'visible' }}>
+                {TAB_GROUPS.map((group, gi) => (
+                    <div key={group.groupLabel} className="flex items-center">
+                        {gi > 0 && (
+                            <div className="w-px h-5 mx-1 bg-gradient-to-b from-transparent via-[#d4af37]/20 to-transparent flex-shrink-0" />
+                        )}
+                        <NavGroup
+                            group={group}
+                            activeView={activeView}
+                            onViewChange={onViewChange}
+                            analysisScore={analysisScore}
+                            analysisLoading={analysisLoading}
+                        />
+                    </div>
+                ))}
             </div>
 
             {/* Separator */}

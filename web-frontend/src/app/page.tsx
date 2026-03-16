@@ -129,9 +129,10 @@ function useShellContext(activeView: ViewId, combined: any, alphaProfile: any, w
       bottomTitle = "Signal Matrix";
       bottomSubtitle = ticker ?? "";
       if (alphaProfile?.profile) {
+        const caseScore = alphaProfile.profile.composite_alpha?.score ?? alphaProfile.profile.composite?.overall_strength;
         bottomMetrics.push(
           { icon: <Radio size={12} className="text-[#d4af37]" />, label: "Active Signals", value: `${alphaProfile.profile.fired_signals ?? 0}` },
-          { icon: <TrendingUp size={12} className="text-emerald-400" />, label: "CASE Score", value: `${alphaProfile.profile.composite_score?.toFixed(0) ?? "—"}` },
+          { icon: <TrendingUp size={12} className="text-emerald-400" />, label: "CASE Score", value: `${caseScore?.toFixed(0) ?? "—"}` },
         );
       }
       if (combined.state.opportunity) {

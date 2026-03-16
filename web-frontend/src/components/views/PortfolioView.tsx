@@ -70,25 +70,42 @@ export default function PortfolioView({ historyEntries }: PortfolioViewProps) {
         // Derive risk metrics from history
         const avgOpportunity =
             eligible.reduce((s, e) => s + (e.opportunity_score ?? 0), 0) / eligible.length;
-        const avgVol = volCount > 0 ? totalVol / volCount : undefined;
+        // volatility_atr is a fraction (0.024 = 2.4%); convert to percentage
+        const avgVolFraction = volCount > 0 ? totalVol / volCount : undefined;
+        const avgVolPct = avgVolFraction != null ? avgVolFraction * 100 : undefined;
+
+        // Require at least 2 data points for risk metrics
+        if (volCount < 2 || avgVolPct == null || avgVolPct < 0.01) {
+            return {
+                allocEntries,
+                var95: undefined,
+                maxDrawdown: undefined,
+                sharpeEstimate: undefined,
+                portfolioVolatility: undefined,
+                bullReturn: 0,
+                baseReturn: 0,
+                bearReturn: 0,
+            };
+        }
 
         // Approximate scenario projections based on average opportunity score
         const baseReturn = avgOpportunity * 1.2 - 2; // simple heuristic
         const bullReturn = baseReturn + (avgOpportunity > 7 ? 8 : 5);
-        const bearReturn = baseReturn - (avgVol ? avgVol * 1.5 : 6);
+        const bearReturn = baseReturn - (avgVolPct * 1.5);
 
-        // Approximate VaR and max drawdown
-        const var95 = avgVol ? avgVol * 1.65 : undefined;
-        const maxDrawdown = avgVol ? avgVol * 2.5 : undefined;
-        const sharpeEstimate =
-            avgVol && avgVol > 0 ? baseReturn / avgVol : undefined;
+        // Approximate VaR and max drawdown (using % values)
+        const var95 = avgVolPct * 1.65;
+        const maxDrawdown = avgVolPct * 2.5;
+        // Sharpe: clamp to [-5, 5] to prevent unrealistic display values
+        const rawSharpe = baseReturn / avgVolPct;
+        const sharpeEstimate = Math.max(-5, Math.min(5, rawSharpe));
 
         return {
             allocEntries,
             var95,
             maxDrawdown,
             sharpeEstimate,
-            portfolioVolatility: avgVol,
+            portfolioVolatility: avgVolPct,
             bullReturn,
             baseReturn,
             bearReturn,
@@ -97,30 +114,26 @@ export default function PortfolioView({ historyEntries }: PortfolioViewProps) {
 
     return (
         <div className="space-y-6" style={{ animation: "fadeSlideIn 0.3s ease both" }}>
-            {/* Intelligence Panels — shown when we have history data */}
-            <div>
-                {portfolioMetrics && (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
-                        <ErrorBoundary>
-                            <AllocationChart entries={portfolioMetrics.allocEntries} />
-                        </ErrorBoundary>
-                        <ErrorBoundary>
-                            <RiskBudgetPanel
-                                var95={portfolioMetrics.var95}
-                                maxDrawdown={portfolioMetrics.maxDrawdown}
-                                sharpeEstimate={portfolioMetrics.sharpeEstimate}
-                                portfolioVolatility={portfolioMetrics.portfolioVolatility}
-                            />
-                        </ErrorBoundary>
-                        <ErrorBoundary>
-                            <ScenarioAnalysisPanel
-                                bullReturn={portfolioMetrics.bullReturn}
-                                baseReturn={portfolioMetrics.baseReturn}
-                                bearReturn={portfolioMetrics.bearReturn}
-                            />
-                        </ErrorBoundary>
-                    </div>
-                )}
+            {/* Intelligence Panels — always show grid, components handle their own empty states */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                <ErrorBoundary>
+                    <AllocationChart entries={portfolioMetrics?.allocEntries ?? []} />
+                </ErrorBoundary>
+                <ErrorBoundary>
+                    <RiskBudgetPanel
+                        var95={portfolioMetrics?.var95}
+                        maxDrawdown={portfolioMetrics?.maxDrawdown}
+                        sharpeEstimate={portfolioMetrics?.sharpeEstimate}
+                        portfolioVolatility={portfolioMetrics?.portfolioVolatility}
+                    />
+                </ErrorBoundary>
+                <ErrorBoundary>
+                    <ScenarioAnalysisPanel
+                        bullReturn={portfolioMetrics?.bullReturn ?? 0}
+                        baseReturn={portfolioMetrics?.baseReturn ?? 0}
+                        bearReturn={portfolioMetrics?.bearReturn ?? 0}
+                    />
+                </ErrorBoundary>
             </div>
 
             {/* Existing Portfolio Dashboard */}

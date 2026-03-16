@@ -53,8 +53,8 @@ class TestResolveExchange:
         assert resolve_exchange("TOR") == "TSX"
 
     def test_unknown_passthrough(self):
-        """Unknown codes pass through as-is."""
-        assert resolve_exchange("UNKNOWN_EXCHANGE") == "UNKNOWN_EXCHANGE"
+        """Unknown codes fall back to NASDAQ."""
+        assert resolve_exchange("UNKNOWN_EXCHANGE") == "NASDAQ"
 
     def test_already_resolved(self):
         """Already-resolved names pass through correctly."""

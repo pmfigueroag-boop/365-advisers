@@ -213,9 +213,35 @@ class AnalysisPipeline:
 
         try:
             from src.data.external.coverage.tracker import CoverageTracker
-            from src.data.external.base import DataDomain, ProviderRequest
+            from src.data.external.coverage.models import SourceStatus
+            from src.data.external.base import DataDomain, ProviderRequest, ProviderResponse, ProviderStatus
 
             tracker = CoverageTracker(ticker=symbol)
+
+            # ── Register core data sources that always succeed ──────────
+            # Fundamental data (yfinance) — always available at this point
+            if fund_events:
+                core_fund_status = SourceStatus(
+                    domain=DataDomain.MARKET_DATA,
+                    provider_name="yfinance-fundamental",
+                    status="available",
+                    cached=is_from_cache,
+                    coverage_ratio=1.0,
+                    fields_populated=1, fields_total=1,
+                )
+                tracker._entries.append(core_fund_status)
+
+            # Technical data — always available at this point
+            if tech_data and "error" not in tech_data:
+                core_tech_status = SourceStatus(
+                    domain=DataDomain.MARKET_DATA,
+                    provider_name="yfinance-technical",
+                    status="available",
+                    cached=False,
+                    coverage_ratio=1.0,
+                    fields_populated=1, fields_total=1,
+                )
+                tracker._entries.append(core_tech_status)
 
             # Try to fetch enrichment data from EDPL (non-blocking)
             edpl_results = await self._fetch_edpl_enrichment(symbol, self._edpl_router)

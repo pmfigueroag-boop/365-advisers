@@ -51,7 +51,7 @@ export default function OpportunityVerdict({ combined, alphaProfile }: Opportuni
 
     const oppScore = opportunity?.opportunity_score ?? committee?.score ?? 0;
     const caseScore = alphaProfile?.composite_alpha?.score ?? 0;
-    const confidence = decision.confidence_score;
+    const confidence = (decision.confidence_score ?? 0) * 100; // backend sends 0–1, meter expects 0–100
     const allocation = positionSizing?.suggested_allocation ?? 0;
     const riskLevel = positionSizing?.risk_level ?? "unknown";
     const position = decision.investment_position;

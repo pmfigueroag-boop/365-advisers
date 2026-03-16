@@ -163,7 +163,7 @@ class TestFallbackRouter:
         router = FallbackRouter(reg, hc)
 
         req = ProviderRequest(domain=DataDomain.MARKET_DATA)
-        resp = asyncio.get_event_loop().run_until_complete(
+        resp = asyncio.run(
             router.fetch(DataDomain.MARKET_DATA, req)
         )
         assert not resp.ok
@@ -184,7 +184,7 @@ class TestFallbackRouter:
         )
 
         req = ProviderRequest(domain=DataDomain.MARKET_DATA)
-        resp = asyncio.get_event_loop().run_until_complete(
+        resp = asyncio.run(
             router.fetch(DataDomain.MARKET_DATA, req)
         )
         assert resp.data is not None  # null factory produced a contract

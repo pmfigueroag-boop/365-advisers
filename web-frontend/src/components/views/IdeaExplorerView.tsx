@@ -154,7 +154,7 @@ export default function IdeaExplorerView({
                     </div>
 
                     {/* Sort */}
-                    <p className="text-[9px] font-black uppercase tracking-wider text-gray-500 mb-2">Sort by <HelpTooltip topic="filter_sort" compact side="right" /></p>
+                    <span className="block text-[9px] font-black uppercase tracking-wider text-gray-500 mb-2">Sort by <HelpTooltip topic="filter_sort" compact side="right" /></span>
                     <div className="flex gap-1">
                         {(["score", "ticker"] as const).map((s) => (
                             <button
@@ -184,15 +184,36 @@ export default function IdeaExplorerView({
                                 {displayIdeas.length} ideas
                             </span>
                         </div>
-                        <div className="relative w-40">
-                            <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-600" />
-                            <input
-                                type="text"
-                                placeholder="Filter ticker…"
-                                className="w-full bg-[#161b22] border border-[#30363d] pl-8 pr-3 py-1.5 rounded-lg text-[11px] focus:outline-none focus:border-[#d4af37]/40 transition-all placeholder:text-gray-700"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value.toUpperCase())}
-                            />
+                        <div className="flex items-center gap-2">
+                            {/* Scan buttons visible when sidebar is hidden (< lg) */}
+                            <button
+                                onClick={onAutoScan}
+                                disabled={scanStatus === "scanning"}
+                                className="lg:hidden bg-gradient-to-r from-[#d4af37] to-[#e8c84a] text-black font-bold px-3 py-1.5 rounded-lg hover:brightness-110 transition-all disabled:opacity-50 flex items-center gap-1.5 text-[10px]"
+                            >
+                                {scanStatus === "scanning" ? (
+                                    <><Loader2 size={10} className="animate-spin" /> Scanning…</>
+                                ) : (
+                                    <><Zap size={10} /> Universe Scan</>
+                                )}
+                            </button>
+                            <button
+                                onClick={onScan}
+                                disabled={scanStatus === "scanning"}
+                                className="lg:hidden border border-[#30363d] text-gray-400 font-bold px-2.5 py-1.5 rounded-lg hover:bg-[#30363d]/30 transition-all disabled:opacity-50 flex items-center gap-1 text-[9px]"
+                            >
+                                <RefreshCw size={9} /> Watchlist
+                            </button>
+                            <div className="relative w-40">
+                                <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-600" />
+                                <input
+                                    type="text"
+                                    placeholder="Filter ticker…"
+                                    className="w-full bg-[#161b22] border border-[#30363d] pl-8 pr-3 py-1.5 rounded-lg text-[11px] focus:outline-none focus:border-[#d4af37]/40 transition-all placeholder:text-gray-700"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value.toUpperCase())}
+                                />
+                            </div>
                         </div>
                     </div>
 
@@ -229,7 +250,13 @@ export default function IdeaExplorerView({
                             <div className="flex flex-col items-center justify-center py-16 text-center">
                                 <Lightbulb size={28} className="text-gray-700 mb-3" />
                                 <p className="text-gray-600 text-sm">No ideas found</p>
-                                <p className="text-gray-700 text-xs mt-1">Click <b>Universe Scan</b> to auto-discover opportunities across 300+ tickers</p>
+                                <p className="text-gray-700 text-xs mt-1">Scan to auto-discover opportunities across 300+ tickers</p>
+                                <button
+                                    onClick={onAutoScan}
+                                    className="mt-4 bg-gradient-to-r from-[#d4af37] to-[#e8c84a] text-black font-bold px-5 py-2 rounded-xl hover:brightness-110 transition-all disabled:opacity-50 flex items-center gap-2 text-xs"
+                                >
+                                    <Zap size={12} /> Universe Scan
+                                </button>
                             </div>
                         ) : (
                             <table className="w-full text-[11px]">
@@ -324,7 +351,7 @@ export default function IdeaExplorerView({
 
                             {/* Strategy */}
                             <div>
-                                <p className="text-[9px] uppercase text-gray-600 mb-1">Detected by <HelpTooltip topic="preview_detected_by" compact side="right" /></p>
+                                <span className="block text-[9px] uppercase text-gray-600 mb-1">Detected by <HelpTooltip topic="preview_detected_by" compact side="right" /></span>
                                 {(() => {
                                     const cfg = TYPE_CONFIG[selectedIdea.idea_type] ?? TYPE_CONFIG.value;
                                     return (
@@ -337,7 +364,7 @@ export default function IdeaExplorerView({
 
                             {/* Strength */}
                             <div>
-                                <p className="text-[9px] uppercase text-gray-600 mb-1">Signal Strength <HelpTooltip topic="preview_strength" compact side="right" /></p>
+                                <span className="block text-[9px] uppercase text-gray-600 mb-1">Signal Strength <HelpTooltip topic="preview_strength" compact side="right" /></span>
                                 <p className="text-2xl font-black text-[#d4af37]">
                                     {(selectedIdea.signal_strength * 100).toFixed(0)}%
                                 </p>
@@ -345,7 +372,7 @@ export default function IdeaExplorerView({
 
                             {/* Confidence */}
                             <div>
-                                <p className="text-[9px] uppercase text-gray-600 mb-1">Confidence <HelpTooltip topic="confidence_level" compact side="right" /></p>
+                                <span className="block text-[9px] uppercase text-gray-600 mb-1">Confidence <HelpTooltip topic="confidence_level" compact side="right" /></span>
                                 <span className={`text-xs font-black uppercase ${selectedIdea.confidence === "high" ? "text-green-400" : selectedIdea.confidence === "medium" ? "text-yellow-400" : "text-gray-500"}`}>
                                     {selectedIdea.confidence}
                                 </span>
@@ -354,7 +381,7 @@ export default function IdeaExplorerView({
                             {/* Signals */}
                             {selectedIdea.signals && selectedIdea.signals.length > 0 && (
                                 <div>
-                                    <p className="text-[9px] uppercase text-gray-600 mb-2">Key Signals <HelpTooltip topic="preview_signals" compact side="right" /></p>
+                                    <span className="block text-[9px] uppercase text-gray-600 mb-2">Key Signals <HelpTooltip topic="preview_signals" compact side="right" /></span>
                                     <div className="space-y-1.5">
                                         {selectedIdea.signals.slice(0, 4).map((sig, i) => (
                                             <div key={i} className="flex items-center gap-2">

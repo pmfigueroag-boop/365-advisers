@@ -226,11 +226,25 @@ class MomentumModule:
 
 class VolatilityModule:
     @staticmethod
-    def compute(price: float, inds: dict) -> VolatilityResult:
+    def compute(price: float, inds: dict, ohlcv: list[dict] | None = None) -> VolatilityResult:
         bb_upper = inds.get("bb_upper", 0.0) or 0.0
         bb_lower = inds.get("bb_lower", 0.0) or 0.0
         bb_basis = inds.get("bb_basis", 0.0) or (bb_upper + bb_lower) / 2 if bb_upper else 0.0
         atr      = inds.get("atr", 0.0) or 0.0
+
+        # ── Fallback: compute ATR from OHLCV when provider returns 0 ──────
+        if atr == 0.0 and ohlcv and len(ohlcv) >= 15:
+            period = 14
+            true_ranges: list[float] = []
+            for i in range(1, len(ohlcv)):
+                h = ohlcv[i].get("high", 0)
+                l = ohlcv[i].get("low", 0)
+                prev_c = ohlcv[i - 1].get("close", 0)
+                if h > 0 and l > 0 and prev_c > 0:
+                    tr = max(h - l, abs(h - prev_c), abs(l - prev_c))
+                    true_ranges.append(tr)
+            if len(true_ranges) >= period:
+                atr = sum(true_ranges[-period:]) / period
 
         bb_width = bb_upper - bb_lower if bb_upper and bb_lower else 0.0
         atr_pct  = (atr / price) if price > 0 and atr > 0 else 0.0
@@ -791,7 +805,7 @@ class IndicatorEngine:
         return IndicatorResult(
             trend      = TrendModule.compute(price, inds, ohlcv=ohlcv),
             momentum   = MomentumModule.compute(inds, ohlcv=ohlcv),
-            volatility = VolatilityModule.compute(price, inds),
+            volatility = VolatilityModule.compute(price, inds, ohlcv=ohlcv),
             volume     = VolumeModule.compute(inds, ohlcv),
             structure  = StructureModule.compute(price, ohlcv),
         )

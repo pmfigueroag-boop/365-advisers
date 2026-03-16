@@ -11,7 +11,7 @@ from src.engines.market_feed.subscription_manager import SubscriptionManager
 from src.engines.market_feed.engine import MarketFeedEngine
 
 def _run(coro):
-    return asyncio.get_event_loop().run_until_complete(coro)
+    return asyncio.run(coro)
 
 
 # ── Models ───────────────────────────────────────────────────────────────────

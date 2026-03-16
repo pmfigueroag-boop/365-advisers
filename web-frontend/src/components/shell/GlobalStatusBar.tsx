@@ -54,6 +54,7 @@ const VIEW_LABELS: Record<ViewId, string> = {
     "strategy-lab": "STRATEGY LAB",
     marketplace: "STRATEGY MARKETPLACE",
     "ai-assistant": "AI ASSISTANT",
+    "alpha-engine": "ALPHA ENGINE",
 };
 
 const REGIME_STYLES: Record<string, { bg: string; color: string; label: string }> = {

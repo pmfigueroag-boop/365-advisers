@@ -131,6 +131,21 @@ export default function TerminalView({
     if (isIdle && watchlistItems.length > 0) {
         return (
             <div className="space-y-5 bg-grid" style={{ animation: "fadeSlideIn 0.4s ease both" }}>
+                {/* Quick onboarding strip for users with < 3 assets */}
+                {watchlistItems.length < 3 && (
+                    <div className="flex items-center gap-3 px-4 py-3 rounded-xl"
+                        style={{
+                            background: 'linear-gradient(135deg, rgba(212,175,55,0.06), rgba(59,130,246,0.04))',
+                            border: '1px solid rgba(212,175,55,0.12)',
+                        }}>
+                        <Zap size={14} className="text-[#d4af37] flex-shrink-0" />
+                        <p className="text-[11px] text-gray-400">
+                            <span className="text-[#d4af37] font-bold">Tip:</span> Type a ticker in the search bar above or explore
+                            <span className="text-[#d4af37] font-bold"> Ideas</span> to discover opportunities across 200+ stocks.
+                        </p>
+                    </div>
+                )}
+
                 <div className="flex items-center justify-between">
                     <div>
                         <InfoTooltip text="Assets you are tracking. Select one to run the full Investment Committee analysis." position="bottom">
@@ -138,7 +153,7 @@ export default function TerminalView({
                         </InfoTooltip>
                         <p className="text-xs text-gray-600 mt-0.5">Select an asset to convene the Investment Committee</p>
                     </div>
-                    <span className="text-[9px] font-mono text-gray-500 glass-card border border-[#30363d] rounded-lg px-2.5 py-1.5"
+                    <span className="text-[10px] font-mono text-gray-500 glass-card border border-[#30363d] rounded-lg px-2.5 py-1.5"
                         style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)' }}>
                         {watchlistItems.length} asset{watchlistItems.length !== 1 ? "s" : ""} tracked
                     </span>
