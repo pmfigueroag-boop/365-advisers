@@ -33,6 +33,9 @@ class OpportunityRepository:
         generated_at: datetime,
         opportunity_score: float | None = None,
         suggested_alloc: float | None = None,
+        case_score: float | None = None,
+        fundamental_score: float | None = None,
+        technical_score: float | None = None,
     ) -> int:
         """Insert a new tracking record. Returns the record ID."""
         with SessionLocal() as db:
@@ -43,6 +46,9 @@ class OpportunityRepository:
                 confidence=confidence,
                 signal_strength=signal_strength,
                 opportunity_score=opportunity_score,
+                case_score=case_score,
+                fundamental_score=fundamental_score,
+                technical_score=technical_score,
                 suggested_alloc=suggested_alloc,
                 price_at_gen=price_at_gen,
                 generated_at=generated_at,

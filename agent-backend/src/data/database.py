@@ -415,6 +415,9 @@ class OpportunityPerformanceRecord(Base):
     confidence           = Column(String(10), nullable=False)
     signal_strength      = Column(Float, nullable=False)
     opportunity_score    = Column(Float)                     # UOS at generation time
+    case_score           = Column(Float)                     # CASE composite (0–100)
+    fundamental_score    = Column(Float)                     # Committee verdict (0–10)
+    technical_score      = Column(Float)                     # Technical engine (0–10)
     suggested_alloc      = Column(Float)                     # % allocation suggested
     price_at_gen         = Column(Float)                     # Price when idea was generated
     generated_at         = Column(DateTime, nullable=False)

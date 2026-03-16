@@ -178,6 +178,9 @@ class OpportunityTracker:
                 price_at_gen=price,
                 generated_at=now,
                 opportunity_score=opportunity_score,
+                case_score=case_score,
+                fundamental_score=fundamental_score,
+                technical_score=technical_score,
                 suggested_alloc=None,
             )
             logger.info(
