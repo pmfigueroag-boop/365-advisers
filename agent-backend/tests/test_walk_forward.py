@@ -1,330 +1,243 @@
 """
 tests/test_walk_forward.py
-──────────────────────────────────────────────────────────────────────────────
-Unit tests for the Walk-Forward Validation Engine.
-
-Covers:
-  - WindowGenerator (rolling + anchored modes)
-  - StabilityAnalyzer (component scores and classification)
-  - Pydantic models (serialisation, defaults)
-  - DB table definitions
+--------------------------------------------------------------------------
+Tests for WalkForwardValidator and governor OOS overfit gate.
 """
 
 from __future__ import annotations
 
+import pytest
 from datetime import date
 
-import pytest
-
+from src.engines.backtesting.models import SignalEvent, SignalStrength
+from src.engines.backtesting.walk_forward_validator import (
+    WalkForwardValidator,
+    WalkForwardReport,
+    SignalWFResult,
+)
+from src.engines.backtesting.calibration_models import (
+    GovernanceAction,
+    ParameterChange,
+    ParameterType,
+)
+from src.engines.backtesting.calibration_governor import CalibrationGovernor
 from src.engines.alpha_signals.models import SignalCategory
-from src.engines.walk_forward.models import (
-    StabilityClassification,
-    WalkForwardConfig,
-    WalkForwardFold,
-    WalkForwardMode,
-    WalkForwardRun,
-    WFSignalFoldResult,
-    WFSignalSummary,
-)
-from src.engines.walk_forward.stability_analyzer import (
-    StabilityAnalyzer,
-    _classify_stability,
-)
-from src.engines.walk_forward.window_generator import WindowGenerator
+from src.engines.backtesting.models import SignalPerformanceRecord
 
 
-# ─── Window Generator Tests ─────────────────────────────────────────────────
+# ─── Fixtures ────────────────────────────────────────────────────────────────
 
-class TestWindowGenerator:
-    """Tests for temporal fold generation."""
+def _make_event(
+    signal_id: str,
+    fired_date: date,
+    excess_return_20: float = 0.01,
+    ticker: str = "AAPL",
+) -> SignalEvent:
+    return SignalEvent(
+        signal_id=signal_id,
+        ticker=ticker,
+        fired_date=fired_date,
+        strength=SignalStrength.MODERATE,
+        confidence=0.7,
+        value=1.0,
+        price_at_fire=100.0,
+        forward_returns={20: excess_return_20 + 0.005},
+        benchmark_returns={20: 0.005},
+        excess_returns={20: excess_return_20},
+    )
 
-    def test_rolling_mode_generates_folds(self):
-        config = WalkForwardConfig(
-            universe=["AAPL"],
-            start_date=date(2015, 1, 1),
-            end_date=date(2025, 1, 1),
-            train_days=756,   # ~3 years
-            test_days=126,    # ~6 months
-            mode=WalkForwardMode.ROLLING,
+
+def _make_dated_events(
+    signal_id: str,
+    start_date: date,
+    n: int,
+    base_excess: float = 0.02,
+    noise: float = 0.005,
+) -> list[SignalEvent]:
+    """Create N events spread across days from start_date."""
+    events = []
+    for i in range(n):
+        d = date.fromordinal(start_date.toordinal() + i)
+        excess = base_excess + (noise * (1 if i % 2 == 0 else -1))
+        events.append(_make_event(signal_id, d, excess))
+    return events
+
+
+def _make_overfit_events(
+    signal_id: str,
+    start_date: date,
+    n: int,
+) -> list[SignalEvent]:
+    """Create events that perform great in first half, poorly in second half."""
+    events = []
+    mid = n // 2
+    for i in range(n):
+        d = date.fromordinal(start_date.toordinal() + i)
+        if i < mid:
+            excess = 0.05 + 0.002 * (1 if i % 2 == 0 else -1)  # Strong train
+        else:
+            excess = -0.01 + 0.03 * (1 if i % 2 == 0 else -1)  # Noisy test
+        events.append(_make_event(signal_id, d, excess))
+    return events
+
+
+def _make_performance_record(
+    signal_id: str = "test.sig",
+    total_firings: int = 100,
+    sharpe_20: float = 0.5,
+    hit_rate_20: float = 0.55,
+) -> SignalPerformanceRecord:
+    return SignalPerformanceRecord(
+        signal_id=signal_id,
+        signal_name=f"Test {signal_id}",
+        category=SignalCategory("value"),
+        total_firings=total_firings,
+        total_correct=int(total_firings * hit_rate_20),
+        sharpe_ratio={20: sharpe_20},
+        hit_rate={20: hit_rate_20},
+        avg_return={20: 0.005},
+    )
+
+
+# ─── Validator Tests ─────────────────────────────────────────────────────────
+
+class TestWalkForwardValidator:
+    def test_stable_signal_low_degradation(self):
+        """Signal with consistent performance → low OOS degradation."""
+        events = _make_dated_events(
+            "stable", date(2023, 1, 1), n=200, base_excess=0.02, noise=0.003,
         )
-        gen = WindowGenerator()
-        folds = gen.generate(config)
+        validator = WalkForwardValidator(n_windows=4, train_pct=0.7)
+        report = validator.validate(events)
 
-        assert len(folds) >= 1
-        assert all(isinstance(f, WalkForwardFold) for f in folds)
-        # Folds should be ordered
-        for i in range(len(folds) - 1):
-            assert folds[i].fold_index < folds[i + 1].fold_index
-        # Train end should be before test start
-        for f in folds:
-            assert f.train_end < f.test_start
-            assert f.train_start < f.train_end
-            assert f.test_start <= f.test_end
+        assert report.total_signals == 1
+        result = report.signal_results[0]
+        assert result.signal_id == "stable"
+        assert result.is_overfit is False
+        # Stable signal shouldn't degrade much
+        assert result.oos_degradation < 0.50
 
-    def test_anchored_mode_has_fixed_start(self):
-        config = WalkForwardConfig(
-            universe=["AAPL"],
-            start_date=date(2015, 1, 1),
-            end_date=date(2025, 1, 1),
-            train_days=756,
-            test_days=126,
-            mode=WalkForwardMode.ANCHORED,
-        )
-        gen = WindowGenerator()
-        folds = gen.generate(config)
-
-        assert len(folds) >= 1
-        # In anchored mode, all folds should start at the same date
-        for f in folds:
-            assert f.train_start == date(2015, 1, 1)
-        # Train window should grow (or stay same for last)
-        if len(folds) > 1:
-            assert folds[-1].train_end >= folds[0].train_end
-
-    def test_no_folds_when_range_too_short(self):
-        config = WalkForwardConfig(
-            universe=["AAPL"],
-            start_date=date(2024, 1, 1),
-            end_date=date(2024, 6, 1),   # Only ~5 months
-            train_days=756,               # 3 years needed
-            test_days=126,
-        )
-        gen = WindowGenerator()
-        folds = gen.generate(config)
-        assert len(folds) == 0
-
-    def test_custom_step_days(self):
-        config = WalkForwardConfig(
-            universe=["AAPL"],
-            start_date=date(2015, 1, 1),
-            end_date=date(2025, 1, 1),
-            train_days=756,
-            test_days=126,
-            step_days=63,  # ~3 month step (more overlap)
-        )
-        gen = WindowGenerator()
-        folds = gen.generate(config)
-        # With smaller step, should get more folds
-        assert len(folds) >= 2
-
-    def test_no_overlapping_test_windows(self):
-        config = WalkForwardConfig(
-            universe=["AAPL"],
-            start_date=date(2015, 1, 1),
-            end_date=date(2025, 1, 1),
-            train_days=756,
-            test_days=126,
-        )
-        gen = WindowGenerator()
-        folds = gen.generate(config)
-
-        for f in folds:
-            assert f.test_end <= config.end_date
-
-
-# ─── Stability Analyzer Tests ───────────────────────────────────────────────
-
-class TestStabilityAnalyzer:
-    """Tests for cross-fold stability scoring."""
-
-    def _make_fold_results(
-        self,
-        signal_id: str = "test.signal",
-        n_folds: int = 8,
-        qualified_ratio: float = 1.0,
-        oos_hit_rates: list[float] | None = None,
-        oos_sharpes: list[float] | None = None,
-        oos_alphas: list[float] | None = None,
-    ) -> list[WFSignalFoldResult]:
-        """Helper to create synthetic fold results."""
-        results = []
-        for i in range(n_folds):
-            qualified = i < int(n_folds * qualified_ratio)
-            result = WFSignalFoldResult(
-                signal_id=signal_id,
-                signal_name="Test Signal",
-                fold_index=i,
-                is_hit_rate=0.60,
-                is_sharpe=0.80,
-                is_alpha=0.005,
-                is_firings=50,
-                qualified=qualified,
+    def test_overfit_signal_detected(self):
+        """Signal that's great in-sample but poor OOS → high degradation."""
+        # Create 4 windows worth of events where each window's first 70%
+        # is strong but last 30% collapses
+        events = []
+        for w in range(4):
+            base_day = date(2023, 1, 1).toordinal() + w * 90
+            window_events = _make_overfit_events(
+                "overfit_sig", date.fromordinal(base_day), n=60,
             )
-            if qualified and oos_hit_rates:
-                idx = min(i, len(oos_hit_rates) - 1)
-                result.oos_hit_rate = oos_hit_rates[idx]
-                result.oos_sharpe = oos_sharpes[idx] if oos_sharpes else 0.5
-                result.oos_alpha = oos_alphas[idx] if oos_alphas else 0.005
-                result.oos_firings = 20
-            results.append(result)
-        return results
+            events.extend(window_events)
 
-    def test_robust_signal(self):
-        # All folds positive, consistent
-        results = self._make_fold_results(
-            n_folds=8,
-            oos_hit_rates=[0.65, 0.60, 0.58, 0.62, 0.55, 0.63, 0.59, 0.61],
-            oos_sharpes=[1.2, 1.1, 0.9, 1.0, 0.8, 1.3, 1.0, 1.1],
-            oos_alphas=[0.01, 0.008, 0.005, 0.007, 0.003, 0.012, 0.006, 0.009],
+        validator = WalkForwardValidator(n_windows=4, train_pct=0.7)
+        report = validator.validate(events)
+
+        assert report.total_signals == 1
+        result = report.signal_results[0]
+        # Should detect high degradation
+        assert result.avg_train_sharpe > result.avg_test_sharpe
+
+    def test_empty_events_returns_empty(self):
+        """No events → empty report."""
+        validator = WalkForwardValidator(n_windows=4)
+        report = validator.validate([])
+        assert report.total_signals == 0
+        assert report.n_windows == 4
+
+    def test_multiple_signals(self):
+        """Multiple signals evaluated independently."""
+        stable = _make_dated_events(
+            "stable", date(2023, 1, 1), n=200, base_excess=0.025, noise=0.003,
         )
-        analyzer = StabilityAnalyzer()
-        summaries = analyzer.analyze(
-            results,
-            {"test.signal": ("Test Signal", SignalCategory.MOMENTUM)},
-            total_folds=8,
+        noisy = _make_dated_events(
+            "noisy", date(2023, 1, 1), n=200, base_excess=0.005, noise=0.04,
         )
-        assert len(summaries) == 1
-        s = summaries[0]
-        assert s.stability_class == StabilityClassification.ROBUST
-        assert s.stability_score >= 0.75
-        assert s.consistency_ratio == 1.0  # All folds > 50%
-        assert s.alpha_persistence == 1.0  # All alphas > 0
+        validator = WalkForwardValidator(n_windows=4, train_pct=0.7)
+        report = validator.validate(stable + noisy)
 
-    def test_overfit_signal(self):
-        # Inconsistent OOS performance
-        results = self._make_fold_results(
-            n_folds=8,
-            qualified_ratio=0.375,   # Only 3/8 qualified
-            oos_hit_rates=[0.40, 0.35, 0.45],
-            oos_sharpes=[-0.5, -0.3, 0.1],
-            oos_alphas=[-0.01, -0.005, 0.001],
+        assert report.total_signals == 2
+        ids = {r.signal_id for r in report.signal_results}
+        assert ids == {"stable", "noisy"}
+
+    def test_invalid_params_rejected(self):
+        """Invalid constructor params raise ValueError."""
+        with pytest.raises(ValueError):
+            WalkForwardValidator(n_windows=1)
+        with pytest.raises(ValueError):
+            WalkForwardValidator(train_pct=0.1)
+        with pytest.raises(ValueError):
+            WalkForwardValidator(train_pct=0.95)
+
+    def test_signal_meta_propagated(self):
+        """Signal names from metadata appear in results."""
+        events = _make_dated_events("sig.a", date(2023, 1, 1), n=200)
+        meta = {"sig.a": "MACD Bearish"}
+        validator = WalkForwardValidator(n_windows=4)
+        report = validator.validate(events, signal_meta=meta)
+
+        assert report.signal_results[0].signal_name == "MACD Bearish"
+
+    def test_window_count_matches(self):
+        """Windows in results should match n_windows (or fewer if data sparse)."""
+        events = _make_dated_events(
+            "sig", date(2023, 1, 1), n=300, base_excess=0.02,
         )
-        analyzer = StabilityAnalyzer()
-        summaries = analyzer.analyze(
-            results,
-            {"test.signal": ("Test Signal", SignalCategory.VALUE)},
-            total_folds=8,
+        validator = WalkForwardValidator(n_windows=4, train_pct=0.7)
+        report = validator.validate(events)
+
+        result = report.signal_results[0]
+        assert len(result.windows) <= 4
+        for w in result.windows:
+            assert w.train_events >= 5
+            assert w.test_events >= 5
+
+
+# ─── Governor Integration ───────────────────────────────────────────────────
+
+class TestGovernorOOSGate:
+    def setup_method(self):
+        self.governor = CalibrationGovernor()
+
+    def test_governor_flags_overfit_weight_increase(self):
+        """Weight increase with high OOS degradation → FLAGGED."""
+        change = ParameterChange(
+            signal_id="test.sig",
+            parameter=ParameterType.WEIGHT,
+            old_value=1.0,
+            new_value=1.1,
+            oos_degradation=0.65,  # 65% degradation
         )
-        assert len(summaries) == 1
-        s = summaries[0]
-        assert s.stability_class == StabilityClassification.OVERFIT
-        assert s.stability_score < 0.25
+        record = _make_performance_record(total_firings=100, sharpe_20=0.5)
+        decisions = self.governor.review([change], {"test.sig": record})
 
-    def test_classify_stability_boundaries(self):
-        assert _classify_stability(0.75) == StabilityClassification.ROBUST
-        assert _classify_stability(0.80) == StabilityClassification.ROBUST
-        assert _classify_stability(0.50) == StabilityClassification.MODERATE
-        assert _classify_stability(0.74) == StabilityClassification.MODERATE
-        assert _classify_stability(0.25) == StabilityClassification.WEAK
-        assert _classify_stability(0.49) == StabilityClassification.WEAK
-        assert _classify_stability(0.24) == StabilityClassification.OVERFIT
-        assert _classify_stability(0.0) == StabilityClassification.OVERFIT
+        assert decisions[0].action == GovernanceAction.FLAGGED
+        assert "OOS overfit" in decisions[0].reason
+        assert "65%" in decisions[0].reason
 
-    def test_consistency_ratio(self):
-        analyzer = StabilityAnalyzer()
-        assert analyzer._consistency_ratio([0.6, 0.7, 0.3, 0.8]) == 0.75
-        assert analyzer._consistency_ratio([0.3, 0.4]) == 0.0
-        assert analyzer._consistency_ratio([]) == 0.0
-
-    def test_sharpe_stability(self):
-        analyzer = StabilityAnalyzer()
-        # Identical Sharpes → CV=0 → stability=1.0
-        assert analyzer._sharpe_stability([1.0, 1.0, 1.0]) == 1.0
-        # Single value → 0.0
-        assert analyzer._sharpe_stability([1.0]) == 0.0
-        # Empty → 0.0
-        assert analyzer._sharpe_stability([]) == 0.0
-
-    def test_alpha_persistence(self):
-        analyzer = StabilityAnalyzer()
-        assert analyzer._alpha_persistence([0.01, 0.02, -0.01, 0.005]) == 0.75
-        assert analyzer._alpha_persistence([-0.01, -0.02]) == 0.0
-        assert analyzer._alpha_persistence([]) == 0.0
-
-
-# ─── Model Tests ─────────────────────────────────────────────────────────────
-
-class TestWFModels:
-    """Tests for Pydantic model contracts."""
-
-    def test_config_defaults(self):
-        cfg = WalkForwardConfig(
-            universe=["AAPL"],
-            start_date=date(2015, 1, 1),
+    def test_governor_allows_stable_weight_increase(self):
+        """Weight increase with low OOS degradation → normal rules."""
+        change = ParameterChange(
+            signal_id="test.sig",
+            parameter=ParameterType.WEIGHT,
+            old_value=1.0,
+            new_value=1.08,
+            oos_degradation=0.15,  # Only 15% degradation — OK
         )
-        assert cfg.train_days == 756
-        assert cfg.test_days == 126
-        assert cfg.mode == WalkForwardMode.ROLLING
-        assert cfg.effective_step_days == 126
-        assert cfg.benchmark_ticker == "SPY"
-        assert cfg.is_hit_rate_threshold == 0.50
+        record = _make_performance_record(total_firings=100, sharpe_20=0.5)
+        decisions = self.governor.review([change], {"test.sig": record})
 
-    def test_config_custom_step(self):
-        cfg = WalkForwardConfig(
-            universe=["AAPL"],
-            start_date=date(2015, 1, 1),
-            step_days=63,
+        assert decisions[0].action == GovernanceAction.APPROVED
+
+    def test_governor_allows_overfit_weight_decrease(self):
+        """Weight decrease with high OOS degradation → no flag (correct direction)."""
+        change = ParameterChange(
+            signal_id="test.sig",
+            parameter=ParameterType.WEIGHT,
+            old_value=1.0,
+            new_value=0.8,
+            oos_degradation=0.70,  # High degradation, but we're decreasing weight
         )
-        assert cfg.effective_step_days == 63
+        record = _make_performance_record(total_firings=100, sharpe_20=0.5)
+        decisions = self.governor.review([change], {"test.sig": record})
 
-    def test_fold_result_serialisation(self):
-        fr = WFSignalFoldResult(
-            signal_id="value.fcf_yield_high",
-            signal_name="FCF Yield High",
-            fold_index=0,
-            is_hit_rate=0.65,
-            is_sharpe=1.2,
-            is_alpha=0.008,
-            is_firings=42,
-            qualified=True,
-            oos_hit_rate=0.58,
-            oos_sharpe=0.9,
-            oos_alpha=0.005,
-            oos_firings=15,
-        )
-        d = fr.model_dump()
-        assert d["signal_id"] == "value.fcf_yield_high"
-        assert d["qualified"] is True
-        assert d["oos_hit_rate"] == 0.58
-
-    def test_signal_summary_defaults(self):
-        s = WFSignalSummary(
-            signal_id="test",
-            category=SignalCategory.VALUE,
-        )
-        assert s.stability_score == 0.0
-        assert s.stability_class == StabilityClassification.OVERFIT
-        assert s.fold_results == []
-
-    def test_run_has_uuid(self):
-        cfg = WalkForwardConfig(
-            universe=["AAPL"],
-            start_date=date(2015, 1, 1),
-        )
-        run = WalkForwardRun(config=cfg)
-        assert len(run.run_id) == 36  # UUID format
-
-
-# ─── DB Table Tests ──────────────────────────────────────────────────────────
-
-class TestWFDatabaseTables:
-    """Verify walk-forward tables exist in the ORM."""
-
-    def test_walk_forward_runs_table(self):
-        from src.data.database import WalkForwardRunRecord
-        assert WalkForwardRunRecord.__tablename__ == "walk_forward_runs"
-        cols = {c.name for c in WalkForwardRunRecord.__table__.columns}
-        assert "run_id" in cols
-        assert "config_json" in cols
-        assert "total_folds" in cols
-        assert "robust_signals_json" in cols
-        assert "status" in cols
-
-    def test_walk_forward_folds_table(self):
-        from src.data.database import WalkForwardFoldRecord
-        assert WalkForwardFoldRecord.__tablename__ == "walk_forward_folds"
-        cols = {c.name for c in WalkForwardFoldRecord.__table__.columns}
-        assert "run_id" in cols
-        assert "fold_index" in cols
-        assert "train_start" in cols
-        assert "test_end" in cols
-
-    def test_walk_forward_signal_results_table(self):
-        from src.data.database import WalkForwardSignalResultRecord
-        assert WalkForwardSignalResultRecord.__tablename__ == "walk_forward_signal_results"
-        cols = {c.name for c in WalkForwardSignalResultRecord.__table__.columns}
-        assert "fold_id" in cols
-        assert "signal_id" in cols
-        assert "is_hit_rate" in cols
-        assert "oos_hit_rate" in cols
-        assert "qualified" in cols
+        assert "OOS overfit" not in decisions[0].reason

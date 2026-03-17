@@ -1,0 +1,21 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.13.3, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\pmfig\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend
+plugins: anyio-4.12.1, langsmith-0.7.9, cov-7.0.0
+collecting ... collected 12 items
+
+tests/test_signal_attribution.py::TestSignalAttribution::test_single_signal_contribution_equals_system PASSED [  8%]
+tests/test_signal_attribution.py::TestSignalAttribution::test_dilutive_signal_detected PASSED [ 16%]
+tests/test_signal_attribution.py::TestSignalAttribution::test_contributions_sum_approximately PASSED [ 25%]
+tests/test_signal_attribution.py::TestSignalAttribution::test_redundant_signal_high_redundancy_score PASSED [ 33%]
+tests/test_signal_attribution.py::TestSignalAttribution::test_empty_events_returns_empty PASSED [ 41%]
+tests/test_signal_attribution.py::TestSignalAttribution::test_bair_computed_correctly PASSED [ 50%]
+tests/test_signal_attribution.py::TestSignalAttribution::test_signal_meta_propagated PASSED [ 58%]
+tests/test_signal_attribution.py::TestGovernorAlphaDilution::test_governor_flags_dilutive_weight_increase PASSED [ 66%]
+tests/test_signal_attribution.py::TestGovernorAlphaDilution::test_governor_allows_dilutive_weight_decrease PASSED [ 75%]
+tests/test_signal_attribution.py::TestGovernorAlphaDilution::test_governor_allows_positive_contribution_increase PASSED [ 83%]
+tests/test_signal_attribution.py::TestAttributionPersistence::test_save_load_round_trip PASSED [ 91%]
+tests/test_signal_attribution.py::TestAttributionPersistence::test_load_missing_file PASSED [100%]
+
+============================= 12 passed in 1.78s ==============================

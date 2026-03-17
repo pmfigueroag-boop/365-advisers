@@ -1,0 +1,196 @@
+﻿python : 22:43:07 | 
+INFO  | BACKTEST: 
+Starting run bbd4e1f9-b7
+1e-4528-99e3-055514676ed
+c ÔÇö 10 tickers, 
+2024-01-01 to 2026-03-01
+En línea: 1 Carácter: 1
++ python scripts/_run_ba
+cktest_now.py 2>&1 | 
+Out-File -FilePath 
+results ...
++ ~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+    + CategoryInfo      
+        : NotSpecified  
+  : (22:43:07 | INFO.   
+ ..1 to 2026-03-01:S    
+tring) [], RemoteEx    
+ception
+    + FullyQualifiedErr 
+   orId : NativeComman  
+  dError
+ 
+22:43:07 | INFO  | 
+BACKTEST-REPO: Created 
+run bbd4e1f9-b71e-4528-9
+9e3-055514676edc
+22:43:07 | INFO  | 
+BACKTEST: Evaluating 68 
+signals
+22:43:08 | INFO  | 
+BACKTEST: Fetched 541 
+bars for NEE
+22:43:08 | INFO  | 
+BACKTEST: Fetched 541 
+bars for JNJ
+22:43:08 | INFO  | 
+BACKTEST: Fetched 541 
+bars for JPM
+22:43:09 | INFO  | 
+BACKTEST: Fetched 541 
+bars for AMZN
+22:43:09 | INFO  | 
+BACKTEST: Fetched 541 
+bars for PG
+22:43:09 | INFO  | 
+BACKTEST: Fetched 541 
+bars for XOM
+22:43:09 | INFO  | 
+BACKTEST: Fetched 541 
+bars for GOOGL
+22:43:09 | INFO  | 
+BACKTEST: Fetched 541 
+bars for SPY
+22:43:09 | INFO  | 
+BACKTEST: Fetched 541 
+bars for CAT
+22:43:09 | INFO  | 
+BACKTEST: Fetched 541 
+bars for MSFT
+22:43:09 | INFO  | 
+BACKTEST: Fetched 541 
+bars for AAPL
+22:43:11 | INFO  | 
+BACKTEST: AAPL ÔåÆ 52 
+signal events from 68 
+signals over 281 days
+22:43:11 | INFO  | 
+RETURN-TRACKER: 
+Enriched 52 events with 
+benchmark data
+22:43:12 | INFO  | 
+BACKTEST: MSFT ÔåÆ 52 
+signal events from 68 
+signals over 281 days
+22:43:12 | INFO  | 
+RETURN-TRACKER: 
+Enriched 52 events with 
+benchmark data
+22:43:13 | INFO  | 
+BACKTEST: JPM ÔåÆ 53 
+signal events from 68 
+signals over 281 days
+22:43:13 | INFO  | 
+RETURN-TRACKER: 
+Enriched 53 events with 
+benchmark data
+22:43:14 | INFO  | 
+BACKTEST: JNJ ÔåÆ 52 
+signal events from 68 
+signals over 281 days
+22:43:14 | INFO  | 
+RETURN-TRACKER: 
+Enriched 52 events with 
+benchmark data
+22:43:15 | INFO  | 
+BACKTEST: XOM ÔåÆ 49 
+signal events from 68 
+signals over 281 days
+22:43:15 | INFO  | 
+RETURN-TRACKER: 
+Enriched 49 events with 
+benchmark data
+22:43:16 | INFO  | 
+BACKTEST: AMZN ÔåÆ 49 
+signal events from 68 
+signals over 281 days
+22:43:16 | INFO  | 
+RETURN-TRACKER: 
+Enriched 49 events with 
+benchmark data
+22:43:17 | INFO  | 
+BACKTEST: PG ÔåÆ 49 
+signal events from 68 
+signals over 281 days
+22:43:17 | INFO  | 
+RETURN-TRACKER: 
+Enriched 49 events with 
+benchmark data
+22:43:18 | INFO  | 
+BACKTEST: CAT ÔåÆ 46 
+signal events from 68 
+signals over 281 days
+22:43:18 | INFO  | 
+RETURN-TRACKER: 
+Enriched 46 events with 
+benchmark data
+22:43:19 | INFO  | 
+BACKTEST: NEE ÔåÆ 53 
+signal events from 68 
+signals over 281 days
+22:43:19 | INFO  | 
+RETURN-TRACKER: 
+Enriched 53 events with 
+benchmark data
+22:43:20 | INFO  | 
+BACKTEST: GOOGL ÔåÆ 46 
+signal events from 68 
+signals over 281 days
+22:43:20 | INFO  | 
+RETURN-TRACKER: 
+Enriched 46 events with 
+benchmark data
+22:43:20 | INFO  | 
+BACKTEST: Total signal 
+events: 501
+22:43:21 | INFO  | 
+PERF-REPO: Saved 501 
+events for run bbd4e1f9-
+b71e-4528-99e3-055514676
+edc
+22:43:21 | INFO  | 
+BACKTEST: Persisted 501 
+events to performance DB
+22:43:21 | INFO  | 
+CALIBRATION: Generated 
+2 suggestions
+22:43:21 | INFO  | 
+BACKTEST-REPO: Saved 6 
+results for run bbd4e1f9
+-b71e-4528-99e3-05551467
+6edc
+22:43:21 | INFO  | 
+BACKTEST: Run bbd4e1f9-b
+71e-4528-99e3-055514676e
+dc completed in 13.4s 
+ÔÇö 6 signal results, 2 
+calibration suggestions
+Registered signals: 68
+Summary: {'value': 14, 'quality': 12, 'growth': 11, 'momentum': 12, 'volatility': 7, 'flow': 5, 'event': 4, 'macro': 3}
+
+Status: completed
+Signal results: 6
+Top signals: ['risk.macd_bearish', 'risk.rsi_overbought', 'flow.accumulation_pattern', 'momentum.macd_bullish', 'volatility.atr_expansion']
+Underperformers: []
+Elapsed: 13.5s
+
+Signal                                             Cat    N   HR@5d  HR@20d   AvgR@20d  Sharpe20  Conf
+------------------------------------------------------------------------------------------------------
+  MACD Bearish Divergence                     momentum   87 [+]52.9%  72.4%   +0.0312    +1.12 MEDIUM
+  RSI Overbought                              momentum   57 [+]52.6%  56.1%   +0.0029    +0.89   LOW
+  Accumulation Patterns                           flow   92 [+]47.8%  59.8%   +0.0107    +0.60 MEDIUM
+  MACD Bullish Signal                         momentum   84 [+]56.0%  58.3%   +0.0079    +0.59 MEDIUM
+  ATR Expansion                               volatility  100 [+]46.0%  59.0%   +0.0107    +0.58  HIGH
+  Positive RSI                                momentum   81 [+]46.9%  59.3%   +0.0073    +0.26   LOW
+
+CATEGORY SUMMARIES:
+  flow           | Signals:  1 | HitRate: 59.8% | Sharpe: +0.60 | Alpha: +0.0118
+  momentum       | Signals:  4 | HitRate: 61.5% | Sharpe: +0.71 | Alpha: +0.0146
+  volatility     | Signals:  1 | HitRate: 59.0% | Sharpe: +0.58 | Alpha: +0.0108
+
+CALIBRATION SUGGESTIONS:
+  flow.accumulation_pattern           |  half_life: 5.000 -> 59.000 | Empirical half-life is 59.0d vs configured 5.0d (1080% gap, n=92)
+  volatility.atr_expansion            |  half_life: 14.000 -> 59.000 | Empirical half-life is 59.0d vs configured 14.0d (321% gap, n=100)
+
+Results saved to results/signal_backtest_results.json

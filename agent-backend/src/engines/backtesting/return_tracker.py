@@ -32,7 +32,11 @@ class ReturnTracker:
         """
         self.benchmark = benchmark_ohlcv
         if not self.benchmark.empty:
-            self._bench_close = self.benchmark["Close"]
+            close_data = self.benchmark["Close"]
+            # Ensure we get a 1D Series even if MultiIndex produced duplicate cols
+            if isinstance(close_data, pd.DataFrame):
+                close_data = close_data.iloc[:, 0]
+            self._bench_close = close_data
         else:
             self._bench_close = pd.Series(dtype=float)
 
@@ -116,3 +120,95 @@ class ReturnTracker:
             f"RETURN-TRACKER: Enriched {len(enriched)} events with benchmark data"
         )
         return enriched
+
+    def backfill_pending(
+        self,
+        events: list[SignalEvent],
+        forward_windows: list[int],
+        price_data: dict[str, pd.DataFrame] | None = None,
+    ) -> tuple[list[SignalEvent], int]:
+        """
+        Backfill forward returns for events that are missing them.
+
+        Identifies events where the forward window has elapsed but returns
+        are not yet computed, and fills them from price data.
+
+        Parameters
+        ----------
+        events : list[SignalEvent]
+            Events to check for missing returns.
+        forward_windows : list[int]
+            Windows to backfill.
+        price_data : dict[str, pd.DataFrame] | None
+            Per-ticker price DataFrames (index=DatetimeIndex, "Close" column).
+            If None, skips backfill for tickers without data.
+
+        Returns
+        -------
+        tuple[list[SignalEvent], int]
+            Updated events list and count of returns backfilled.
+        """
+        if price_data is None:
+            price_data = {}
+
+        updated: list[SignalEvent] = []
+        n_filled = 0
+        today = date.today()
+
+        for event in events:
+            new_forward: dict[int, float] = dict(event.forward_returns)
+            filled_any = False
+
+            ticker_prices = price_data.get(event.ticker)
+            if ticker_prices is None or ticker_prices.empty:
+                updated.append(event)
+                continue
+
+            # Build date index for fast lookup
+            close_data = ticker_prices["Close"]
+            if isinstance(close_data, pd.DataFrame):
+                close_data = close_data.iloc[:, 0]
+
+            date_to_idx: dict[str, int] = {}
+            for i, dt in enumerate(ticker_prices.index):
+                key = dt.strftime("%Y-%m-%d") if hasattr(dt, "strftime") else str(dt)[:10]
+                date_to_idx[key] = i
+
+            fire_idx = date_to_idx.get(event.fired_date.isoformat())
+            if fire_idx is None:
+                updated.append(event)
+                continue
+
+            fire_price = close_data.values[fire_idx]
+            if fire_price <= 0:
+                updated.append(event)
+                continue
+
+            for w in forward_windows:
+                if w in new_forward:
+                    continue  # Already has this window
+
+                future_idx = fire_idx + w
+                if future_idx >= len(close_data):
+                    continue  # Future data not yet available
+
+                future_price = close_data.values[future_idx]
+                forward_ret = (future_price - fire_price) / fire_price
+                new_forward[w] = round(forward_ret, 6)
+                filled_any = True
+                n_filled += 1
+
+            if filled_any:
+                updated.append(event.model_copy(update={
+                    "forward_returns": new_forward,
+                }))
+            else:
+                updated.append(event)
+
+        if n_filled > 0:
+            logger.info(
+                "RETURN-TRACKER: Backfilled %d returns across %d events",
+                n_filled, len(events),
+            )
+
+        return updated, n_filled

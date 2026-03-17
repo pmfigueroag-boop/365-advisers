@@ -1,0 +1,55 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.3, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\pmfig\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend
+plugins: anyio-4.12.1, langsmith-0.7.9, cov-7.0.0
+collecting ... collected 3 items
+
+tests/test_qa_system_reliability.py::TestQASystemReliabilityAndDeterminism::test_yfinance_timeout_resilience FAILED [ 33%]
+tests/test_qa_system_reliability.py::TestQASystemReliabilityAndDeterminism::test_alpha_engine_idempotency FAILED [ 66%]
+tests/test_qa_system_reliability.py::TestQASystemReliabilityAndDeterminism::test_llm_fallback_resilience FAILED [100%]
+
+================================== FAILURES ===================================
+___ TestQASystemReliabilityAndDeterminism.test_yfinance_timeout_resilience ____
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_____ TestQASystemReliabilityAndDeterminism.test_alpha_engine_idempotency _____
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_____ TestQASystemReliabilityAndDeterminism.test_llm_fallback_resilience ______
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+============================== warnings summary ===============================
+tests\test_qa_system_reliability.py:523
+  C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\tests\test_qa_system_reliability.py:523: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_qa_system_reliability.py:544
+  C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\tests\test_qa_system_reliability.py:544: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_qa_system_reliability.py:569
+  C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\tests\test_qa_system_reliability.py:569: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_qa_system_reliability.py::TestQASystemReliabilityAndDeterminism::test_yfinance_timeout_resilience
+FAILED tests/test_qa_system_reliability.py::TestQASystemReliabilityAndDeterminism::test_alpha_engine_idempotency
+FAILED tests/test_qa_system_reliability.py::TestQASystemReliabilityAndDeterminism::test_llm_fallback_resilience
+======================== 3 failed, 3 warnings in 0.13s ========================

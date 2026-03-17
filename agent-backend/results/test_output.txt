@@ -1,0 +1,32 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.13.3, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\pmfig\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend
+plugins: anyio-4.12.1, langsmith-0.7.9, cov-7.0.0
+collecting ... collected 23 items
+
+tests/test_fundamental_provider.py::TestSafeDiv::test_normal PASSED      [  4%]
+tests/test_fundamental_provider.py::TestSafeDiv::test_zero_denominator PASSED [  8%]
+tests/test_fundamental_provider.py::TestSafeDiv::test_none_numerator PASSED [ 13%]
+tests/test_fundamental_provider.py::TestSafeDiv::test_none_denominator PASSED [ 17%]
+tests/test_fundamental_provider.py::TestSafeDiv::test_nan PASSED         [ 21%]
+tests/test_fundamental_provider.py::TestGetField::test_existing_field PASSED [ 26%]
+tests/test_fundamental_provider.py::TestGetField::test_missing_field PASSED [ 30%]
+tests/test_fundamental_provider.py::TestGetField::test_nan_value PASSED  [ 34%]
+tests/test_fundamental_provider.py::TestFundamentalProvider::test_empty_on_failure PASSED [ 39%]
+tests/test_fundamental_provider.py::TestFundamentalProvider::test_cache_works PASSED [ 43%]
+tests/test_fundamental_provider.py::TestFundamentalProvider::test_cache_clear PASSED [ 47%]
+tests/test_fundamental_provider.py::TestFundamentalProvider::test_extract_quarter_margins PASSED [ 52%]
+tests/test_fundamental_provider.py::TestFundamentalProvider::test_forward_fill PASSED [ 56%]
+tests/test_cross_sectional.py::TestCrossSectionalRanker::test_insufficient_tickers PASSED [ 60%]
+tests/test_cross_sectional.py::TestCrossSectionalRanker::test_with_synthetic_data PASSED [ 65%]
+tests/test_cross_sectional.py::TestCrossSectionalRanker::test_spearman_manual_perfect PASSED [ 69%]
+tests/test_cross_sectional.py::TestCrossSectionalRanker::test_spearman_manual_inverse PASSED [ 73%]
+tests/test_cross_sectional.py::TestCrossSectionalRanker::test_spearman_manual_random PASSED [ 78%]
+tests/test_cross_sectional.py::TestCrossSectionalRanker::test_normal_cdf_bounds PASSED [ 82%]
+tests/test_cross_sectional.py::TestQuintileResult::test_creation PASSED  [ 86%]
+tests/test_cross_sectional.py::TestQuintileResult::test_empty PASSED     [ 91%]
+tests/test_cross_sectional.py::TestCrossSectionalConfig::test_defaults PASSED [ 95%]
+tests/test_cross_sectional.py::TestCrossSectionalConfig::test_min_universe PASSED [100%]
+
+============================= 23 passed in 3.61s ==============================

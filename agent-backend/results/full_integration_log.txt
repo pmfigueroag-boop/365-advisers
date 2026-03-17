@@ -1,0 +1,465 @@
+﻿python : 23:10:03 | 
+INFO  | ================
+========================
+====================
+En línea: 1 Carácter: 1
++ python scripts/signal_
+backtest_runner.py 
+--fundamental 
+--cross-sectio ...
++ ~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo      
+        : NotSpecified  
+  : (23:10:03 | INFO.   
+ ..===============:S    
+tring) [], RemoteEx    
+ception
+    + FullyQualifiedErr 
+   orId : NativeComman  
+  dError
+ 
+23:10:03 | INFO  | 
+SIGNAL BACKTEST RUNNER
+23:10:03 | INFO  | =====
+========================
+========================
+=======
+23:10:03 | INFO  | 
+Registered signals: 68 
+across 8 categories
+23:10:03 | INFO  |   
+event: 4
+23:10:03 | INFO  |   
+flow: 5
+23:10:03 | INFO  |   
+growth: 11
+23:10:03 | INFO  |   
+macro: 3
+23:10:03 | INFO  |   
+momentum: 12
+23:10:03 | INFO  |   
+quality: 12
+23:10:03 | INFO  |   
+value: 14
+23:10:03 | INFO  |   
+volatility: 7
+23:10:03 | INFO  | 
+UNIVERSE: 'test' -> 10 
+tickers
+23:10:03 | INFO  | 
+Universe: test (10 
+tickers)
+23:10:03 | INFO  |   
+Tickers: AAPL, MSFT, 
+JPM, JNJ, XOM, AMZN, 
+PG, CAT, NEE, GOOGL
+23:10:03 | INFO  | 
+Period: 2024-01-01 -> 
+2026-03-15
+23:10:03 | INFO  | 
+Fundamentals: True
+23:10:03 | INFO  | 
+Cross-sectional: True
+23:10:03 | INFO  | 
+Benchmark: SPY
+23:10:03 | INFO  | 
+>>> Starting signal 
+backtest engine...
+23:10:03 | INFO  | 
+BACKTEST: Starting run a
+1183c88-c2f2-4949-bec9-d
+ee8c32f6f8c ÔÇö 10 
+tickers, 2024-01-01 to 
+2026-03-15
+23:10:03 | INFO  | 
+BACKTEST-REPO: Created 
+run a1183c88-c2f2-4949-b
+ec9-dee8c32f6f8c
+23:10:03 | INFO  | 
+BACKTEST: Evaluating 68 
+signals
+23:10:05 | INFO  | 
+BACKTEST: Fetched 551 
+bars for NEE
+23:10:05 | INFO  | 
+BACKTEST: Fetched 551 
+bars for MSFT
+23:10:05 | INFO  | 
+BACKTEST: Fetched 551 
+bars for PG
+23:10:05 | INFO  | 
+BACKTEST: Fetched 551 
+bars for GOOGL
+23:10:06 | INFO  | 
+BACKTEST: Fetched 551 
+bars for CAT
+23:10:06 | INFO  | 
+BACKTEST: Fetched 551 
+bars for XOM
+23:10:06 | INFO  | 
+BACKTEST: Fetched 551 
+bars for JPM
+23:10:07 | INFO  | 
+BACKTEST: Fetched 551 
+bars for AMZN
+23:10:07 | INFO  | 
+BACKTEST: Fetched 551 
+bars for SPY
+23:10:07 | INFO  | 
+BACKTEST: Fetched 551 
+bars for JNJ
+23:10:07 | INFO  | 
+BACKTEST: Fetched 551 
+bars for AAPL
+23:10:10 | INFO  | 
+FUNDAMENTAL: AAPL -- 5 
+quarters, 314 daily 
+snapshots
+23:10:11 | INFO  | 
+BACKTEST: AAPL ÔåÆ 93 
+signal events from 68 
+signals over 291 days
+23:10:11 | INFO  | 
+RETURN-TRACKER: 
+Enriched 93 events with 
+benchmark data
+23:10:13 | INFO  | 
+FUNDAMENTAL: MSFT -- 5 
+quarters, 314 daily 
+snapshots
+23:10:14 | INFO  | 
+BACKTEST: MSFT ÔåÆ 108 
+signal events from 68 
+signals over 291 days
+23:10:14 | INFO  | 
+RETURN-TRACKER: 
+Enriched 108 events 
+with benchmark data
+23:10:17 | INFO  | 
+FUNDAMENTAL: JPM -- 7 
+quarters, 445 daily 
+snapshots
+23:10:18 | INFO  | 
+BACKTEST: JPM ÔåÆ 92 
+signal events from 68 
+signals over 291 days
+23:10:18 | INFO  | 
+RETURN-TRACKER: 
+Enriched 92 events with 
+benchmark data
+23:10:20 | INFO  | 
+FUNDAMENTAL: JNJ -- 7 
+quarters, 445 daily 
+snapshots
+23:10:21 | INFO  | 
+BACKTEST: JNJ ÔåÆ 93 
+signal events from 68 
+signals over 291 days
+23:10:21 | INFO  | 
+RETURN-TRACKER: 
+Enriched 93 events with 
+benchmark data
+23:10:23 | INFO  | 
+FUNDAMENTAL: XOM -- 7 
+quarters, 445 daily 
+snapshots
+23:10:25 | INFO  | 
+BACKTEST: XOM ÔåÆ 106 
+signal events from 68 
+signals over 291 days
+23:10:25 | INFO  | 
+RETURN-TRACKER: 
+Enriched 106 events 
+with benchmark data
+23:10:27 | INFO  | 
+FUNDAMENTAL: AMZN -- 5 
+quarters, 314 daily 
+snapshots
+23:10:29 | INFO  | 
+BACKTEST: AMZN ÔåÆ 85 
+signal events from 68 
+signals over 291 days
+23:10:29 | INFO  | 
+RETURN-TRACKER: 
+Enriched 85 events with 
+benchmark data
+23:10:31 | INFO  | 
+FUNDAMENTAL: PG -- 6 
+quarters, 445 daily 
+snapshots
+23:10:32 | INFO  | 
+BACKTEST: PG ÔåÆ 90 
+signal events from 68 
+signals over 291 days
+23:10:32 | INFO  | 
+RETURN-TRACKER: 
+Enriched 90 events with 
+benchmark data
+23:10:34 | INFO  | 
+FUNDAMENTAL: CAT -- 7 
+quarters, 445 daily 
+snapshots
+23:10:35 | INFO  | 
+BACKTEST: CAT ÔåÆ 103 
+signal events from 68 
+signals over 291 days
+23:10:35 | INFO  | 
+RETURN-TRACKER: 
+Enriched 103 events 
+with benchmark data
+23:10:37 | INFO  | 
+FUNDAMENTAL: NEE -- 5 
+quarters, 314 daily 
+snapshots
+23:10:38 | INFO  | 
+BACKTEST: NEE ÔåÆ 76 
+signal events from 68 
+signals over 291 days
+23:10:38 | INFO  | 
+RETURN-TRACKER: 
+Enriched 76 events with 
+benchmark data
+23:10:41 | INFO  | 
+FUNDAMENTAL: GOOGL -- 7 
+quarters, 445 daily 
+snapshots
+23:10:42 | INFO  | 
+BACKTEST: GOOGL ÔåÆ 137 
+signal events from 68 
+signals over 291 days
+23:10:42 | INFO  | 
+RETURN-TRACKER: 
+Enriched 137 events 
+with benchmark data
+23:10:42 | INFO  | 
+BACKTEST: Progress 
+10/10 tickers evaluated
+23:10:42 | INFO  | 
+BACKTEST: Total signal 
+events: 983
+23:10:42 | INFO  | 
+PERF-REPO: Saved 983 
+events for run a1183c88-
+c2f2-4949-bec9-dee8c32f6
+f8c
+23:10:42 | INFO  | 
+BACKTEST: Persisted 983 
+events to performance DB
+23:10:42 | INFO  | 
+CALIBRATION: Generated 
+2 suggestions
+23:10:42 | INFO  | 
+BACKTEST-REPO: Saved 20 
+results for run a1183c88
+-c2f2-4949-bec9-dee8c32f
+6f8c
+23:10:42 | INFO  | 
+BACKTEST: Run a1183c88-c
+2f2-4949-bec9-dee8c32f6f
+8c completed in 39.8s 
+ÔÇö 20 signal results, 
+2 calibration 
+suggestions
+23:10:42 | INFO  | 
+Signal results saved to 
+C:\Users\pmfig\.gemini\a
+ntigravity\scratch\365-a
+dvisers\agent-backend\re
+sults\signal_backtest_re
+sults.json
+23:10:42 | INFO  | 
+>>> Starting 
+cross-sectional ranking 
+analysis...
+23:10:42 | INFO  | 
+BACKTEST: Fetched 551 
+bars for NEE
+23:10:42 | INFO  | 
+BACKTEST: Fetched 551 
+bars for PG
+23:10:42 | INFO  | 
+BACKTEST: Fetched 551 
+bars for MSFT
+23:10:42 | INFO  | 
+BACKTEST: Fetched 551 
+bars for JPM
+23:10:42 | INFO  | 
+BACKTEST: Fetched 551 
+bars for GOOGL
+23:10:42 | INFO  | 
+BACKTEST: Fetched 551 
+bars for XOM
+23:10:43 | INFO  | 
+BACKTEST: Fetched 551 
+bars for CAT
+23:10:43 | INFO  | 
+BACKTEST: Fetched 551 
+bars for JNJ
+23:10:43 | INFO  | 
+BACKTEST: Fetched 551 
+bars for SPY
+23:10:43 | INFO  | 
+BACKTEST: Fetched 551 
+bars for AAPL
+23:10:43 | INFO  | 
+BACKTEST: Fetched 551 
+bars for AMZN
+23:10:45 | INFO  | 
+FUNDAMENTAL: AAPL -- 5 
+quarters, 314 daily 
+snapshots
+23:10:46 | INFO  | 
+FUNDAMENTAL: MSFT -- 5 
+quarters, 314 daily 
+snapshots
+23:10:46 | INFO  | 
+FUNDAMENTAL: JPM -- 7 
+quarters, 445 daily 
+snapshots
+23:10:47 | INFO  | 
+FUNDAMENTAL: JNJ -- 7 
+quarters, 445 daily 
+snapshots
+23:10:48 | INFO  | 
+FUNDAMENTAL: XOM -- 7 
+quarters, 445 daily 
+snapshots
+23:10:49 | INFO  | 
+FUNDAMENTAL: AMZN -- 5 
+quarters, 314 daily 
+snapshots
+23:10:50 | INFO  | 
+FUNDAMENTAL: PG -- 6 
+quarters, 445 daily 
+snapshots
+23:10:50 | INFO  | 
+FUNDAMENTAL: CAT -- 7 
+quarters, 445 daily 
+snapshots
+23:10:51 | INFO  | 
+FUNDAMENTAL: NEE -- 5 
+quarters, 314 daily 
+snapshots
+23:10:52 | INFO  | 
+FUNDAMENTAL: GOOGL -- 7 
+quarters, 445 daily 
+snapshots
+23:10:52 | INFO  | 
+CROSS-SECTIONAL: 
+Starting analysis with 
+10 tickers, 68 signals
+23:10:52 | INFO  | 
+CROSS-SECTIONAL: 14 
+rebalance periods
+23:10:53 | INFO  | 
+CROSS-SECTIONAL: 
+Completed in 1.3s -- 14 
+periods, Q1-Q5 
+spread@20d: -0.0187
+23:10:53 | INFO  | 
+Cross-sectional results 
+saved to C:\Users\pmfig\
+.gemini\antigravity\scra
+tch\365-advisers\agent-b
+ackend\results\cross_sec
+tional_results.json
+23:10:53 | INFO  | 
+========================
+========================
+============
+23:10:53 | INFO  | ALL 
+BACKTEST RUNS COMPLETE 
+in 50.4s
+23:10:53 | INFO  | =====
+========================
+========================
+=======
+
+================================================================================
+  SIGNAL BACKTEST REPORT
+================================================================================
+  Run ID       : a1183c88-c2f2-4949-bec9-dee8c32f6f8c
+  Status       : completed
+  Universe     : 10 tickers
+  Date Range   : 2024-01-01 -> 2026-03-15
+  Fundamentals : True
+  Benchmark    : SPY
+  Signals Eval : 20
+  Execution    : 39.9s
+================================================================================
+
+-- PER-SIGNAL PERFORMANCE ---------------------------------------------
+Signal                                        Cat     N   HR@5d  HR@20d   AvgR@20d  Sharpe20   Conf
+---------------------------------------------------------------------------------------------------
+  High ROIC                               quality    50 [+] 50.0%   72.0%    +0.0341     +2.54 MEDIUM
+  Low Enterprise Value to EBITDA            value    27 [+] 59.3%   81.5%    +0.0420     +2.25    LOW
+  Low Price to Earnings Relative            value    30 [+] 56.7%   73.3%    +0.0346     +2.24    LOW
+  High EBIT/EV (Greenblatt)                 value    28 [+] 53.6%   78.6%    +0.0363     +2.03    LOW
+  Low Leverage                            quality    32 [+] 56.2%   75.0%    +0.0314     +2.01    LOW
+  High Return on Equity                   quality    68 [+] 52.9%   67.7%    +0.0256     +2.01 MEDIUM
+  Excessive Leverage                      quality     6 [+] 33.3%   83.3%    +0.0451     +1.88    LOW
+  High Shareholder Yield                    value    63 [+] 55.6%   71.4%    +0.0274     +1.81 MEDIUM
+  Asset Turnover Efficiency               quality    52 [+] 50.0%   71.2%    +0.0234     +1.76 MEDIUM
+  Dividend Yield vs Historical Average      value    43 [+] 48.8%   72.1%    +0.0269     +1.52    LOW
+  Low EV/Revenue                            value    22 [+] 45.5%   77.3%    +0.0313     +1.49    LOW
+  High Free Cash Flow Yield                 value    10 [+] 40.0%   70.0%    +0.0193     +1.36    LOW
+  MACD Bearish Divergence                momentum    89 [+] 66.3%   69.7%    +0.0396     +0.61 MEDIUM
+  EV/EBITDA Expensive                       value    13 [+] 53.8%   61.5%    +0.0045     +0.47    LOW
+  P/E Expensive                             value    17 [+] 58.8%   58.8%    +0.0016     +0.47    LOW
+  RSI Overbought                         momentum    61 [+] 59.0%   59.0%    +0.0321     +0.44 MEDIUM
+  Positive RSI                           momentum    86 [+] 55.8%   69.8%    +0.0257     +0.24 MEDIUM
+  Accumulation Patterns                      flow    97 [+] 47.4%   66.0%    +0.0379     -0.07 MEDIUM
+  ATR Expansion                          volatility   100 [+] 46.0%   65.0%    +0.0365     -0.13   HIGH
+  MACD Bullish Signal                    momentum    89 [+] 46.1%   65.2%    +0.0087     -0.20 MEDIUM
+
+-- CATEGORY SUMMARIES -------------------------------------------------
+  flow           | Signals:  1 | HitRate: 66.0% | Sharpe: -0.07 | Alpha: -0.0016
+  momentum       | Signals:  4 | HitRate: 65.9% | Sharpe: +0.27 | Alpha: +0.0063
+  quality        | Signals:  5 | HitRate: 73.8% | Sharpe: +2.04 | Alpha: +0.0392
+  value          | Signals:  9 | HitRate: 71.6% | Sharpe: +1.52 | Alpha: +0.0294
+  volatility     | Signals:  1 | HitRate: 65.0% | Sharpe: -0.13 | Alpha: -0.0032
+
+  [TOP] Top signals: quality.high_roic, value.ev_ebitda_low, value.pe_low, value.ebit_ev_high, quality.low_leverage
+  [!] Underperformers: flow.accumulation_pattern, volatility.atr_expansion, momentum.macd_bullish
+
+-- CALIBRATION SUGGESTIONS --------------------------------------------
+  momentum.rsi_bullish                |  half_life: 10.000 -> 3.000 | Empirical half-life is 3.0d vs configured 10.0d (70% gap, n=86)
+  flow.accumulation_pattern           |  half_life: 5.000 -> 13.000 | Empirical half-life is 13.0d vs configured 5.0d (160% gap, n=97)
+
+================================================================================
+
+================================================================================
+  CROSS-SECTIONAL RANKING REPORT
+================================================================================
+  Universe     : 10 tickers
+  Periods      : 14
+  Execution    : 1.3s
+================================================================================
+
+-- QUINTILE AVERAGE RETURNS -------------------------------------------
+
+  T+20 days:
+    Q1 (  2 tickers) | Score: 0.0596 | Return: [+] +0.0100 | Excess: -0.0677
+    Q2 (  2 tickers) | Score: 0.0468 | Return: [+] +0.0244 | Excess: -0.0532
+    Q3 (  2 tickers) | Score: 0.0380 | Return: [-] -0.0385 | Excess: -0.1162
+    Q4 (  2 tickers) | Score: 0.0333 | Return: [-] -0.1015 | Excess: -0.1791
+    Q5 (  2 tickers) | Score: 0.0309 | Return: [+] +0.0776 | Excess: +0.0000
+
+  T+60 days:
+    Q1 (  2 tickers) | Score: 0.0596 | Return: [-] -0.0658 | Excess: -0.2674
+    Q2 (  2 tickers) | Score: 0.0468 | Return: [+] +0.0251 | Excess: -0.1765
+    Q3 (  2 tickers) | Score: 0.0380 | Return: [-] -0.0712 | Excess: -0.2728
+    Q4 (  2 tickers) | Score: 0.0333 | Return: [-] -0.1674 | Excess: -0.3690
+    Q5 (  2 tickers) | Score: 0.0309 | Return: [+] +0.2016 | Excess: +0.0000
+
+-- AGGREGATE SPREAD (Q1 - Q5) -----------------------------------------
+  T+20d | Spread: -0.0187 | t-stat: -0.85 | p-value: 0.3959 | Monotonicity: -0.00
+  T+60d | Spread: -0.0039 | t-stat: -0.11 | p-value: 0.9101 | Monotonicity: 0.20
+
+  Q1 Turnover: 30.8%
+  Avg Q1 Return@20d: +0.0025
+  Avg Q5 Return@20d: +0.0212
+
+================================================================================

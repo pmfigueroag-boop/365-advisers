@@ -27,6 +27,7 @@ import pandas as pd
 
 from src.engines.alpha_signals.models import AlphaSignalDefinition, SignalCategory
 from src.engines.alpha_signals.registry import registry as signal_registry
+from src.engines.backtesting.fundamental_provider import FundamentalProvider
 from src.engines.backtesting.historical_evaluator import HistoricalEvaluator
 from src.engines.backtesting.metrics import (
     classify_confidence,
@@ -206,29 +207,44 @@ class BacktestEngine:
             config.end_date,
         )
 
-        # Step 3: Walk-forward evaluation per ticker
+        # Step 3: Fundamental snapshots (if enabled)
+        fund_provider = FundamentalProvider() if config.include_fundamentals else None
+
+        # Step 4: Walk-forward evaluation per ticker
         all_events: list[SignalEvent] = []
         benchmark_ohlcv = ohlcv_data.get(config.benchmark_ticker, pd.DataFrame())
         return_tracker = ReturnTracker(benchmark_ohlcv)
 
         self._evaluator.cooldown_factor = config.cooldown_factor
+        total_tickers = len(config.universe)
 
-        for ticker in config.universe:
+        for t_idx, ticker in enumerate(config.universe, 1):
             ticker_ohlcv = ohlcv_data.get(ticker)
             if ticker_ohlcv is None or ticker_ohlcv.empty:
                 logger.warning(f"BACKTEST: No data for {ticker}, skipping")
                 continue
+
+            # Fetch fundamental snapshots if enabled
+            fund_snapshots = None
+            if fund_provider is not None:
+                fund_snapshots = fund_provider.get_snapshots(
+                    ticker, config.start_date, config.end_date, ticker_ohlcv,
+                )
 
             events = self._evaluator.evaluate(
                 ticker=ticker,
                 ohlcv=ticker_ohlcv,
                 signals=signals,
                 forward_windows=config.forward_windows,
+                fundamental_snapshots=fund_snapshots,
             )
 
-            # Step 4: Enrich with benchmark returns
+            # Step 5: Enrich with benchmark returns
             events = return_tracker.enrich(events, config.forward_windows)
             all_events.extend(events)
+
+            if t_idx % 10 == 0 or t_idx == total_tickers:
+                logger.info(f"BACKTEST: Progress {t_idx}/{total_tickers} tickers evaluated")
 
         logger.info(f"BACKTEST: Total signal events: {len(all_events)}")
 
@@ -313,8 +329,8 @@ class BacktestEngine:
                     loop = asyncio.get_event_loop()
                     df = await loop.run_in_executor(
                         None,
-                        lambda: yf.download(
-                            ticker,
+                        lambda t=ticker: yf.download(
+                            t,
                             start=start_date.isoformat(),
                             end=end_date.isoformat(),
                             progress=False,
@@ -324,13 +340,17 @@ class BacktestEngine:
                     if df is not None and not df.empty:
                         # Flatten MultiIndex columns if present
                         if isinstance(df.columns, pd.MultiIndex):
-                            df.columns = df.columns.get_level_values(0)
+                            # Try to extract this ticker's slice first
+                            try:
+                                df = df.xs(ticker, level=1, axis=1)
+                            except (KeyError, TypeError):
+                                df.columns = df.columns.get_level_values(0)
                         results[ticker] = df
                         logger.info(f"BACKTEST: Fetched {len(df)} bars for {ticker}")
                     else:
                         logger.warning(f"BACKTEST: No data returned for {ticker}")
                 except Exception as exc:
-                    logger.error(f"BACKTEST: Failed to fetch {ticker} — {exc}")
+                    logger.error(f"BACKTEST: Failed to fetch {ticker} -- {exc}")
 
         # Deduplicate tickers
         unique_tickers = list(set(tickers))

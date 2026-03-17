@@ -259,8 +259,14 @@ export default function TopNav({
                     boxShadow: '0 8px 32px -8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)',
                 }}>
                 <div className="flex items-center gap-3">
-                    <div className="relative bg-gradient-to-br from-[#d4af37] to-[#b8962e] p-2.5 rounded-xl shadow-[0_0_24px_-4px_rgba(212,175,55,0.4)] breathe">
-                        <TrendingUp size={22} className="text-black" />
+                    <div className="relative flex items-center justify-center breathe pr-1">
+                        <img 
+                            src="/logo-with-a.png" 
+                            alt="365 Advisers" 
+                            width={38} 
+                            height={34} 
+                            style={{ filter: 'invert(1) brightness(1.8) drop-shadow(0 0 10px rgba(212,175,55,0.5))', objectFit: 'contain' }} 
+                        />
                     </div>
                     <div>
                         <h1 className="text-2xl font-black gold-gradient tracking-tighter leading-none">

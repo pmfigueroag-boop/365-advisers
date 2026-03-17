@@ -1,0 +1,794 @@
+{
+  "run_id": "a1183c88-c2f2-4949-bec9-dee8c32f6f8c",
+  "status": "completed",
+  "error_message": null,
+  "execution_time_s": 39.85,
+  "universe": [
+    "AAPL",
+    "MSFT",
+    "JPM",
+    "JNJ",
+    "XOM",
+    "AMZN",
+    "PG",
+    "CAT",
+    "NEE",
+    "GOOGL"
+  ],
+  "universe_name": "test",
+  "universe_size": 10,
+  "date_range": "2024-01-01 to 2026-03-15",
+  "include_fundamentals": true,
+  "total_signals_evaluated": 20,
+  "top_signals": [
+    "quality.high_roic",
+    "value.ev_ebitda_low",
+    "value.pe_low",
+    "value.ebit_ev_high",
+    "quality.low_leverage"
+  ],
+  "underperformers": [
+    "flow.accumulation_pattern",
+    "volatility.atr_expansion",
+    "momentum.macd_bullish"
+  ],
+  "signal_results": [
+    {
+      "signal_id": "quality.high_roic",
+      "signal_name": "High ROIC",
+      "category": "quality",
+      "total_firings": 50,
+      "hit_rate": {
+        "1": 0.48,
+        "5": 0.5,
+        "10": 0.6,
+        "20": 0.72,
+        "60": 0.7
+      },
+      "avg_return": {
+        "1": 0.00183,
+        "5": -0.007391,
+        "10": -0.000872,
+        "20": 0.034058,
+        "60": 0.103684
+      },
+      "avg_excess_return": {
+        "1": 0.005362,
+        "5": 0.01258,
+        "10": 0.027459,
+        "20": 0.042747,
+        "60": 0.094345
+      },
+      "sharpe_ratio": {
+        "1": 6.3423,
+        "5": 3.5237,
+        "10": 3.543,
+        "20": 2.5372,
+        "60": 1.3106
+      },
+      "confidence_level": "MEDIUM",
+      "optimal_hold_period": 1
+    },
+    {
+      "signal_id": "value.ev_ebitda_low",
+      "signal_name": "Low Enterprise Value to EBITDA",
+      "category": "value",
+      "total_firings": 27,
+      "hit_rate": {
+        "1": 0.5185,
+        "5": 0.5926,
+        "10": 0.6667,
+        "20": 0.8148,
+        "60": 0.7778
+      },
+      "avg_return": {
+        "1": 0.005163,
+        "5": -0.004966,
+        "10": 0.005278,
+        "20": 0.041962,
+        "60": 0.124425
+      },
+      "avg_excess_return": {
+        "1": 0.006928,
+        "5": 0.014864,
+        "10": 0.031199,
+        "20": 0.047331,
+        "60": 0.104851
+      },
+      "sharpe_ratio": {
+        "1": 6.0638,
+        "5": 3.0233,
+        "10": 3.1559,
+        "20": 2.2542,
+        "60": 1.2716
+      },
+      "confidence_level": "LOW",
+      "optimal_hold_period": 1
+    },
+    {
+      "signal_id": "value.pe_low",
+      "signal_name": "Low Price to Earnings Relative",
+      "category": "value",
+      "total_firings": 30,
+      "hit_rate": {
+        "1": 0.5667,
+        "5": 0.5667,
+        "10": 0.5667,
+        "20": 0.7333,
+        "60": 0.7667
+      },
+      "avg_return": {
+        "1": 0.005711,
+        "5": -0.006519,
+        "10": 0.003815,
+        "20": 0.034603,
+        "60": 0.107324
+      },
+      "avg_excess_return": {
+        "1": 0.007026,
+        "5": 0.014416,
+        "10": 0.030883,
+        "20": 0.040911,
+        "60": 0.101677
+      },
+      "sharpe_ratio": {
+        "1": 6.659,
+        "5": 3.2318,
+        "10": 4.0774,
+        "20": 2.2377,
+        "60": 1.4954
+      },
+      "confidence_level": "LOW",
+      "optimal_hold_period": 1
+    },
+    {
+      "signal_id": "value.ebit_ev_high",
+      "signal_name": "High EBIT/EV (Greenblatt)",
+      "category": "value",
+      "total_firings": 28,
+      "hit_rate": {
+        "1": 0.5357,
+        "5": 0.5357,
+        "10": 0.6429,
+        "20": 0.7857,
+        "60": 0.75
+      },
+      "avg_return": {
+        "1": 0.005531,
+        "5": -0.007214,
+        "10": 0.004526,
+        "20": 0.036333,
+        "60": 0.110087
+      },
+      "avg_excess_return": {
+        "1": 0.006757,
+        "5": 0.013168,
+        "10": 0.030039,
+        "20": 0.040924,
+        "60": 0.096591
+      },
+      "sharpe_ratio": {
+        "1": 5.9345,
+        "5": 2.7181,
+        "10": 3.1703,
+        "20": 2.0327,
+        "60": 1.2091
+      },
+      "confidence_level": "LOW",
+      "optimal_hold_period": 1
+    },
+    {
+      "signal_id": "quality.low_leverage",
+      "signal_name": "Low Leverage",
+      "category": "quality",
+      "total_firings": 32,
+      "hit_rate": {
+        "1": 0.4688,
+        "5": 0.5625,
+        "10": 0.625,
+        "20": 0.75,
+        "60": 0.6875
+      },
+      "avg_return": {
+        "1": 0.002476,
+        "5": -0.006251,
+        "10": -0.001259,
+        "20": 0.031415,
+        "60": 0.100358
+      },
+      "avg_excess_return": {
+        "1": 0.005846,
+        "5": 0.012541,
+        "10": 0.026325,
+        "20": 0.039936,
+        "60": 0.088468
+      },
+      "sharpe_ratio": {
+        "1": 5.5217,
+        "5": 2.7453,
+        "10": 2.8186,
+        "20": 2.0121,
+        "60": 1.1366
+      },
+      "confidence_level": "LOW",
+      "optimal_hold_period": 1
+    },
+    {
+      "signal_id": "quality.high_roe",
+      "signal_name": "High Return on Equity",
+      "category": "quality",
+      "total_firings": 68,
+      "hit_rate": {
+        "1": 0.4853,
+        "5": 0.5294,
+        "10": 0.5588,
+        "20": 0.6765,
+        "60": 0.6765
+      },
+      "avg_return": {
+        "1": 0.000574,
+        "5": -0.008699,
+        "10": -0.004411,
+        "20": 0.025558,
+        "60": 0.091143
+      },
+      "avg_excess_return": {
+        "1": 0.004027,
+        "5": 0.00888,
+        "10": 0.021886,
+        "20": 0.033601,
+        "60": 0.078234
+      },
+      "sharpe_ratio": {
+        "1": 4.267,
+        "5": 2.3177,
+        "10": 2.7691,
+        "20": 2.0095,
+        "60": 1.214
+      },
+      "confidence_level": "MEDIUM",
+      "optimal_hold_period": 1
+    },
+    {
+      "signal_id": "risk.high_leverage",
+      "signal_name": "Excessive Leverage",
+      "category": "quality",
+      "total_firings": 6,
+      "hit_rate": {
+        "1": 0.3333,
+        "5": 0.3333,
+        "10": 0.5,
+        "20": 0.8333,
+        "60": 1.0
+      },
+      "avg_return": {
+        "1": -0.009948,
+        "5": -0.023195,
+        "10": 0.003506,
+        "20": 0.045142,
+        "60": 0.228289
+      },
+      "avg_excess_return": {
+        "1": -0.006304,
+        "5": -0.007697,
+        "10": 0.024006,
+        "20": 0.04639,
+        "60": 0.177691
+      },
+      "sharpe_ratio": {
+        "1": -5.3676,
+        "5": -1.2153,
+        "10": 2.731,
+        "20": 1.8804,
+        "60": 4.0778
+      },
+      "confidence_level": "LOW",
+      "optimal_hold_period": 60
+    },
+    {
+      "signal_id": "value.shareholder_yield",
+      "signal_name": "High Shareholder Yield",
+      "category": "value",
+      "total_firings": 63,
+      "hit_rate": {
+        "1": 0.4921,
+        "5": 0.5556,
+        "10": 0.5556,
+        "20": 0.7143,
+        "60": 0.6667
+      },
+      "avg_return": {
+        "1": 0.00168,
+        "5": -0.007529,
+        "10": 0.001406,
+        "20": 0.027417,
+        "60": 0.094191
+      },
+      "avg_excess_return": {
+        "1": 0.00481,
+        "5": 0.011212,
+        "10": 0.028108,
+        "20": 0.03485,
+        "60": 0.081194
+      },
+      "sharpe_ratio": {
+        "1": 4.3487,
+        "5": 2.2048,
+        "10": 2.9855,
+        "20": 1.8058,
+        "60": 1.1204
+      },
+      "confidence_level": "MEDIUM",
+      "optimal_hold_period": 1
+    },
+    {
+      "signal_id": "quality.asset_turnover_improving",
+      "signal_name": "Asset Turnover Efficiency",
+      "category": "quality",
+      "total_firings": 52,
+      "hit_rate": {
+        "1": 0.4615,
+        "5": 0.5,
+        "10": 0.5962,
+        "20": 0.7115,
+        "60": 0.6731
+      },
+      "avg_return": {
+        "1": -0.000169,
+        "5": -0.010156,
+        "10": -0.005037,
+        "20": 0.023364,
+        "60": 0.082281
+      },
+      "avg_excess_return": {
+        "1": 0.003137,
+        "5": 0.009396,
+        "10": 0.024182,
+        "20": 0.033563,
+        "60": 0.079324
+      },
+      "sharpe_ratio": {
+        "1": 3.108,
+        "5": 2.0766,
+        "10": 2.9382,
+        "20": 1.7565,
+        "60": 1.1714
+      },
+      "confidence_level": "MEDIUM",
+      "optimal_hold_period": 1
+    },
+    {
+      "signal_id": "value.div_yield_vs_hist",
+      "signal_name": "Dividend Yield vs Historical Average",
+      "category": "value",
+      "total_firings": 43,
+      "hit_rate": {
+        "1": 0.4884,
+        "5": 0.4884,
+        "10": 0.5349,
+        "20": 0.7209,
+        "60": 0.7442
+      },
+      "avg_return": {
+        "1": 0.001178,
+        "5": -0.012043,
+        "10": -0.000822,
+        "20": 0.026897,
+        "60": 0.09769
+      },
+      "avg_excess_return": {
+        "1": 0.002847,
+        "5": 0.007576,
+        "10": 0.023318,
+        "20": 0.031552,
+        "60": 0.090156
+      },
+      "sharpe_ratio": {
+        "1": 2.5193,
+        "5": 1.3714,
+        "10": 2.3535,
+        "20": 1.5181,
+        "60": 1.3233
+      },
+      "confidence_level": "LOW",
+      "optimal_hold_period": 1
+    },
+    {
+      "signal_id": "value.ev_revenue_low",
+      "signal_name": "Low EV/Revenue",
+      "category": "value",
+      "total_firings": 22,
+      "hit_rate": {
+        "1": 0.5,
+        "5": 0.4545,
+        "10": 0.6364,
+        "20": 0.7727,
+        "60": 0.7727
+      },
+      "avg_return": {
+        "1": 0.002533,
+        "5": -0.011914,
+        "10": 0.005936,
+        "20": 0.03128,
+        "60": 0.123331
+      },
+      "avg_excess_return": {
+        "1": 0.004534,
+        "5": 0.006582,
+        "10": 0.028465,
+        "20": 0.033567,
+        "60": 0.1051
+      },
+      "sharpe_ratio": {
+        "1": 3.5587,
+        "5": 1.1158,
+        "10": 2.8403,
+        "20": 1.4932,
+        "60": 1.3721
+      },
+      "confidence_level": "LOW",
+      "optimal_hold_period": 1
+    },
+    {
+      "signal_id": "value.fcf_yield_high",
+      "signal_name": "High Free Cash Flow Yield",
+      "category": "value",
+      "total_firings": 10,
+      "hit_rate": {
+        "1": 0.8,
+        "5": 0.4,
+        "10": 0.6,
+        "20": 0.7,
+        "60": 0.7
+      },
+      "avg_return": {
+        "1": 0.008114,
+        "5": -0.006798,
+        "10": 0.006404,
+        "20": 0.019301,
+        "60": 0.06689
+      },
+      "avg_excess_return": {
+        "1": 0.004865,
+        "5": 0.009982,
+        "10": 0.021008,
+        "20": 0.017213,
+        "60": 0.067951
+      },
+      "sharpe_ratio": {
+        "1": 4.5534,
+        "5": 2.4716,
+        "10": 2.0807,
+        "20": 1.3574,
+        "60": 0.9127
+      },
+      "confidence_level": "LOW",
+      "optimal_hold_period": 1
+    },
+    {
+      "signal_id": "risk.macd_bearish",
+      "signal_name": "MACD Bearish Divergence",
+      "category": "momentum",
+      "total_firings": 89,
+      "hit_rate": {
+        "1": 0.5618,
+        "5": 0.6629,
+        "10": 0.6517,
+        "20": 0.6966,
+        "60": 0.7303
+      },
+      "avg_return": {
+        "1": -0.000112,
+        "5": 0.016518,
+        "10": 0.024205,
+        "20": 0.039558,
+        "60": 0.089555
+      },
+      "avg_excess_return": {
+        "1": -0.001441,
+        "5": 0.001551,
+        "10": 0.008357,
+        "20": 0.011812,
+        "60": 0.053741
+      },
+      "sharpe_ratio": {
+        "1": -1.1769,
+        "5": 0.2362,
+        "10": 0.731,
+        "20": 0.6068,
+        "60": 0.7107
+      },
+      "confidence_level": "MEDIUM",
+      "optimal_hold_period": 10
+    },
+    {
+      "signal_id": "risk.ev_ebitda_expensive",
+      "signal_name": "EV/EBITDA Expensive",
+      "category": "value",
+      "total_firings": 13,
+      "hit_rate": {
+        "1": 0.5385,
+        "5": 0.5385,
+        "10": 0.5385,
+        "20": 0.6154,
+        "60": 0.5385
+      },
+      "avg_return": {
+        "1": 1e-06,
+        "5": -0.005152,
+        "10": 0.001358,
+        "20": 0.004516,
+        "60": 0.015067
+      },
+      "avg_excess_return": {
+        "1": -8.8e-05,
+        "5": 0.017316,
+        "10": 0.028758,
+        "20": 0.009848,
+        "60": 0.005084
+      },
+      "sharpe_ratio": {
+        "1": -0.0913,
+        "5": 2.6973,
+        "10": 2.3503,
+        "20": 0.4729,
+        "60": 0.1101
+      },
+      "confidence_level": "LOW",
+      "optimal_hold_period": 5
+    },
+    {
+      "signal_id": "risk.pe_expensive",
+      "signal_name": "P/E Expensive",
+      "category": "value",
+      "total_firings": 17,
+      "hit_rate": {
+        "1": 0.5294,
+        "5": 0.5882,
+        "10": 0.5294,
+        "20": 0.5882,
+        "60": 0.4118
+      },
+      "avg_return": {
+        "1": 4.5e-05,
+        "5": -0.006811,
+        "10": -0.003752,
+        "20": 0.001565,
+        "60": -0.005079
+      },
+      "avg_excess_return": {
+        "1": 0.002432,
+        "5": 0.012952,
+        "10": 0.023061,
+        "20": 0.00862,
+        "60": -0.00741
+      },
+      "sharpe_ratio": {
+        "1": 2.5483,
+        "5": 2.2091,
+        "10": 2.1321,
+        "20": 0.4699,
+        "60": -0.1647
+      },
+      "confidence_level": "LOW",
+      "optimal_hold_period": 1
+    },
+    {
+      "signal_id": "risk.rsi_overbought",
+      "signal_name": "RSI Overbought",
+      "category": "momentum",
+      "total_firings": 61,
+      "hit_rate": {
+        "1": 0.6066,
+        "5": 0.5902,
+        "10": 0.5574,
+        "20": 0.5902,
+        "60": 0.6393
+      },
+      "avg_return": {
+        "1": 0.004687,
+        "5": 0.006332,
+        "10": 0.014722,
+        "20": 0.032109,
+        "60": 0.080974
+      },
+      "avg_excess_return": {
+        "1": -0.001192,
+        "5": -0.01052,
+        "10": -0.009206,
+        "20": 0.012674,
+        "60": 0.059239
+      },
+      "sharpe_ratio": {
+        "1": -0.9921,
+        "5": -1.9838,
+        "10": -0.7708,
+        "20": 0.4402,
+        "60": 0.865
+      },
+      "confidence_level": "MEDIUM",
+      "optimal_hold_period": 60
+    },
+    {
+      "signal_id": "momentum.rsi_bullish",
+      "signal_name": "Positive RSI",
+      "category": "momentum",
+      "total_firings": 86,
+      "hit_rate": {
+        "1": 0.7326,
+        "5": 0.5581,
+        "10": 0.4884,
+        "20": 0.6977,
+        "60": 0.6512
+      },
+      "avg_return": {
+        "1": 0.005665,
+        "5": 0.01358,
+        "10": 0.012405,
+        "20": 0.025725,
+        "60": 0.075662
+      },
+      "avg_excess_return": {
+        "1": 0.002113,
+        "5": -0.000687,
+        "10": -0.01102,
+        "20": 0.005082,
+        "60": 0.04882
+      },
+      "sharpe_ratio": {
+        "1": 1.6123,
+        "5": -0.1366,
+        "10": -0.8749,
+        "20": 0.2412,
+        "60": 0.6713
+      },
+      "confidence_level": "MEDIUM",
+      "optimal_hold_period": 1
+    },
+    {
+      "signal_id": "flow.accumulation_pattern",
+      "signal_name": "Accumulation Patterns",
+      "category": "flow",
+      "total_firings": 97,
+      "hit_rate": {
+        "1": 0.5155,
+        "5": 0.4742,
+        "10": 0.6495,
+        "20": 0.6598,
+        "60": 0.7113
+      },
+      "avg_return": {
+        "1": 0.002423,
+        "5": 0.001481,
+        "10": 0.022667,
+        "20": 0.037918,
+        "60": 0.076723
+      },
+      "avg_excess_return": {
+        "1": 0.00227,
+        "5": 0.004654,
+        "10": 0.002176,
+        "20": -0.001635,
+        "60": 0.051515
+      },
+      "sharpe_ratio": {
+        "1": 2.4931,
+        "5": 0.6761,
+        "10": 0.1885,
+        "20": -0.0689,
+        "60": 0.712
+      },
+      "confidence_level": "MEDIUM",
+      "optimal_hold_period": 1
+    },
+    {
+      "signal_id": "volatility.atr_expansion",
+      "signal_name": "ATR Expansion",
+      "category": "volatility",
+      "total_firings": 100,
+      "hit_rate": {
+        "1": 0.52,
+        "5": 0.46,
+        "10": 0.65,
+        "20": 0.65,
+        "60": 0.69
+      },
+      "avg_return": {
+        "1": 0.002107,
+        "5": 0.000962,
+        "10": 0.023022,
+        "20": 0.036511,
+        "60": 0.074189
+      },
+      "avg_excess_return": {
+        "1": 0.002512,
+        "5": 0.005065,
+        "10": 0.002881,
+        "20": -0.00316,
+        "60": 0.049714
+      },
+      "sharpe_ratio": {
+        "1": 2.7836,
+        "5": 0.7179,
+        "10": 0.2588,
+        "20": -0.1314,
+        "60": 0.6875
+      },
+      "confidence_level": "HIGH",
+      "optimal_hold_period": 1
+    },
+    {
+      "signal_id": "momentum.macd_bullish",
+      "signal_name": "MACD Bullish Signal",
+      "category": "momentum",
+      "total_firings": 89,
+      "hit_rate": {
+        "1": 0.5955,
+        "5": 0.4607,
+        "10": 0.5506,
+        "20": 0.6517,
+        "60": 0.6629
+      },
+      "avg_return": {
+        "1": 0.001028,
+        "5": -0.001256,
+        "10": 0.002816,
+        "20": 0.008667,
+        "60": 0.076166
+      },
+      "avg_excess_return": {
+        "1": -0.000597,
+        "5": -0.01728,
+        "10": -0.011315,
+        "20": -0.004272,
+        "60": 0.038916
+      },
+      "sharpe_ratio": {
+        "1": -0.5347,
+        "5": -2.7941,
+        "10": -1.0435,
+        "20": -0.2038,
+        "60": 0.5056
+      },
+      "confidence_level": "MEDIUM",
+      "optimal_hold_period": 60
+    }
+  ],
+  "category_summaries": [
+    {
+      "category": "flow",
+      "signal_count": 1,
+      "avg_hit_rate": 0.6598,
+      "avg_sharpe": -0.0689,
+      "category_alpha": -0.001635
+    },
+    {
+      "category": "momentum",
+      "signal_count": 4,
+      "avg_hit_rate": 0.659,
+      "avg_sharpe": 0.2711,
+      "category_alpha": 0.006324
+    },
+    {
+      "category": "quality",
+      "signal_count": 5,
+      "avg_hit_rate": 0.7383,
+      "avg_sharpe": 2.0391,
+      "category_alpha": 0.039247
+    },
+    {
+      "category": "value",
+      "signal_count": 9,
+      "avg_hit_rate": 0.7161,
+      "avg_sharpe": 1.5158,
+      "category_alpha": 0.029424
+    },
+    {
+      "category": "volatility",
+      "signal_count": 1,
+      "avg_hit_rate": 0.65,
+      "avg_sharpe": -0.1314,
+      "category_alpha": -0.00316
+    }
+  ]
+}

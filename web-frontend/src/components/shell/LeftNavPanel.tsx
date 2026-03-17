@@ -205,14 +205,19 @@ export default function LeftNavPanel({
                 </>
             )}
 
-            {/* Expand/Collapse Toggle */}
-            <button
-                onClick={() => setExpanded(!expanded)}
-                className="lab-nav-toggle"
-                title={expanded ? "Collapse" : "Expand"}
-            >
-                {expanded ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
-            </button>
+            {/* Expand/Collapse Toggle & Brand Icon */}
+            <div className="mt-auto flex flex-col items-center gap-4 pb-4 w-full">
+                <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity">
+                    <img src="/logo-with-a.png" alt="365 Advisers" width={24} height={24} style={{ filter: 'invert(1) brightness(1.5)', objectFit: 'contain' }} />
+                </div>
+                <button
+                    onClick={() => setExpanded(!expanded)}
+                    className="lab-nav-toggle w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-white/50 hover:text-white transition-colors"
+                    title={expanded ? "Collapse" : "Expand"}
+                >
+                    {expanded ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+                </button>
+            </div>
         </nav>
     );
 }

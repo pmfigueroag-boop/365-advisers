@@ -1,0 +1,26 @@
+{
+  "name": "365 Advisers",
+  "short_name": "365 Advisers",
+  "description": "Institutional-grade investment intelligence terminal",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#060913",
+  "background_color": "#060913",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo-100.png",
+      "sizes": "100x100",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo-200.jpg",
+      "sizes": "200x200",
+      "type": "image/jpeg"
+    }
+  ]
+}

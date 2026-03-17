@@ -1,0 +1,37 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.13.3, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\pmfig\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend
+plugins: anyio-4.12.1, langsmith-0.7.9, cov-7.0.0
+collecting ... collected 28 items
+
+tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_positive_sharpe_increases_weight PASSED [  3%]
+tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_negative_sharpe_decreases_weight PASSED [  7%]
+tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_weight_clamped_min PASSED [ 10%]
+tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_weight_clamped_max PASSED [ 14%]
+tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_insufficient_observations_no_change PASSED [ 17%]
+tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_dynamic_confidence PASSED [ 21%]
+tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_changes_detected PASSED [ 25%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_no_record_rejected PASSED [ 28%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_get_approved_excludes_flagged PASSED [ 32%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_stability_from_structured_field PASSED [ 35%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_abs_change_pct_clamps_negative PASSED [ 39%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_small_change_approved PASSED [ 42%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_negative_sharpe_weight_increase_rejected PASSED [ 46%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_low_hit_rate_weight_increase_flagged PASSED [ 50%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_insignificant_sharpe_weight_increase_flagged PASSED [ 53%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_strong_signal_reduction_flagged PASSED [ 57%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_low_value_clamp_uses_absolute_floor PASSED [ 60%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_insufficient_observations_rejected PASSED [ 64%]
+tests/test_adaptive_calibrator.py::TestCalibrationStore::test_save_and_load PASSED [ 67%]
+tests/test_adaptive_calibrator.py::TestCalibrationStore::test_load_latest PASSED [ 71%]
+tests/test_adaptive_calibrator.py::TestCalibrationStore::test_get_history PASSED [ 75%]
+tests/test_adaptive_calibrator.py::TestCalibrationStore::test_next_version_tag PASSED [ 78%]
+tests/test_adaptive_calibrator.py::TestCalibrationStore::test_apply_to_registry PASSED [ 82%]
+tests/test_adaptive_calibrator.py::TestCalibrationStore::test_missing_version PASSED [ 85%]
+tests/test_adaptive_calibrator.py::TestRegistryEnhancements::test_update_weight PASSED [ 89%]
+tests/test_adaptive_calibrator.py::TestRegistryEnhancements::test_update_weight_nonexistent PASSED [ 92%]
+tests/test_adaptive_calibrator.py::TestRegistryEnhancements::test_update_threshold PASSED [ 96%]
+tests/test_adaptive_calibrator.py::TestRegistryEnhancements::test_snapshot_restore PASSED [100%]
+
+============================= 28 passed in 1.87s ==============================

@@ -1,0 +1,225 @@
+python : 2026-03-16 
+18:40:44,746 - 365advis
+ers.backtest.main - 
+INFO - Initializing 
+Quantitative 
+Backtester for 7 
+assets...
+En l?nea: 1 Car?cter: 1
++ python research/run_b
+acktest.py 2>&1 | 
+Out-File -Encoding 
+ASCII run_b ...
++ ~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (2026-03-16 18   
+ :4...for 7 assets.    
+..:String) [], Rem    
+oteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+2026-03-16 
+18:40:44,746 - 365advis
+ers.backtest.historical
+ - INFO - Downloading 
+historical data from 
+2024-01-01 to 
+2026-03-16 for 7 
+tickers...
+2026-03-16 
+18:40:45,823 - 365advis
+ers.backtest.historical
+ - INFO - Bulk 
+download complete. 
+Loaded 7 tickers.
+2026-03-16 
+18:40:45,823 - 365advis
+ers.backtest.main - 
+INFO - Starting 
+simulation loop...
+C:\Users\pmfig\.gemini\
+antigravity\scratch\365
+-advisers\agent-backend
+\research\backtest\quan
+titative_simulator.py:1
+60: FutureWarning: 'M' 
+is deprecated and will 
+be removed in a future 
+version, please use 
+'ME' instead.
+  rebalance_dates = df_
+dates.resample("M").las
+t().index.tolist()
+2026-03-16 
+18:40:45,837 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-01-31...
+2026-03-16 
+18:40:45,839 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-02-29...
+2026-03-16 
+18:40:45,842 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-03-31...
+2026-03-16 
+18:40:45,901 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-04-30...
+2026-03-16 
+18:40:45,959 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-05-31...
+2026-03-16 
+18:40:46,025 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-06-30...
+2026-03-16 
+18:40:46,091 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-07-31...
+2026-03-16 
+18:40:46,165 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-08-31...
+2026-03-16 
+18:40:46,238 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-09-30...
+2026-03-16 
+18:40:46,316 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-10-31...
+2026-03-16 
+18:40:46,402 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-11-30...
+2026-03-16 
+18:40:46,491 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-12-31...
+2026-03-16 
+18:40:46,584 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-01-31...
+2026-03-16 
+18:40:46,684 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-02-28...
+2026-03-16 
+18:40:46,781 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-03-31...
+2026-03-16 
+18:40:46,874 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-04-30...
+2026-03-16 
+18:40:46,973 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-05-31...
+2026-03-16 
+18:40:47,079 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-06-30...
+2026-03-16 
+18:40:47,182 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-07-31...
+2026-03-16 
+18:40:47,283 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-08-31...
+2026-03-16 
+18:40:47,377 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-09-30...
+2026-03-16 
+18:40:47,475 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-10-31...
+2026-03-16 
+18:40:47,570 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-11-30...
+2026-03-16 
+18:40:47,671 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-12-31...
+2026-03-16 
+18:40:47,772 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2026-01-31...
+2026-03-16 
+18:40:47,871 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2026-02-28...
+2026-03-16 
+18:40:47,966 - 365advis
+ers.backtest.simulator 
+- INFO - Simulation 
+ended. Final Equity: 
+$100,000.00
+2026-03-16 
+18:40:47,966 - 365advis
+ers.backtest.main - 
+INFO - ================
+=======================
+=====================
+2026-03-16 
+18:40:47,966 - 365advis
+ers.backtest.main - 
+INFO - BACKTEST 
+RESULTS (FAST-RUN 
+QUANTS ONLY):
+2026-03-16 
+18:40:47,966 - 365advis
+ers.backtest.main - 
+INFO - INITIAL 
+CAPITAL: $100,000.00
+2026-03-16 
+18:40:47,966 - 365advis
+ers.backtest.main - 
+INFO - FINAL CAPITAL:  
+ $100,000.00
+2026-03-16 
+18:40:47,970 - 365advis
+ers.backtest.main - 
+INFO - TOTAL RETURN:   
+ 0.00%
+2026-03-16 
+18:40:47,970 - 365advis
+ers.backtest.main - 
+INFO - ================
+=======================
+=====================

@@ -69,6 +69,9 @@ class BacktestConfig(BaseModel):
     cost_config: dict | None = Field(
         None, description="CostModelConfig params (if None, defaults are used)",
     )
+    include_fundamentals: bool = Field(
+        False, description="Fetch historical quarterly financials for fundamental signals",
+    )
 
 
 # ─── Signal Event (ephemeral, per-run) ───────────────────────────────────────

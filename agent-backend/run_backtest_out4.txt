@@ -1,0 +1,1569 @@
+python : 2026-03-16 
+18:40:09,002 - 365advis
+ers.backtest.main - 
+INFO - Initializing 
+Quantitative 
+Backtester for 7 
+assets...
+En l?nea: 1 Car?cter: 1
++ python research/run_b
+acktest.py 2>&1 | 
+Out-File -Encoding 
+ASCII run_b ...
++ ~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (2026-03-16 18   
+ :4...for 7 assets.    
+..:String) [], Rem    
+oteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+2026-03-16 
+18:40:09,002 - 365advis
+ers.backtest.historical
+ - INFO - Downloading 
+historical data from 
+2024-01-01 to 
+2026-03-16 for 7 
+tickers...
+2026-03-16 
+18:40:10,389 - 365advis
+ers.backtest.historical
+ - INFO - Bulk 
+download complete. 
+Loaded 7 tickers.
+2026-03-16 
+18:40:10,390 - 365advis
+ers.backtest.main - 
+INFO - Starting 
+simulation loop...
+C:\Users\pmfig\.gemini\
+antigravity\scratch\365
+-advisers\agent-backend
+\research\backtest\quan
+titative_simulator.py:1
+60: FutureWarning: 'M' 
+is deprecated and will 
+be removed in a future 
+version, please use 
+'ME' instead.
+  rebalance_dates = df_
+dates.resample("M").las
+t().index.tolist()
+2026-03-16 
+18:40:10,422 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-01-31...
+2026-03-16 
+18:40:10,425 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-02-29...
+2026-03-16 
+18:40:10,427 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-03-31...
+2026-03-16 
+18:40:10,440 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2024-03-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,449 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2024-03-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,455 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2024-03-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,462 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2024-03-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,471 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2024-03-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,479 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2024-03-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,489 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2024-03-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,489 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-04-30...
+2026-03-16 
+18:40:10,498 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2024-04-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,507 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2024-04-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,514 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2024-04-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,523 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2024-04-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,532 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2024-04-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,541 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2024-04-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,549 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2024-04-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,549 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-05-31...
+2026-03-16 
+18:40:10,559 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2024-05-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,568 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2024-05-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,577 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2024-05-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,585 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2024-05-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,593 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2024-05-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,602 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2024-05-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,612 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2024-05-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,612 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-06-30...
+2026-03-16 
+18:40:10,625 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2024-06-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,645 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2024-06-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,654 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2024-06-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,663 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2024-06-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,672 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2024-06-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,681 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2024-06-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,690 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2024-06-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,690 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-07-31...
+2026-03-16 
+18:40:10,699 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2024-07-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,709 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2024-07-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,719 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2024-07-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,729 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2024-07-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,739 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2024-07-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,749 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2024-07-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,759 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2024-07-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,759 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-08-31...
+2026-03-16 
+18:40:10,770 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2024-08-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,781 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2024-08-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,792 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2024-08-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,804 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2024-08-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,814 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2024-08-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,827 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2024-08-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,838 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2024-08-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,839 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-09-30...
+2026-03-16 
+18:40:10,849 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2024-09-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,861 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2024-09-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,873 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2024-09-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,885 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2024-09-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,898 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2024-09-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,910 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2024-09-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,922 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2024-09-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,922 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-10-31...
+2026-03-16 
+18:40:10,934 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2024-10-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,949 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2024-10-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,962 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2024-10-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,976 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2024-10-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:10,988 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2024-10-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,000 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2024-10-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,014 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2024-10-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,014 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-11-30...
+2026-03-16 
+18:40:11,027 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2024-11-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,041 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2024-11-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,053 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2024-11-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,065 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2024-11-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,079 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2024-11-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,092 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2024-11-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,104 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2024-11-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,104 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-12-31...
+2026-03-16 
+18:40:11,118 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2024-12-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,133 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2024-12-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,147 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2024-12-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,161 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2024-12-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,174 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2024-12-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,187 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2024-12-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,200 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2024-12-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,200 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-01-31...
+2026-03-16 
+18:40:11,215 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2025-01-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,228 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2025-01-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,240 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2025-01-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,254 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2025-01-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,269 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2025-01-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,282 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2025-01-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,295 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2025-01-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,295 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-02-28...
+2026-03-16 
+18:40:11,309 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2025-02-28 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,324 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2025-02-28 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,338 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2025-02-28 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,352 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2025-02-28 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,367 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2025-02-28 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,382 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2025-02-28 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,396 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2025-02-28 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,396 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-03-31...
+2026-03-16 
+18:40:11,409 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2025-03-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,428 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2025-03-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,443 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2025-03-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,458 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2025-03-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,471 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2025-03-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,485 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2025-03-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,499 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2025-03-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,500 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-04-30...
+2026-03-16 
+18:40:11,513 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2025-04-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,527 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2025-04-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,540 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2025-04-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,554 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2025-04-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,566 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2025-04-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,579 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2025-04-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,592 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2025-04-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,592 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-05-31...
+2026-03-16 
+18:40:11,606 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2025-05-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,619 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2025-05-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,637 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2025-05-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,650 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2025-05-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,664 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2025-05-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,679 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2025-05-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,693 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2025-05-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,693 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-06-30...
+2026-03-16 
+18:40:11,706 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2025-06-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,719 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2025-06-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,733 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2025-06-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,746 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2025-06-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,760 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2025-06-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,774 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2025-06-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,789 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2025-06-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,790 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-07-31...
+2026-03-16 
+18:40:11,803 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2025-07-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,816 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2025-07-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,829 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2025-07-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,842 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2025-07-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,856 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2025-07-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,869 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2025-07-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,885 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2025-07-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,885 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-08-31...
+2026-03-16 
+18:40:11,899 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2025-08-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,913 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2025-08-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,928 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2025-08-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,941 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2025-08-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,954 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2025-08-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,966 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2025-08-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,978 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2025-08-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:11,978 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-09-30...
+2026-03-16 
+18:40:11,992 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2025-09-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,004 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2025-09-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,017 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2025-09-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,031 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2025-09-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,044 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2025-09-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,058 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2025-09-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,073 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2025-09-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,074 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-10-31...
+2026-03-16 
+18:40:12,088 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2025-10-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,102 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2025-10-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,115 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2025-10-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,132 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2025-10-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,146 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2025-10-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,160 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2025-10-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,174 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2025-10-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,174 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-11-30...
+2026-03-16 
+18:40:12,188 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2025-11-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,201 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2025-11-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,215 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2025-11-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,229 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2025-11-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,242 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2025-11-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,256 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2025-11-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,269 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2025-11-30 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,269 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-12-31...
+2026-03-16 
+18:40:12,283 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2025-12-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,297 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2025-12-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,310 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2025-12-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,323 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2025-12-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,338 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2025-12-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,351 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2025-12-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,365 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2025-12-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,365 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2026-01-31...
+2026-03-16 
+18:40:12,380 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2026-01-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,394 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2026-01-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,408 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2026-01-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,430 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2026-01-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,446 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2026-01-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,460 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2026-01-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,473 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2026-01-31 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,474 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2026-02-28...
+2026-03-16 
+18:40:12,488 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2026-02-28 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,502 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2026-02-28 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,515 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2026-02-28 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,530 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2026-02-28 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,543 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2026-02-28 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,557 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2026-02-28 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,570 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2026-02-28 00:00:00: 
+unhashable type: 
+'TrendRegimeResult'
+2026-03-16 
+18:40:12,570 - 365advis
+ers.backtest.simulator 
+- INFO - Simulation 
+ended. Final Equity: 
+$100,000.00
+2026-03-16 
+18:40:12,570 - 365advis
+ers.backtest.main - 
+INFO - ================
+=======================
+=====================
+2026-03-16 
+18:40:12,570 - 365advis
+ers.backtest.main - 
+INFO - BACKTEST 
+RESULTS (FAST-RUN 
+QUANTS ONLY):
+2026-03-16 
+18:40:12,570 - 365advis
+ers.backtest.main - 
+INFO - INITIAL 
+CAPITAL: $100,000.00
+2026-03-16 
+18:40:12,571 - 365advis
+ers.backtest.main - 
+INFO - FINAL CAPITAL:  
+ $100,000.00
+2026-03-16 
+18:40:12,571 - 365advis
+ers.backtest.main - 
+INFO - TOTAL RETURN:   
+ 0.00%
+2026-03-16 
+18:40:12,571 - 365advis
+ers.backtest.main - 
+INFO - ================
+=======================
+=====================

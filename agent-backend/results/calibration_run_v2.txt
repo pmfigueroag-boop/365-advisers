@@ -1,0 +1,182 @@
+﻿python : 23:33:13 | INFO  | ====================
+========================================
+En línea: 1 Carácter: 1
++ python scripts/calibrate.py 2>&1 | Out-File 
+-FilePath results/calibra ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: 
+(23:    33:13 | INFO...===============:String) 
+[], R    emoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+23:33:13 | INFO  | ADAPTIVE SIGNAL CALIBRATION
+23:33:13 | INFO  | =============================
+===============================
+23:33:13 | INFO  | UNIVERSE: 'test' -> 10 
+tickers
+23:33:13 | INFO  | Universe: test (10 tickers)
+23:33:13 | INFO  | Rolling window: 2023-11-06 
+-> 2026-03-15 (~250 trading days)
+23:33:13 | INFO  | Fundamentals: False
+23:33:13 | INFO  | 
+>>> Step 1: Running backtest...
+23:33:13 | INFO  | BACKTEST: Starting run 
+17594aad-4b85-4057-bc7e-62c70a47947a ÔÇö 10 
+tickers, 2023-11-06 to 2026-03-15
+23:33:13 | INFO  | BACKTEST-REPO: Created run 
+17594aad-4b85-4057-bc7e-62c70a47947a
+23:33:13 | INFO  | BACKTEST: Evaluating 68 
+signals
+23:33:14 | INFO  | BACKTEST: Fetched 589 bars 
+for XOM
+23:33:14 | INFO  | BACKTEST: Fetched 589 bars 
+for GOOGL
+23:33:14 | INFO  | BACKTEST: Fetched 589 bars 
+for JPM
+23:33:14 | INFO  | BACKTEST: Fetched 589 bars 
+for NEE
+23:33:14 | INFO  | BACKTEST: Fetched 589 bars 
+for JNJ
+23:33:14 | INFO  | BACKTEST: Fetched 589 bars 
+for AMZN
+23:33:14 | INFO  | BACKTEST: Fetched 589 bars 
+for CAT
+23:33:14 | INFO  | BACKTEST: Fetched 589 bars 
+for AAPL
+23:33:15 | INFO  | BACKTEST: Fetched 589 bars 
+for MSFT
+23:33:15 | INFO  | BACKTEST: Fetched 589 bars 
+for PG
+23:33:15 | INFO  | BACKTEST: Fetched 589 bars 
+for SPY
+23:33:16 | INFO  | BACKTEST: AAPL ÔåÆ 61 signal 
+events from 68 signals over 329 days
+23:33:16 | INFO  | RETURN-TRACKER: Enriched 61 
+events with benchmark data
+23:33:18 | INFO  | BACKTEST: MSFT ÔåÆ 60 signal 
+events from 68 signals over 329 days
+23:33:18 | INFO  | RETURN-TRACKER: Enriched 60 
+events with benchmark data
+23:33:19 | INFO  | BACKTEST: JPM ÔåÆ 59 signal 
+events from 68 signals over 329 days
+23:33:19 | INFO  | RETURN-TRACKER: Enriched 59 
+events with benchmark data
+23:33:20 | INFO  | BACKTEST: JNJ ÔåÆ 52 signal 
+events from 68 signals over 329 days
+23:33:20 | INFO  | RETURN-TRACKER: Enriched 52 
+events with benchmark data
+23:33:22 | INFO  | BACKTEST: XOM ÔåÆ 59 signal 
+events from 68 signals over 329 days
+23:33:22 | INFO  | RETURN-TRACKER: Enriched 59 
+events with benchmark data
+23:33:23 | INFO  | BACKTEST: AMZN ÔåÆ 52 signal 
+events from 68 signals over 329 days
+23:33:23 | INFO  | RETURN-TRACKER: Enriched 52 
+events with benchmark data
+23:33:24 | INFO  | BACKTEST: PG ÔåÆ 60 signal 
+events from 68 signals over 329 days
+23:33:24 | INFO  | RETURN-TRACKER: Enriched 60 
+events with benchmark data
+23:33:26 | INFO  | BACKTEST: CAT ÔåÆ 61 signal 
+events from 68 signals over 329 days
+23:33:26 | INFO  | RETURN-TRACKER: Enriched 61 
+events with benchmark data
+23:33:27 | INFO  | BACKTEST: NEE ÔåÆ 52 signal 
+events from 68 signals over 329 days
+23:33:27 | INFO  | RETURN-TRACKER: Enriched 52 
+events with benchmark data
+23:33:28 | INFO  | BACKTEST: GOOGL ÔåÆ 59 
+signal events from 68 signals over 329 days
+23:33:28 | INFO  | RETURN-TRACKER: Enriched 59 
+events with benchmark data
+23:33:28 | INFO  | BACKTEST: Progress 10/10 
+tickers evaluated
+23:33:28 | INFO  | BACKTEST: Total signal 
+events: 575
+23:33:28 | INFO  | PERF-REPO: Saved 575 events 
+for run 17594aad-4b85-4057-bc7e-62c70a47947a
+23:33:28 | INFO  | BACKTEST: Persisted 575 
+events to performance DB
+23:33:28 | INFO  | CALIBRATION: Generated 1 
+suggestions
+23:33:28 | INFO  | BACKTEST-REPO: Saved 6 
+results for run 
+17594aad-4b85-4057-bc7e-62c70a47947a
+23:33:28 | INFO  | BACKTEST: Run 
+17594aad-4b85-4057-bc7e-62c70a47947a completed 
+in 15.9s ÔÇö 6 signal results, 1 calibration 
+suggestions
+23:33:28 | INFO  | Backtest complete: 6 
+signals, 15.9s
+23:33:28 | INFO  | 
+>>> Step 2: Detecting market regimes...
+23:33:29 | INFO  | BACKTEST: Fetched 589 bars 
+for SPY
+23:33:29 | INFO  | REGIME-DETECTOR: Classified 
+389 days ÔÇö {'bull': 205, 'range': 138, 
+'bear': 16, 'high_vol': 30}
+23:33:29 | INFO  | 
+>>> Step 3: Running adaptive calibration...
+23:33:29 | INFO  | CALIBRATOR: Produced 7 
+changes, 6 configs, 5 regime tables in 0.00s
+23:33:29 | INFO  | 
+>>> Step 4: Running governance review...
+23:33:29 | INFO  | GOVERNOR: Reviewed 7 changes 
+-- 3 approved, 0 rejected, 4 flagged
+23:33:29 | INFO  | 
+>>> Step 5: Building calibration version...
+23:33:29 | INFO  | CALIBRATION-STORE: Saved 
+v1.0 to C:\Users\pmfig\.gemini\antigravity\scrat
+ch\365-advisers\agent-backend\configs\calibratio
+ns\signal_engine_v1.0.json
+23:33:29 | INFO  | Saved calibration v1.0 to C:\
+Users\pmfig\.gemini\antigravity\scratch\365-advi
+sers\agent-backend\configs\calibrations\signal_e
+ngine_v1.0.json
+23:33:29 | INFO  | 
+>>> Step 7: DRY RUN -- use --apply to apply 
+changes
+23:33:29 | INFO  | 
+Calibration complete in 16.0s
+23:33:29 | INFO  | Report saved to C:\Users\pmfi
+g\.gemini\antigravity\scratch\365-advisers\agent
+-backend\results\calibration_report.json
+
+================================================================================
+  ADAPTIVE SIGNAL CALIBRATION REPORT
+================================================================================
+  Version      : v1.0
+  Universe     : test (10 tickers)
+  Lookback     : 250 days
+  Signals Cal. : 6
+  Changes      : 7 approved, 0 rejected, 4 flagged
+================================================================================
+
+-- APPROVED CHANGES ---------------------------------------------------
+  risk.macd_bearish                        |     weight: 1.000 -> 1.200 (+20%) | Sharpe@20d=+0.83, HR@20d=76.5%, n=98 [CLAMPED from 1.276]
+  risk.rsi_overbought                      |     weight: 1.200 -> 1.374 (+14%) | Sharpe@20d=+0.43, HR@20d=63.2%, n=76
+  momentum.macd_bullish                    |     weight: 1.100 -> 1.189 (+8%) | Sharpe@20d=+0.24, HR@20d=63.0%, n=100
+  momentum.rsi_bullish                     |     weight: 1.000 -> 1.077 (+8%) | Sharpe@20d=+0.23, HR@20d=64.6%, n=99
+  momentum.rsi_bullish                     |  half_life: 10.000 -> 8.000 (-20%) | Empirical=2.0d vs configured=10.0d [CLAMPED from 2.000]
+  flow.accumulation_pattern                |     weight: 1.000 -> 0.844 (-16%) | Sharpe@20d=-0.47, HR@20d=67.4%, n=92
+  volatility.atr_expansion                 |     weight: 0.900 -> 0.720 (-20%) | Sharpe@20d=-1.05, HR@20d=67.3%, n=110 [CLAMPED from 0.585]
+
+-- FLAGGED FOR REVIEW -------------------------------------------------
+  risk.macd_bearish                        |     weight: 1.000 -> 1.200 | Large change (28%) clamped to 20%. Review recommended.
+  momentum.rsi_bullish                     |  half_life: 10.000 -> 8.000 | Large change (80%) clamped to 20%. Review recommended.
+  flow.accumulation_pattern                |     weight: 1.000 -> 0.844 | Change of 16% exceeds flag threshold
+  volatility.atr_expansion                 |     weight: 0.900 -> 0.720 | Large change (35%) clamped to 20%. Review recommended.
+
+-- REGIME-CONDITIONAL WEIGHTS (top 5 per regime) ----------------------
+  bull         ( 205 days) | rsi_overbought=1.79, macd_bearish=1.66, macd_bullish=1.55, rsi_bullish=1.40, accumulation_pattern=0.84
+  bear         (  16 days) | rsi_overbought=0.96, macd_bearish=0.89, accumulation_pattern=0.84, macd_bullish=0.83, rsi_bullish=0.75
+  range        ( 138 days) | rsi_overbought=1.10, macd_bearish=1.02, macd_bullish=0.95, accumulation_pattern=0.93, rsi_bullish=0.86
+  high_vol     (  30 days) | accumulation_pattern=0.84, rsi_overbought=0.82, macd_bearish=0.77, atr_expansion=0.76, macd_bullish=0.71
+
+-- PERFORMANCE SNAPSHOT -----------------------------------------------
+  avg_hit_rate_20d              : 0.6700
+  avg_sharpe_20d                : 0.0355
+  total_events                  : 575.0000
+  total_signals                 : 6.0000
+
+================================================================================

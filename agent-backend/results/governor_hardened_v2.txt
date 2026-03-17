@@ -1,0 +1,75 @@
+﻿python : 00:12:22 | INFO  | ====================
+========================================
+En línea: 1 Carácter: 1
++ python scripts/calibrate.py 2>&1 | Out-File 
+-FilePath results/governo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (00 
+   :12:22 | INFO...===============:String) [],  
+   RemoteException
+    + FullyQualifiedErrorId : NativeCommandErro 
+   r
+ 
+00:12:22 | INFO  | ADAPTIVE SIGNAL CALIBRATION
+00:12:22 | INFO  | =============================
+===============================
+00:12:22 | INFO  | UNIVERSE: 'test' -> 10 
+tickers
+00:12:22 | INFO  | Universe: test (10 tickers)
+00:12:22 | INFO  | Rolling window: 2023-11-07 
+-> 2026-03-16 (~250 trading days)
+00:12:22 | INFO  | Fundamentals: False
+00:12:22 | INFO  | 
+>>> Step 1: Running backtest...
+00:12:22 | INFO  | BACKTEST: Starting run 
+3ef2ba2f-5c2a-48e2-8c2b-8632ce6b8165 ÔÇö 10 
+tickers, 2023-11-07 to 2026-03-16
+00:12:23 | INFO  | BACKTEST-REPO: Created run 
+3ef2ba2f-5c2a-48e2-8c2b-8632ce6b8165
+00:12:23 | INFO  | BACKTEST: Evaluating 68 
+signals
+00:12:24 | INFO  | BACKTEST: Fetched 588 bars 
+for JPM
+00:12:24 | INFO  | BACKTEST: Fetched 588 bars 
+for PG
+00:12:24 | INFO  | BACKTEST: Fetched 588 bars 
+for CAT
+00:12:24 | INFO  | BACKTEST: Fetched 588 bars 
+for AAPL
+00:12:24 | INFO  | BACKTEST: Fetched 588 bars 
+for XOM
+00:12:24 | INFO  | BACKTEST: Fetched 588 bars 
+for MSFT
+00:12:25 | INFO  | BACKTEST: Fetched 588 bars 
+for JNJ
+00:12:25 | INFO  | BACKTEST: Fetched 588 bars 
+for GOOGL
+00:12:25 | INFO  | BACKTEST: Fetched 588 bars 
+for SPY
+00:12:25 | INFO  | BACKTEST: Fetched 588 bars 
+for AMZN
+00:12:25 | INFO  | BACKTEST: Fetched 588 bars 
+for NEE
+00:12:26 | INFO  | BACKTEST: AAPL ÔåÆ 60 signal 
+events from 68 signals over 328 days
+00:12:26 | INFO  | RETURN-TRACKER: Enriched 60 
+events with benchmark data
+00:12:28 | INFO  | BACKTEST: MSFT ÔåÆ 57 signal 
+events from 68 signals over 328 days
+00:12:28 | INFO  | RETURN-TRACKER: Enriched 57 
+events with benchmark data
+00:12:29 | INFO  | BACKTEST: JPM ÔåÆ 61 signal 
+events from 68 signals over 328 days
+00:12:29 | INFO  | RETURN-TRACKER: Enriched 61 
+events with benchmark data
+00:12:30 | INFO  | BACKTEST: JNJ ÔåÆ 59 signal 
+events from 68 signals over 328 days
+00:12:30 | INFO  | RETURN-TRACKER: Enriched 59 
+events with benchmark data
+00:12:30 | ERROR | BACKTEST: Run 
+3ef2ba2f-5c2a-48e2-8c2b-8632ce6b8165 failed ÔÇö 
+The truth value of a Series is ambiguous. Use 
+a.empty, a.bool(), a.item(), a.any() or a.all().
+00:12:30 | ERROR | Backtest failed: The truth 
+value of a Series is ambiguous. Use a.empty, 
+a.bool(), a.item(), a.any() or a.all().

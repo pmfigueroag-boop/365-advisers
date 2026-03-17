@@ -1,0 +1,65 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.13.3, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\pmfig\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend
+plugins: anyio-4.12.1, langsmith-0.7.9, cov-7.0.0
+collecting ... collected 5 items
+
+tests/test_calibration_integration.py::TestCalibrationIntegration::test_full_chain_calibrate_govern_store FAILED [ 20%]
+tests/test_calibration_integration.py::TestCalibrationIntegration::test_flagged_change_not_in_approved PASSED [ 40%]
+tests/test_calibration_integration.py::TestCalibrationIntegration::test_governor_rejects_without_evidence PASSED [ 60%]
+tests/test_calibration_integration.py::TestCalibrationIntegration::test_store_round_trip_preserves_types PASSED [ 80%]
+tests/test_calibration_integration.py::TestCalibrationIntegration::test_parameter_limits_cover_all_enum_members PASSED [100%]
+
+================================== FAILURES ===================================
+______ TestCalibrationIntegration.test_full_chain_calibrate_govern_store ______
+
+self = <test_calibration_integration.TestCalibrationIntegration object at 0x0000022AAD2FA850>
+
+    def test_full_chain_calibrate_govern_store(self):
+        """
+        End-to-end: calibrator produces changes ÔåÆ governor reviews ÔåÆ store persists.
+    
+        This is the critical integration test that validates the complete
+        calibration pipeline works with hardened contracts.
+        """
+        # 1. Setup: registry with a signal, performance record
+        registry = SignalRegistry()
+        sig = _make_signal_def("test.value_signal", weight=1.0, category="value")
+        registry.register(sig)
+    
+        record = _make_record(
+            signal_id="test.value_signal",
+            category="value",
+            total_firings=100,
+            sharpe_20=0.5,
+            hit_rate_20=0.55,
+        )
+>       report = _make_backtest_report([record])
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_calibration_integration.py:118: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+records = [SignalPerformanceRecord(signal_id='test.value_signal', signal_name='Test test.value_signal', category=<SignalCategory...st_date=datetime.datetime(2026, 3, 16, 6, 27, 9, 49497, tzinfo=datetime.timezone.utc), universe_size=0, date_range='')]
+
+    def _make_backtest_report(records: list[SignalPerformanceRecord]) -> BacktestReport:
+        return BacktestReport(
+>           config=BacktestConfig(
+                universe_name="test",
+                start_date=date(2024, 1, 1),
+                end_date=date(2024, 12, 31),
+                universe_tickers=["AAPL", "MSFT"],
+            ),
+            status=BacktestStatus.COMPLETED,
+            signal_performance={r.signal_id: r for r in records},
+        )
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for BacktestConfig
+E       universe
+E         Field required [type=missing, input_value={'universe_name': 'test',...kers': ['AAPL', 'MSFT']}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.12/v/missing
+
+tests\test_calibration_integration.py:83: ValidationError
+=========================== short test summary info ===========================
+FAILED tests/test_calibration_integration.py::TestCalibrationIntegration::test_full_chain_calibrate_govern_store
+========================= 1 failed, 4 passed in 1.68s =========================

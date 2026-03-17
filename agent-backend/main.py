@@ -1,7 +1,7 @@
 """
 main_v2.py
 ──────────────────────────────────────────────────────────────────────────────
-365 Advisers API — lean entrypoint (v3.0)
+365 Advisers API — lean entrypoint (v4.0)
 
 All business logic has been extracted to:
   - src/routes/          → API endpoints
@@ -213,7 +213,16 @@ async def lifespan(app: FastAPI):
 
 # ── App Creation ─────────────────────────────────────────────────────────────
 
-app = FastAPI(title="365 Advisers API", version="3.4.0", lifespan=lifespan)
+app = FastAPI(
+    title="365 Advisers API",
+    version="4.0.0",
+    description=(
+        "Institutional-grade investment intelligence platform. "
+        "Multi-agent analysis, portfolio construction, risk management, "
+        "and alpha signal backtesting."
+    ),
+    lifespan=lifespan,
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -287,6 +296,8 @@ from src.routes.screener import router as screener_router
 from src.routes.auth import router as auth_router
 from src.routes.agents import router as agents_router
 from src.routes.audit import router as audit_router
+from src.routes.portfolio_risk import router as portfolio_risk_router
+from src.routes.options_pricing import router as options_pricing_router
 from src.agents.mcp_server import router as mcp_router
 from src.routes.costs import router as costs_router
 from src.routes.alpha_research import router as alpha_research_router
@@ -295,6 +306,8 @@ app.include_router(health_router)
 app.include_router(auth_router)
 app.include_router(analysis_router)
 app.include_router(cache_router)
+app.include_router(portfolio_risk_router)
+app.include_router(options_pricing_router)
 app.include_router(portfolio_router)
 app.include_router(ideas_router)
 app.include_router(signals_router)

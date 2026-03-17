@@ -1,0 +1,108 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.13.3, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\pmfig\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend
+plugins: anyio-4.12.1, langsmith-0.7.9, cov-7.0.0
+collecting ... collected 5 items
+
+tests/test_calibration_integration.py::TestCalibrationIntegration::test_full_chain_calibrate_govern_store FAILED [ 20%]
+tests/test_calibration_integration.py::TestCalibrationIntegration::test_flagged_change_not_in_approved FAILED [ 40%]
+tests/test_calibration_integration.py::TestCalibrationIntegration::test_governor_rejects_without_evidence PASSED [ 60%]
+tests/test_calibration_integration.py::TestCalibrationIntegration::test_store_round_trip_preserves_types PASSED [ 80%]
+tests/test_calibration_integration.py::TestCalibrationIntegration::test_parameter_limits_cover_all_enum_members PASSED [100%]
+
+================================== FAILURES ===================================
+______ TestCalibrationIntegration.test_full_chain_calibrate_govern_store ______
+
+self = <test_calibration_integration.TestCalibrationIntegration object at 0x00000169C8CBE710>
+
+    def test_full_chain_calibrate_govern_store(self):
+        """
+        End-to-end: calibrator produces changes ÔåÆ governor reviews ÔåÆ store persists.
+    
+        This is the critical integration test that validates the complete
+        calibration pipeline works with hardened contracts.
+        """
+        # 1. Setup: registry with a signal, performance record
+        registry = SignalRegistry()
+        sig = _make_signal_def("test.value_signal", weight=1.0, category="value")
+        registry.register(sig)
+    
+>       record = _make_record(
+            signal_id="test.value_signal",
+            category="value",
+            total_firings=100,
+            sharpe_20=0.5,
+            hit_rate_20=0.55,
+        )
+
+tests\test_calibration_integration.py:110: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+signal_id = 'test.value_signal', category = 'value', total_firings = 100
+sharpe_20 = 0.5, hit_rate_20 = 0.55
+
+    def _make_record(
+        signal_id: str = "test.signal",
+        category: str = "value",
+        total_firings: int = 100,
+        sharpe_20: float = 0.5,
+        hit_rate_20: float = 0.55,
+    ) -> SignalPerformanceRecord:
+>       return SignalPerformanceRecord(
+            signal_id=signal_id,
+            category=SignalCategory(category),
+            total_firings=total_firings,
+            total_correct=int(total_firings * hit_rate_20),
+            sharpe_ratio={5: 0.3, 20: sharpe_20, 60: sharpe_20 * 0.8},
+            hit_rate={5: 0.52, 20: hit_rate_20, 60: hit_rate_20 * 0.95},
+            avg_return={5: 0.002, 20: 0.005, 60: 0.010},
+        )
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for SignalPerformanceRecord
+E       signal_name
+E         Field required [type=missing, input_value={'signal_id': 'test.value...2, 20: 0.005, 60: 0.01}}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.12/v/missing
+
+tests\test_calibration_integration.py:69: ValidationError
+_______ TestCalibrationIntegration.test_flagged_change_not_in_approved ________
+
+self = <test_calibration_integration.TestCalibrationIntegration object at 0x00000169C8CBE990>
+
+    def test_flagged_change_not_in_approved(self):
+        """Governor's get_approved() must never include FLAGGED changes."""
+        governor = CalibrationGovernor()
+>       record = _make_record(total_firings=100, sharpe_20=-0.5)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_calibration_integration.py:198: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+signal_id = 'test.signal', category = 'value', total_firings = 100
+sharpe_20 = -0.5, hit_rate_20 = 0.55
+
+    def _make_record(
+        signal_id: str = "test.signal",
+        category: str = "value",
+        total_firings: int = 100,
+        sharpe_20: float = 0.5,
+        hit_rate_20: float = 0.55,
+    ) -> SignalPerformanceRecord:
+>       return SignalPerformanceRecord(
+            signal_id=signal_id,
+            category=SignalCategory(category),
+            total_firings=total_firings,
+            total_correct=int(total_firings * hit_rate_20),
+            sharpe_ratio={5: 0.3, 20: sharpe_20, 60: sharpe_20 * 0.8},
+            hit_rate={5: 0.52, 20: hit_rate_20, 60: hit_rate_20 * 0.95},
+            avg_return={5: 0.002, 20: 0.005, 60: 0.010},
+        )
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for SignalPerformanceRecord
+E       signal_name
+E         Field required [type=missing, input_value={'signal_id': 'test.signa...2, 20: 0.005, 60: 0.01}}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.12/v/missing
+
+tests\test_calibration_integration.py:69: ValidationError
+=========================== short test summary info ===========================
+FAILED tests/test_calibration_integration.py::TestCalibrationIntegration::test_full_chain_calibrate_govern_store
+FAILED tests/test_calibration_integration.py::TestCalibrationIntegration::test_flagged_change_not_in_approved
+========================= 2 failed, 3 passed in 1.75s =========================

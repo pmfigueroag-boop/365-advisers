@@ -1,0 +1,475 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.13.3, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\pmfig\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend
+plugins: anyio-4.12.1, langsmith-0.7.9, cov-7.0.0
+collecting ... collected 33 items
+
+tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_positive_sharpe_increases_weight FAILED [  3%]
+tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_negative_sharpe_decreases_weight FAILED [  6%]
+tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_weight_clamped_min FAILED [  9%]
+tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_weight_clamped_max FAILED [ 12%]
+tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_insufficient_observations_no_change FAILED [ 15%]
+tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_dynamic_confidence FAILED [ 18%]
+tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_changes_detected FAILED [ 21%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_no_record_rejected PASSED [ 24%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_get_approved_excludes_flagged PASSED [ 27%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_stability_from_structured_field PASSED [ 30%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_abs_change_pct_clamps_negative PASSED [ 33%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_small_change_approved PASSED [ 36%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_negative_sharpe_weight_increase_rejected PASSED [ 39%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_low_hit_rate_weight_increase_flagged PASSED [ 42%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_insignificant_sharpe_weight_increase_flagged PASSED [ 45%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_strong_signal_reduction_flagged PASSED [ 48%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_low_value_clamp_uses_absolute_floor PASSED [ 51%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_clamped_change_pct_is_signed_correctly PASSED [ 54%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_half_life_uses_own_delta_floor PASSED [ 57%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_threshold_uses_stricter_max_change PASSED [ 60%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_low_sample_regime_flagged PASSED [ 63%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_significance_proxy_reason_text PASSED [ 66%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_insufficient_observations_rejected PASSED [ 69%]
+tests/test_adaptive_calibrator.py::TestCalibrationStore::test_save_and_load PASSED [ 72%]
+tests/test_adaptive_calibrator.py::TestCalibrationStore::test_load_latest PASSED [ 75%]
+tests/test_adaptive_calibrator.py::TestCalibrationStore::test_get_history PASSED [ 78%]
+tests/test_adaptive_calibrator.py::TestCalibrationStore::test_next_version_tag PASSED [ 81%]
+tests/test_adaptive_calibrator.py::TestCalibrationStore::test_apply_to_registry PASSED [ 84%]
+tests/test_adaptive_calibrator.py::TestCalibrationStore::test_missing_version PASSED [ 87%]
+tests/test_adaptive_calibrator.py::TestRegistryEnhancements::test_update_weight PASSED [ 90%]
+tests/test_adaptive_calibrator.py::TestRegistryEnhancements::test_update_weight_nonexistent PASSED [ 93%]
+tests/test_adaptive_calibrator.py::TestRegistryEnhancements::test_update_threshold PASSED [ 96%]
+tests/test_adaptive_calibrator.py::TestRegistryEnhancements::test_snapshot_restore PASSED [100%]
+
+================================== FAILURES ===================================
+________ TestAdaptiveCalibrator.test_positive_sharpe_increases_weight _________
+
+self = <test_adaptive_calibrator.TestAdaptiveCalibrator object at 0x000001FA86F7D1D0>
+
+    def test_positive_sharpe_increases_weight(self):
+        """Signal with positive Sharpe should get higher weight."""
+        record = _make_performance_record(
+            signal_id="test.high_sharpe",
+            sharpe_20=1.5,
+            total_firings=100,
+        )
+        report = _make_report([record])
+>       changes, configs, _ = self.calibrator.calibrate(report)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_adaptive_calibrator.py:114: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\engines\backtesting\adaptive_calibrator.py:136: in calibrate
+    config = self._calibrate_signal(record, signal_def)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\engines\backtesting\adaptive_calibrator.py:205: in _calibrate_signal
+    self.config.weight_clamp_min,
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = CalibrationConfig(lookback_days=250, max_change_pct=0.2, min_observations=50, min_stability=0.3, sharpe_floor=0.0, flag_threshold_pct=0.15, min_regime_sample=20)
+item = 'weight_clamp_min'
+
+    def __getattr__(self, item: str) -> Any:
+        private_attributes = object.__getattribute__(self, '__private_attributes__')
+        if item in private_attributes:
+            attribute = private_attributes[item]
+            if hasattr(attribute, '__get__'):
+                return attribute.__get__(self, type(self))  # type: ignore
+    
+            try:
+                # Note: self.__pydantic_private__ cannot be None if self.__private_attributes__ has items
+                return self.__pydantic_private__[item]  # type: ignore
+            except KeyError as exc:
+                raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}') from exc
+        else:
+            # `__pydantic_extra__` can fail to be set if the model is not yet fully initialized.
+            # See `BaseModel.__repr_args__` for more details
+            try:
+                pydantic_extra = object.__getattribute__(self, '__pydantic_extra__')
+            except AttributeError:
+                pydantic_extra = None
+    
+            if pydantic_extra and item in pydantic_extra:
+                return pydantic_extra[item]
+            else:
+                if hasattr(self.__class__, item):
+                    return super().__getattribute__(item)  # Raises AttributeError if appropriate
+                else:
+                    # this is the current error
+>                   raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E                   AttributeError: 'CalibrationConfig' object has no attribute 'weight_clamp_min'
+
+C:\Users\pmfig\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\main.py:1026: AttributeError
+________ TestAdaptiveCalibrator.test_negative_sharpe_decreases_weight _________
+
+self = <test_adaptive_calibrator.TestAdaptiveCalibrator object at 0x000001FA88056710>
+
+    def test_negative_sharpe_decreases_weight(self):
+        """Signal with negative Sharpe should get lower weight."""
+        record = _make_performance_record(
+            signal_id="test.high_sharpe",
+            sharpe_20=-1.5,
+            total_firings=100,
+        )
+        report = _make_report([record])
+>       _, configs, _ = self.calibrator.calibrate(report)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_adaptive_calibrator.py:131: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\engines\backtesting\adaptive_calibrator.py:136: in calibrate
+    config = self._calibrate_signal(record, signal_def)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\engines\backtesting\adaptive_calibrator.py:205: in _calibrate_signal
+    self.config.weight_clamp_min,
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = CalibrationConfig(lookback_days=250, max_change_pct=0.2, min_observations=50, min_stability=0.3, sharpe_floor=0.0, flag_threshold_pct=0.15, min_regime_sample=20)
+item = 'weight_clamp_min'
+
+    def __getattr__(self, item: str) -> Any:
+        private_attributes = object.__getattribute__(self, '__private_attributes__')
+        if item in private_attributes:
+            attribute = private_attributes[item]
+            if hasattr(attribute, '__get__'):
+                return attribute.__get__(self, type(self))  # type: ignore
+    
+            try:
+                # Note: self.__pydantic_private__ cannot be None if self.__private_attributes__ has items
+                return self.__pydantic_private__[item]  # type: ignore
+            except KeyError as exc:
+                raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}') from exc
+        else:
+            # `__pydantic_extra__` can fail to be set if the model is not yet fully initialized.
+            # See `BaseModel.__repr_args__` for more details
+            try:
+                pydantic_extra = object.__getattribute__(self, '__pydantic_extra__')
+            except AttributeError:
+                pydantic_extra = None
+    
+            if pydantic_extra and item in pydantic_extra:
+                return pydantic_extra[item]
+            else:
+                if hasattr(self.__class__, item):
+                    return super().__getattribute__(item)  # Raises AttributeError if appropriate
+                else:
+                    # this is the current error
+>                   raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E                   AttributeError: 'CalibrationConfig' object has no attribute 'weight_clamp_min'
+
+C:\Users\pmfig\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\main.py:1026: AttributeError
+_______________ TestAdaptiveCalibrator.test_weight_clamped_min ________________
+
+self = <test_adaptive_calibrator.TestAdaptiveCalibrator object at 0x000001FA881009D0>
+
+    def test_weight_clamped_min(self):
+        """Weight should not go below clamp minimum."""
+        record = _make_performance_record(
+            signal_id="test.high_sharpe",
+            sharpe_20=-10.0,  # Very negative
+            total_firings=100,
+        )
+        report = _make_report([record])
+>       _, configs, _ = self.calibrator.calibrate(report)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_adaptive_calibrator.py:148: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\engines\backtesting\adaptive_calibrator.py:136: in calibrate
+    config = self._calibrate_signal(record, signal_def)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\engines\backtesting\adaptive_calibrator.py:205: in _calibrate_signal
+    self.config.weight_clamp_min,
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = CalibrationConfig(lookback_days=250, max_change_pct=0.2, min_observations=50, min_stability=0.3, sharpe_floor=0.0, flag_threshold_pct=0.15, min_regime_sample=20)
+item = 'weight_clamp_min'
+
+    def __getattr__(self, item: str) -> Any:
+        private_attributes = object.__getattribute__(self, '__private_attributes__')
+        if item in private_attributes:
+            attribute = private_attributes[item]
+            if hasattr(attribute, '__get__'):
+                return attribute.__get__(self, type(self))  # type: ignore
+    
+            try:
+                # Note: self.__pydantic_private__ cannot be None if self.__private_attributes__ has items
+                return self.__pydantic_private__[item]  # type: ignore
+            except KeyError as exc:
+                raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}') from exc
+        else:
+            # `__pydantic_extra__` can fail to be set if the model is not yet fully initialized.
+            # See `BaseModel.__repr_args__` for more details
+            try:
+                pydantic_extra = object.__getattribute__(self, '__pydantic_extra__')
+            except AttributeError:
+                pydantic_extra = None
+    
+            if pydantic_extra and item in pydantic_extra:
+                return pydantic_extra[item]
+            else:
+                if hasattr(self.__class__, item):
+                    return super().__getattribute__(item)  # Raises AttributeError if appropriate
+                else:
+                    # this is the current error
+>                   raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E                   AttributeError: 'CalibrationConfig' object has no attribute 'weight_clamp_min'
+
+C:\Users\pmfig\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\main.py:1026: AttributeError
+_______________ TestAdaptiveCalibrator.test_weight_clamped_max ________________
+
+self = <test_adaptive_calibrator.TestAdaptiveCalibrator object at 0x000001FA88101480>
+
+    def test_weight_clamped_max(self):
+        """Weight should not go above clamp maximum."""
+        record = _make_performance_record(
+            signal_id="test.high_sharpe",
+            sharpe_20=15.0,  # Very positive
+            total_firings=100,
+        )
+        report = _make_report([record])
+>       _, configs, _ = self.calibrator.calibrate(report)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_adaptive_calibrator.py:160: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\engines\backtesting\adaptive_calibrator.py:136: in calibrate
+    config = self._calibrate_signal(record, signal_def)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\engines\backtesting\adaptive_calibrator.py:205: in _calibrate_signal
+    self.config.weight_clamp_min,
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = CalibrationConfig(lookback_days=250, max_change_pct=0.2, min_observations=50, min_stability=0.3, sharpe_floor=0.0, flag_threshold_pct=0.15, min_regime_sample=20)
+item = 'weight_clamp_min'
+
+    def __getattr__(self, item: str) -> Any:
+        private_attributes = object.__getattribute__(self, '__private_attributes__')
+        if item in private_attributes:
+            attribute = private_attributes[item]
+            if hasattr(attribute, '__get__'):
+                return attribute.__get__(self, type(self))  # type: ignore
+    
+            try:
+                # Note: self.__pydantic_private__ cannot be None if self.__private_attributes__ has items
+                return self.__pydantic_private__[item]  # type: ignore
+            except KeyError as exc:
+                raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}') from exc
+        else:
+            # `__pydantic_extra__` can fail to be set if the model is not yet fully initialized.
+            # See `BaseModel.__repr_args__` for more details
+            try:
+                pydantic_extra = object.__getattribute__(self, '__pydantic_extra__')
+            except AttributeError:
+                pydantic_extra = None
+    
+            if pydantic_extra and item in pydantic_extra:
+                return pydantic_extra[item]
+            else:
+                if hasattr(self.__class__, item):
+                    return super().__getattribute__(item)  # Raises AttributeError if appropriate
+                else:
+                    # this is the current error
+>                   raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E                   AttributeError: 'CalibrationConfig' object has no attribute 'weight_clamp_min'
+
+C:\Users\pmfig\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\main.py:1026: AttributeError
+_______ TestAdaptiveCalibrator.test_insufficient_observations_no_change _______
+
+self = <test_adaptive_calibrator.TestAdaptiveCalibrator object at 0x000001FA880E5EB0>
+
+    def test_insufficient_observations_no_change(self):
+        """With too few firings, weight should stay at base."""
+        record = _make_performance_record(
+            signal_id="test.high_sharpe",
+            sharpe_20=2.0,
+            total_firings=10,  # Below min_observations=50
+        )
+        report = _make_report([record])
+>       _, configs, _ = self.calibrator.calibrate(report)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_adaptive_calibrator.py:172: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\engines\backtesting\adaptive_calibrator.py:136: in calibrate
+    config = self._calibrate_signal(record, signal_def)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\engines\backtesting\adaptive_calibrator.py:205: in _calibrate_signal
+    self.config.weight_clamp_min,
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = CalibrationConfig(lookback_days=250, max_change_pct=0.2, min_observations=50, min_stability=0.3, sharpe_floor=0.0, flag_threshold_pct=0.15, min_regime_sample=20)
+item = 'weight_clamp_min'
+
+    def __getattr__(self, item: str) -> Any:
+        private_attributes = object.__getattribute__(self, '__private_attributes__')
+        if item in private_attributes:
+            attribute = private_attributes[item]
+            if hasattr(attribute, '__get__'):
+                return attribute.__get__(self, type(self))  # type: ignore
+    
+            try:
+                # Note: self.__pydantic_private__ cannot be None if self.__private_attributes__ has items
+                return self.__pydantic_private__[item]  # type: ignore
+            except KeyError as exc:
+                raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}') from exc
+        else:
+            # `__pydantic_extra__` can fail to be set if the model is not yet fully initialized.
+            # See `BaseModel.__repr_args__` for more details
+            try:
+                pydantic_extra = object.__getattribute__(self, '__pydantic_extra__')
+            except AttributeError:
+                pydantic_extra = None
+    
+            if pydantic_extra and item in pydantic_extra:
+                return pydantic_extra[item]
+            else:
+                if hasattr(self.__class__, item):
+                    return super().__getattribute__(item)  # Raises AttributeError if appropriate
+                else:
+                    # this is the current error
+>                   raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E                   AttributeError: 'CalibrationConfig' object has no attribute 'weight_clamp_min'
+
+C:\Users\pmfig\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\main.py:1026: AttributeError
+_______________ TestAdaptiveCalibrator.test_dynamic_confidence ________________
+
+self = <test_adaptive_calibrator.TestAdaptiveCalibrator object at 0x000001FA86FF4D10>
+
+    def test_dynamic_confidence(self):
+        """Confidence should be higher for high hit rate + high Sharpe."""
+        high_perf = _make_performance_record(
+            signal_id="test.high_sharpe",
+            hit_rate_20=0.75,
+            sharpe_20=2.0,
+            total_firings=200,
+        )
+        low_perf = _make_performance_record(
+            signal_id="test.high_sharpe",
+            hit_rate_20=0.40,
+            sharpe_20=-1.0,
+            total_firings=20,
+        )
+    
+        report_high = _make_report([high_perf])
+        report_low = _make_report([low_perf])
+    
+>       _, configs_high, _ = self.calibrator.calibrate(report_high)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_adaptive_calibrator.py:196: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\engines\backtesting\adaptive_calibrator.py:136: in calibrate
+    config = self._calibrate_signal(record, signal_def)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\engines\backtesting\adaptive_calibrator.py:205: in _calibrate_signal
+    self.config.weight_clamp_min,
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = CalibrationConfig(lookback_days=250, max_change_pct=0.2, min_observations=50, min_stability=0.3, sharpe_floor=0.0, flag_threshold_pct=0.15, min_regime_sample=20)
+item = 'weight_clamp_min'
+
+    def __getattr__(self, item: str) -> Any:
+        private_attributes = object.__getattribute__(self, '__private_attributes__')
+        if item in private_attributes:
+            attribute = private_attributes[item]
+            if hasattr(attribute, '__get__'):
+                return attribute.__get__(self, type(self))  # type: ignore
+    
+            try:
+                # Note: self.__pydantic_private__ cannot be None if self.__private_attributes__ has items
+                return self.__pydantic_private__[item]  # type: ignore
+            except KeyError as exc:
+                raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}') from exc
+        else:
+            # `__pydantic_extra__` can fail to be set if the model is not yet fully initialized.
+            # See `BaseModel.__repr_args__` for more details
+            try:
+                pydantic_extra = object.__getattribute__(self, '__pydantic_extra__')
+            except AttributeError:
+                pydantic_extra = None
+    
+            if pydantic_extra and item in pydantic_extra:
+                return pydantic_extra[item]
+            else:
+                if hasattr(self.__class__, item):
+                    return super().__getattribute__(item)  # Raises AttributeError if appropriate
+                else:
+                    # this is the current error
+>                   raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E                   AttributeError: 'CalibrationConfig' object has no attribute 'weight_clamp_min'
+
+C:\Users\pmfig\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\main.py:1026: AttributeError
+________________ TestAdaptiveCalibrator.test_changes_detected _________________
+
+self = <test_adaptive_calibrator.TestAdaptiveCalibrator object at 0x000001FA88153350>
+
+    def test_changes_detected(self):
+        """Should detect weight and half-life changes."""
+        record = _make_performance_record(
+            signal_id="test.high_sharpe",
+            sharpe_20=1.5,
+            total_firings=100,
+            empirical_half_life=5.0,  # Very different from default
+        )
+        report = _make_report([record])
+>       changes, _, _ = self.calibrator.calibrate(report)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_adaptive_calibrator.py:210: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\engines\backtesting\adaptive_calibrator.py:136: in calibrate
+    config = self._calibrate_signal(record, signal_def)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\engines\backtesting\adaptive_calibrator.py:205: in _calibrate_signal
+    self.config.weight_clamp_min,
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = CalibrationConfig(lookback_days=250, max_change_pct=0.2, min_observations=50, min_stability=0.3, sharpe_floor=0.0, flag_threshold_pct=0.15, min_regime_sample=20)
+item = 'weight_clamp_min'
+
+    def __getattr__(self, item: str) -> Any:
+        private_attributes = object.__getattribute__(self, '__private_attributes__')
+        if item in private_attributes:
+            attribute = private_attributes[item]
+            if hasattr(attribute, '__get__'):
+                return attribute.__get__(self, type(self))  # type: ignore
+    
+            try:
+                # Note: self.__pydantic_private__ cannot be None if self.__private_attributes__ has items
+                return self.__pydantic_private__[item]  # type: ignore
+            except KeyError as exc:
+                raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}') from exc
+        else:
+            # `__pydantic_extra__` can fail to be set if the model is not yet fully initialized.
+            # See `BaseModel.__repr_args__` for more details
+            try:
+                pydantic_extra = object.__getattribute__(self, '__pydantic_extra__')
+            except AttributeError:
+                pydantic_extra = None
+    
+            if pydantic_extra and item in pydantic_extra:
+                return pydantic_extra[item]
+            else:
+                if hasattr(self.__class__, item):
+                    return super().__getattribute__(item)  # Raises AttributeError if appropriate
+                else:
+                    # this is the current error
+>                   raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E                   AttributeError: 'CalibrationConfig' object has no attribute 'weight_clamp_min'
+
+C:\Users\pmfig\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\main.py:1026: AttributeError
+=========================== short test summary info ===========================
+FAILED tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_positive_sharpe_increases_weight
+FAILED tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_negative_sharpe_decreases_weight
+FAILED tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_weight_clamped_min
+FAILED tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_weight_clamped_max
+FAILED tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_insufficient_observations_no_change
+FAILED tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_dynamic_confidence
+FAILED tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_changes_detected
+======================== 7 failed, 26 passed in 2.56s =========================

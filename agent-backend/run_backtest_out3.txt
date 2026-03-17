@@ -1,0 +1,1569 @@
+python : 2026-03-16 
+18:39:21,480 - 365advis
+ers.backtest.main - 
+INFO - Initializing 
+Quantitative 
+Backtester for 7 
+assets...
+En l?nea: 1 Car?cter: 1
++ python research/run_b
+acktest.py 2>&1 | 
+Out-File -Encoding 
+ASCII run_b ...
++ ~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (2026-03-16 18   
+ :3...for 7 assets.    
+..:String) [], Rem    
+oteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+2026-03-16 
+18:39:21,480 - 365advis
+ers.backtest.historical
+ - INFO - Downloading 
+historical data from 
+2024-01-01 to 
+2026-03-16 for 7 
+tickers...
+2026-03-16 
+18:39:22,841 - 365advis
+ers.backtest.historical
+ - INFO - Bulk 
+download complete. 
+Loaded 7 tickers.
+2026-03-16 
+18:39:22,842 - 365advis
+ers.backtest.main - 
+INFO - Starting 
+simulation loop...
+C:\Users\pmfig\.gemini\
+antigravity\scratch\365
+-advisers\agent-backend
+\research\backtest\quan
+titative_simulator.py:1
+66: FutureWarning: 'M' 
+is deprecated and will 
+be removed in a future 
+version, please use 
+'ME' instead.
+  rebalance_dates = df_
+dates.resample("M").las
+t().index.tolist()
+2026-03-16 
+18:39:22,861 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-01-31...
+2026-03-16 
+18:39:22,864 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-02-29...
+2026-03-16 
+18:39:22,866 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-03-31...
+2026-03-16 
+18:39:22,882 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2024-03-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:22,891 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2024-03-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:22,900 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2024-03-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:22,908 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2024-03-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:22,917 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2024-03-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:22,925 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2024-03-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:22,933 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2024-03-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:22,933 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-04-30...
+2026-03-16 
+18:39:22,941 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2024-04-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:22,949 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2024-04-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:22,957 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2024-04-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:22,964 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2024-04-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:22,972 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2024-04-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:22,980 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2024-04-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:22,988 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2024-04-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:22,988 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-05-31...
+2026-03-16 
+18:39:22,996 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2024-05-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,004 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2024-05-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,013 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2024-05-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,023 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2024-05-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,032 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2024-05-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,041 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2024-05-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,049 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2024-05-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,049 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-06-30...
+2026-03-16 
+18:39:23,060 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2024-06-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,068 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2024-06-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,076 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2024-06-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,085 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2024-06-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,094 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2024-06-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,104 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2024-06-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,112 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2024-06-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,112 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-07-31...
+2026-03-16 
+18:39:23,122 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2024-07-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,133 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2024-07-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,142 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2024-07-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,151 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2024-07-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,161 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2024-07-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,170 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2024-07-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,181 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2024-07-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,181 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-08-31...
+2026-03-16 
+18:39:23,192 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2024-08-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,204 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2024-08-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,217 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2024-08-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,228 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2024-08-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,240 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2024-08-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,252 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2024-08-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,264 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2024-08-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,264 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-09-30...
+2026-03-16 
+18:39:23,274 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2024-09-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,285 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2024-09-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,297 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2024-09-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,307 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2024-09-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,319 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2024-09-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,331 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2024-09-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,342 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2024-09-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,343 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-10-31...
+2026-03-16 
+18:39:23,355 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2024-10-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,367 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2024-10-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,379 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2024-10-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,391 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2024-10-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,403 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2024-10-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,418 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2024-10-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,430 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2024-10-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,430 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-11-30...
+2026-03-16 
+18:39:23,442 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2024-11-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,456 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2024-11-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,469 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2024-11-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,483 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2024-11-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,496 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2024-11-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,509 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2024-11-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,523 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2024-11-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,523 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2024-12-31...
+2026-03-16 
+18:39:23,537 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2024-12-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,550 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2024-12-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,563 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2024-12-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,577 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2024-12-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,591 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2024-12-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,605 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2024-12-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,618 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2024-12-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,618 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-01-31...
+2026-03-16 
+18:39:23,636 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2025-01-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,649 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2025-01-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,663 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2025-01-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,677 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2025-01-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,689 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2025-01-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,703 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2025-01-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,719 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2025-01-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,719 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-02-28...
+2026-03-16 
+18:39:23,733 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2025-02-28 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,750 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2025-02-28 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,764 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2025-02-28 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,779 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2025-02-28 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,793 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2025-02-28 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,806 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2025-02-28 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,820 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2025-02-28 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,820 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-03-31...
+2026-03-16 
+18:39:23,833 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2025-03-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,846 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2025-03-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,859 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2025-03-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,873 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2025-03-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,885 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2025-03-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,899 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2025-03-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,912 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2025-03-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,912 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-04-30...
+2026-03-16 
+18:39:23,926 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2025-04-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,940 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2025-04-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,953 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2025-04-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,967 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2025-04-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,980 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2025-04-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:23,993 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2025-04-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,005 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2025-04-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,006 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-05-31...
+2026-03-16 
+18:39:24,019 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2025-05-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,033 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2025-05-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,050 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2025-05-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,064 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2025-05-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,079 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2025-05-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,091 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2025-05-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,103 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2025-05-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,104 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-06-30...
+2026-03-16 
+18:39:24,117 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2025-06-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,133 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2025-06-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,145 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2025-06-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,159 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2025-06-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,173 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2025-06-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,186 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2025-06-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,199 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2025-06-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,199 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-07-31...
+2026-03-16 
+18:39:24,212 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2025-07-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,225 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2025-07-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,237 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2025-07-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,251 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2025-07-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,263 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2025-07-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,278 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2025-07-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,293 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2025-07-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,293 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-08-31...
+2026-03-16 
+18:39:24,307 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2025-08-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,323 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2025-08-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,336 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2025-08-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,350 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2025-08-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,362 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2025-08-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,375 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2025-08-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,390 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2025-08-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,390 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-09-30...
+2026-03-16 
+18:39:24,403 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2025-09-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,416 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2025-09-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,429 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2025-09-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,444 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2025-09-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,457 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2025-09-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,471 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2025-09-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,484 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2025-09-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,484 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-10-31...
+2026-03-16 
+18:39:24,499 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2025-10-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,513 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2025-10-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,527 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2025-10-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,540 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2025-10-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,554 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2025-10-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,567 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2025-10-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,581 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2025-10-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,581 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-11-30...
+2026-03-16 
+18:39:24,594 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2025-11-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,607 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2025-11-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,619 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2025-11-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,636 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2025-11-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,650 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2025-11-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,664 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2025-11-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,678 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2025-11-30 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,678 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2025-12-31...
+2026-03-16 
+18:39:24,690 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2025-12-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,704 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2025-12-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,718 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2025-12-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,732 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2025-12-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,745 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2025-12-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,758 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2025-12-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,771 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2025-12-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,772 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2026-01-31...
+2026-03-16 
+18:39:24,786 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2026-01-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,798 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2026-01-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,812 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2026-01-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,829 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2026-01-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,842 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2026-01-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,856 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2026-01-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,870 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2026-01-31 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,870 - 365advis
+ers.backtest.simulator 
+- INFO - Rebalancing 
+on 2026-02-28...
+2026-03-16 
+18:39:24,883 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AAPL on 
+2026-02-28 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,897 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score MSFT on 
+2026-02-28 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,910 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score NVDA on 
+2026-02-28 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,924 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score AMZN on 
+2026-02-28 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,938 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score GOOGL on 
+2026-02-28 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,951 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score META on 
+2026-02-28 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,964 - 365advis
+ers.backtest.simulator 
+- WARNING - Failed to 
+score TSLA on 
+2026-02-28 00:00:00: 
+'TrendResult' object 
+has no attribute 'adx'
+2026-03-16 
+18:39:24,965 - 365advis
+ers.backtest.simulator 
+- INFO - Simulation 
+ended. Final Equity: 
+$100,000.00
+2026-03-16 
+18:39:24,965 - 365advis
+ers.backtest.main - 
+INFO - ================
+=======================
+=====================
+2026-03-16 
+18:39:24,965 - 365advis
+ers.backtest.main - 
+INFO - BACKTEST 
+RESULTS (FAST-RUN 
+QUANTS ONLY):
+2026-03-16 
+18:39:24,965 - 365advis
+ers.backtest.main - 
+INFO - INITIAL 
+CAPITAL: $100,000.00
+2026-03-16 
+18:39:24,966 - 365advis
+ers.backtest.main - 
+INFO - FINAL CAPITAL:  
+ $100,000.00
+2026-03-16 
+18:39:24,966 - 365advis
+ers.backtest.main - 
+INFO - TOTAL RETURN:   
+ 0.00%
+2026-03-16 
+18:39:24,966 - 365advis
+ers.backtest.main - 
+INFO - ================
+=======================
+=====================

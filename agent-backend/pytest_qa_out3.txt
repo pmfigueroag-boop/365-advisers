@@ -1,0 +1,70 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.3, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\pmfig\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend
+plugins: anyio-4.12.1, langsmith-0.7.9, cov-7.0.0
+collecting ... collected 3 items
+
+tests/test_qa_system_reliability.py::TestQASystemReliabilityAndDeterminism::test_yfinance_timeout_resilience FAILED [ 33%]
+tests/test_qa_system_reliability.py::TestQASystemReliabilityAndDeterminism::test_alpha_engine_idempotency PASSED [ 66%]
+tests/test_qa_system_reliability.py::TestQASystemReliabilityAndDeterminism::test_llm_fallback_resilience PASSED [100%]
+
+================================== FAILURES ===================================
+___ TestQASystemReliabilityAndDeterminism.test_yfinance_timeout_resilience ____
+
+self = <test_qa_system_reliability.TestQASystemReliabilityAndDeterminism object at 0x000001E6F10F74D0>
+
+    def test_yfinance_timeout_resilience(self):
+        """Pipeline must survive yfinance timeout and return a graceful error event."""
+        from src.orchestration.analysis_pipeline import AnalysisPipeline
+        from unittest.mock import patch
+    
+        class DummyCache:
+            def get(self, k): return None
+            def set(self, k, v): pass
+    
+        pipeline = AnalysisPipeline(DummyCache(), DummyCache(), DummyCache())
+    
+        # Inject TimeoutError in fundamental data ingestion
+        with patch('src.engines.fundamental.graph.fetch_fundamental_data', side_effect=TimeoutError("API Down")):
+            async def run():
+                events = []
+                async for sse_event in pipeline.run_combined_stream("AAPL", force=True):
+                    events.append(sse_event)
+                return events
+    
+            events = asyncio.run(run())
+            # Pipeline should emit an error without crashing the server thread
+>           assert any(isinstance(e, str) and 'event: error' in e for e in events)
+E           assert False
+E            +  where False = any(<generator object TestQASystemReliabilityAndDeterminism.test_yfinance_timeout_resilience.<locals>.<genexpr> at 0x000001E691053E60>)
+
+tests\test_qa_system_reliability.py:545: AssertionError
+------------------------------ Captured log call ------------------------------
+WARNING  google_genai._api_client:_api_client.py:105 Both GOOGLE_API_KEY and GEMINI_API_KEY are set. Using GOOGLE_API_KEY.
+WARNING  google_genai._api_client:_api_client.py:105 Both GOOGLE_API_KEY and GEMINI_API_KEY are set. Using GOOGLE_API_KEY.
+WARNING  google_genai._api_client:_api_client.py:105 Both GOOGLE_API_KEY and GEMINI_API_KEY are set. Using GOOGLE_API_KEY.
+ERROR    365advisers.engines.fundamental:graph.py:183 Data fetch TIMEOUT for AAPL (25s)
+WARNING  google_genai._api_client:_api_client.py:105 Both GOOGLE_API_KEY and GEMINI_API_KEY are set. Using GOOGLE_API_KEY.
+WARNING  365advisers.external.fallback:fallback.py:100 No adapters registered for domain 'filing_events' ? returning null
+WARNING  365advisers.external.fallback:fallback.py:100 No adapters registered for domain 'geopolitical' ? returning null
+WARNING  365advisers.external.fallback:fallback.py:100 No adapters registered for domain 'macro' ? returning null
+WARNING  365advisers.external.fallback:fallback.py:100 No adapters registered for domain 'sentiment' ? returning null
+WARNING  365advisers.external.fallback:fallback.py:100 No adapters registered for domain 'volatility' ? returning null
+WARNING  365advisers.external.fallback:fallback.py:100 No adapters registered for domain 'institutional' ? returning null
+WARNING  google_genai._api_client:_api_client.py:105 Both GOOGLE_API_KEY and GEMINI_API_KEY are set. Using GOOGLE_API_KEY.
+WARNING  google_genai._api_client:_api_client.py:105 Both GOOGLE_API_KEY and GEMINI_API_KEY are set. Using GOOGLE_API_KEY.
+WARNING  google_genai._api_client:_api_client.py:105 Both GOOGLE_API_KEY and GEMINI_API_KEY are set. Using GOOGLE_API_KEY.
+WARNING  365advisers.opportunity_tracking.tracker:tracker.py:197 OPP-TRACKER: Registration failed for AAPL ? (sqlite3.OperationalError) table opportunity_performance has no column named case_score
+[SQL: INSERT INTO opportunity_performance (idea_uid, ticker, idea_type, confidence, signal_strength, opportunity_score, case_score, fundamental_score, technical_score, suggested_alloc, price_at_gen, generated_at, return_1d, return_5d, return_20d, return_60d, benchmark_return_20d, excess_return_20d, tracking_status, last_updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)]
+[parameters: ('9821bc396c199742', 'AAPL', 'analysis', 'medium', 0.654, 6.54, 47.2, 8.0, 6.32, None, 252.82000732421875, '2026-03-16 22:32:21.238649', None, None, None, None, None, None, 'pending', None)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+============================== warnings summary ===============================
+tests/test_qa_system_reliability.py::TestQASystemReliabilityAndDeterminism::test_yfinance_timeout_resilience
+  C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\src\engines\fundamental\graph.py:53: LangChainDeprecationWarning: The class `TavilySearchResults` was deprecated in LangChain 0.3.25 and will be removed in 1.0. An updated version of the class exists in the `langchain-tavily package and should be used instead. To use it run `pip install -U `langchain-tavily` and import as `from `langchain_tavily import TavilySearch``.
+    _tavily = TavilySearchResults(max_results=3)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_qa_system_reliability.py::TestQASystemReliabilityAndDeterminism::test_yfinance_timeout_resilience
+============= 1 failed, 2 passed, 1 warning in 246.86s (0:04:06) ==============

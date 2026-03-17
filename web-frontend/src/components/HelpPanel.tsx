@@ -1072,7 +1072,7 @@ export default function HelpPanel({ open, onClose, standalone = false }: HelpPan
 
             {/* Footer */}
             <div className="px-5 py-3 border-t border-[#21262d] flex-shrink-0 flex items-center justify-between">
-                <span className="text-[9px] text-gray-700 font-mono">365 Advisers v4.0</span>
+                <span className="text-[9px] text-gray-700 font-mono">365 Advisers v4.0.0</span>
                 <span className="text-[9px] text-gray-700">
                     Presiona <kbd className="bg-[#21262d] border border-[#30363d] px-1 rounded text-[8px]">Esc</kbd> para cerrar
                 </span>

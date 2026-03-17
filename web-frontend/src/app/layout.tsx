@@ -20,7 +20,29 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "365 Advisers",
-  description: "Professional Multi-Agent Investment Analysis System",
+  description: "Institutional-grade multi-agent investment intelligence terminal. AI-powered analysis, portfolio construction, and risk management.",
+  keywords: ["investment", "analysis", "portfolio", "AI", "institutional", "365 Advisers"],
+  icons: {
+    icon: "/favicon.png",
+    apple: "/logo-100.png",
+  },
+  manifest: "/manifest.json",
+  openGraph: {
+    title: "365 Advisers — Investment Intelligence Terminal",
+    description: "Institutional-grade multi-agent investment intelligence terminal.",
+    siteName: "365 Advisers",
+    images: [{ url: "/logo-200.jpg", width: 200, height: 200 }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "365 Advisers",
+    description: "Institutional-grade investment intelligence terminal.",
+    images: ["/logo-200.jpg"],
+  },
+  other: {
+    "theme-color": "#060913",
+  },
 };
 
 export default function RootLayout({

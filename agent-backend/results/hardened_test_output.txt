@@ -1,0 +1,107 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.13.3, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\pmfig\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend
+plugins: anyio-4.12.1, langsmith-0.7.9, cov-7.0.0
+collecting ... collected 23 items
+
+tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_positive_sharpe_increases_weight FAILED [  4%]
+tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_negative_sharpe_decreases_weight FAILED [  8%]
+tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_weight_clamped_min PASSED [ 13%]
+tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_weight_clamped_max PASSED [ 17%]
+tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_insufficient_observations_no_change FAILED [ 21%]
+tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_dynamic_confidence PASSED [ 26%]
+tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_changes_detected PASSED [ 30%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_small_change_approved PASSED [ 34%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_large_change_flagged PASSED [ 39%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_excessive_change_clamped PASSED [ 43%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_insufficient_observations_rejected PASSED [ 47%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_negative_sharpe_weight_increase_rejected PASSED [ 52%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_get_approved_includes_flagged PASSED [ 56%]
+tests/test_adaptive_calibrator.py::TestCalibrationStore::test_save_and_load PASSED [ 60%]
+tests/test_adaptive_calibrator.py::TestCalibrationStore::test_load_latest PASSED [ 65%]
+tests/test_adaptive_calibrator.py::TestCalibrationStore::test_get_history PASSED [ 69%]
+tests/test_adaptive_calibrator.py::TestCalibrationStore::test_next_version_tag PASSED [ 73%]
+tests/test_adaptive_calibrator.py::TestCalibrationStore::test_apply_to_registry PASSED [ 78%]
+tests/test_adaptive_calibrator.py::TestCalibrationStore::test_missing_version PASSED [ 82%]
+tests/test_adaptive_calibrator.py::TestRegistryEnhancements::test_update_weight PASSED [ 86%]
+tests/test_adaptive_calibrator.py::TestRegistryEnhancements::test_update_weight_nonexistent PASSED [ 91%]
+tests/test_adaptive_calibrator.py::TestRegistryEnhancements::test_update_threshold PASSED [ 95%]
+tests/test_adaptive_calibrator.py::TestRegistryEnhancements::test_snapshot_restore PASSED [100%]
+
+================================== FAILURES ===================================
+________ TestAdaptiveCalibrator.test_positive_sharpe_increases_weight _________
+
+self = <test_adaptive_calibrator.TestAdaptiveCalibrator object at 0x0000011CD98C7890>
+
+    def test_positive_sharpe_increases_weight(self):
+        """Signal with positive Sharpe should get higher weight."""
+        record = _make_performance_record(
+            signal_id="test.high_sharpe",
+            sharpe_20=1.5,
+            total_firings=100,
+        )
+        report = _make_report([record])
+        changes, configs, _ = self.calibrator.calibrate(report)
+    
+        config = configs[0]
+        assert config.weight > 1.0  # Weight increased
+        # w = 1.0 * (1 + 1.5/3) = 1.5
+>       assert config.weight == pytest.approx(1.5, abs=0.01)
+E       assert 1.3341 == 1.5 ┬▒ 0.01
+E         
+E         comparison failed
+E         Obtained: 1.3341
+E         Expected: 1.5 ┬▒ 0.01
+
+tests\test_adaptive_calibrator.py:118: AssertionError
+________ TestAdaptiveCalibrator.test_negative_sharpe_decreases_weight _________
+
+self = <test_adaptive_calibrator.TestAdaptiveCalibrator object at 0x0000011CF54CE990>
+
+    def test_negative_sharpe_decreases_weight(self):
+        """Signal with negative Sharpe should get lower weight."""
+        record = _make_performance_record(
+            signal_id="test.high_sharpe",
+            sharpe_20=-1.5,
+            total_firings=100,
+        )
+        report = _make_report([record])
+        _, configs, _ = self.calibrator.calibrate(report)
+    
+        config = configs[0]
+        assert config.weight < 1.0  # Weight decreased
+        # w = 1.0 * (1 + (-1.5)/3) = 0.5
+>       assert config.weight == pytest.approx(0.5, abs=0.01)
+E       assert 0.8259 == 0.5 ┬▒ 0.01
+E         
+E         comparison failed
+E         Obtained: 0.8259
+E         Expected: 0.5 ┬▒ 0.01
+
+tests\test_adaptive_calibrator.py:133: AssertionError
+_______ TestAdaptiveCalibrator.test_insufficient_observations_no_change _______
+
+self = <test_adaptive_calibrator.TestAdaptiveCalibrator object at 0x0000011CF555DB50>
+
+    def test_insufficient_observations_no_change(self):
+        """With too few firings, weight should stay at base."""
+        record = _make_performance_record(
+            signal_id="test.high_sharpe",
+            sharpe_20=2.0,
+            total_firings=10,  # Below min_observations=50
+        )
+        report = _make_report([record])
+        _, configs, _ = self.calibrator.calibrate(report)
+    
+>       assert configs[0].weight == 1.0  # Unchanged
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: assert 1.043 == 1.0
+E        +  where 1.043 = CalibratedSignalConfig(signal_id='test.high_sharpe', weight=1.043, threshold=15.0, strong_threshold=None, half_life=15.0, confidence_score=0.7334, enabled=True).weight
+
+tests\test_adaptive_calibrator.py:169: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_positive_sharpe_increases_weight
+FAILED tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_negative_sharpe_decreases_weight
+FAILED tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_insufficient_observations_no_change
+======================== 3 failed, 20 passed in 1.85s =========================

@@ -1,0 +1,278 @@
+{
+  "version": "v1.1",
+  "created_at": "2026-03-16T03:48:45.637967Z",
+  "lookback_days": 250,
+  "universe_name": "test",
+  "universe_size": 10,
+  "signals_calibrated": 6,
+  "changes_applied": [
+    {
+      "signal_id": "risk.macd_bearish",
+      "parameter": "weight",
+      "old_value": 1.0,
+      "new_value": 1.1314,
+      "change_pct": 0.1314,
+      "evidence": "Sharpe=+0.37 HR=61% n=98 alpha=0.66 stability=0.54",
+      "regime": null
+    },
+    {
+      "signal_id": "momentum.rsi_bullish",
+      "parameter": "weight",
+      "old_value": 1.0,
+      "new_value": 1.0953,
+      "change_pct": 0.0953,
+      "evidence": "Sharpe=+0.01 HR=67% n=101 alpha=0.67 stability=0.38",
+      "regime": null
+    },
+    {
+      "signal_id": "momentum.macd_bullish",
+      "parameter": "weight",
+      "old_value": 1.1,
+      "new_value": 1.1531,
+      "change_pct": 0.0483,
+      "evidence": "Sharpe=-0.17 HR=65% n=101 alpha=0.67 stability=0.64",
+      "regime": null
+    },
+    {
+      "signal_id": "risk.rsi_overbought",
+      "parameter": "weight",
+      "old_value": 1.2,
+      "new_value": 1.2134,
+      "change_pct": 0.0112,
+      "evidence": "Sharpe=-0.32 HR=64% n=67 alpha=0.57 stability=0.63",
+      "regime": null
+    }
+  ],
+  "changes_rejected": [],
+  "changes_flagged": [
+    {
+      "change": {
+        "signal_id": "momentum.rsi_bullish",
+        "parameter": "half_life",
+        "old_value": 10.0,
+        "new_value": 8.0,
+        "change_pct": 0.2,
+        "evidence": "Empirical=3.0d vs configured=10.0d [CLAMPED from 3.000]",
+        "regime": null
+      },
+      "action": "flagged",
+      "reason": "Large change (70%) clamped to 20%. Review recommended."
+    },
+    {
+      "change": {
+        "signal_id": "volatility.atr_expansion",
+        "parameter": "weight",
+        "old_value": 0.9,
+        "new_value": 0.72,
+        "change_pct": 0.2,
+        "evidence": "Sharpe=-1.74 HR=64% n=110 alpha=0.69 stability=0.51 [CLAMPED from 0.707]",
+        "regime": null
+      },
+      "action": "flagged",
+      "reason": "Large change (21%) clamped to 20%. Review recommended."
+    },
+    {
+      "change": {
+        "signal_id": "volatility.atr_expansion",
+        "parameter": "half_life",
+        "old_value": 14.0,
+        "new_value": 11.2,
+        "change_pct": 0.2,
+        "evidence": "Empirical=2.0d vs configured=14.0d [CLAMPED from 2.000]",
+        "regime": null
+      },
+      "action": "flagged",
+      "reason": "Large change (86%) clamped to 20%. Review recommended."
+    },
+    {
+      "change": {
+        "signal_id": "flow.accumulation_pattern",
+        "parameter": "weight",
+        "old_value": 1.0,
+        "new_value": 0.8,
+        "change_pct": 0.2,
+        "evidence": "Sharpe=-1.74 HR=64% n=110 alpha=0.69 stability=0.51 [CLAMPED from 0.785]",
+        "regime": null
+      },
+      "action": "flagged",
+      "reason": "Large change (21%) clamped to 20%. Review recommended."
+    },
+    {
+      "change": {
+        "signal_id": "flow.accumulation_pattern",
+        "parameter": "half_life",
+        "old_value": 5.0,
+        "new_value": 4.0,
+        "change_pct": 0.2,
+        "evidence": "Empirical=2.0d vs configured=5.0d [CLAMPED from 2.000]",
+        "regime": null
+      },
+      "action": "flagged",
+      "reason": "Large change (60%) clamped to 20%. Review recommended."
+    }
+  ],
+  "signal_configs": [
+    {
+      "signal_id": "risk.macd_bearish",
+      "weight": 1.1314,
+      "threshold": 0.0,
+      "strong_threshold": -0.5,
+      "half_life": null,
+      "confidence_score": 0.6381,
+      "enabled": true
+    },
+    {
+      "signal_id": "momentum.rsi_bullish",
+      "weight": 1.0953,
+      "threshold": 50.0,
+      "strong_threshold": null,
+      "half_life": 3.0,
+      "confidence_score": 0.5957,
+      "enabled": true
+    },
+    {
+      "signal_id": "momentum.macd_bullish",
+      "weight": 1.1531,
+      "threshold": 0.0,
+      "strong_threshold": 0.5,
+      "half_life": null,
+      "confidence_score": 0.6271,
+      "enabled": true
+    },
+    {
+      "signal_id": "risk.rsi_overbought",
+      "weight": 1.2134,
+      "threshold": 70.0,
+      "strong_threshold": 80.0,
+      "half_life": null,
+      "confidence_score": 0.5744,
+      "enabled": true
+    },
+    {
+      "signal_id": "volatility.atr_expansion",
+      "weight": 0.7067,
+      "threshold": 0.0,
+      "strong_threshold": 0.0,
+      "half_life": 2.0,
+      "confidence_score": 0.4951,
+      "enabled": true
+    },
+    {
+      "signal_id": "flow.accumulation_pattern",
+      "weight": 0.7852,
+      "threshold": 0.0,
+      "strong_threshold": null,
+      "half_life": 2.0,
+      "confidence_score": 0.4951,
+      "enabled": true
+    }
+  ],
+  "regime_weights": [
+    {
+      "regime": "bull",
+      "weights": {
+        "risk.macd_bearish": 1.456,
+        "momentum.rsi_bullish": 1.3056,
+        "momentum.macd_bullish": 1.3492,
+        "risk.rsi_overbought": 1.4201,
+        "volatility.atr_expansion": 0.4653,
+        "flow.accumulation_pattern": 0.517
+      },
+      "sample_size": 205,
+      "sharpe_by_signal": {
+        "risk.macd_bearish": 0.3665,
+        "momentum.rsi_bullish": 0.0129,
+        "momentum.macd_bullish": -0.1693,
+        "risk.rsi_overbought": -0.3159,
+        "volatility.atr_expansion": -1.7445,
+        "flow.accumulation_pattern": -1.7445
+      }
+    },
+    {
+      "regime": "bear",
+      "weights": {
+        "risk.macd_bearish": 0.784,
+        "momentum.rsi_bullish": 0.703,
+        "momentum.macd_bullish": 0.7265,
+        "risk.rsi_overbought": 0.7646,
+        "volatility.atr_expansion": 0.5,
+        "flow.accumulation_pattern": 0.517
+      },
+      "sample_size": 16,
+      "sharpe_by_signal": {
+        "risk.macd_bearish": 0.3665,
+        "momentum.rsi_bullish": 0.0129,
+        "momentum.macd_bullish": -0.1693,
+        "risk.rsi_overbought": -0.3159,
+        "volatility.atr_expansion": -1.7445,
+        "flow.accumulation_pattern": -1.7445
+      }
+    },
+    {
+      "regime": "range",
+      "weights": {
+        "risk.macd_bearish": 0.896,
+        "momentum.rsi_bullish": 0.8035,
+        "momentum.macd_bullish": 0.8303,
+        "risk.rsi_overbought": 0.8739,
+        "volatility.atr_expansion": 0.4653,
+        "flow.accumulation_pattern": 0.5687
+      },
+      "sample_size": 138,
+      "sharpe_by_signal": {
+        "risk.macd_bearish": 0.3665,
+        "momentum.rsi_bullish": 0.0129,
+        "momentum.macd_bullish": -0.1693,
+        "risk.rsi_overbought": -0.3159,
+        "volatility.atr_expansion": -1.7445,
+        "flow.accumulation_pattern": -1.7445
+      }
+    },
+    {
+      "regime": "high_vol",
+      "weights": {
+        "risk.macd_bearish": 0.672,
+        "momentum.rsi_bullish": 0.6026,
+        "momentum.macd_bullish": 0.6227,
+        "risk.rsi_overbought": 0.6554,
+        "volatility.atr_expansion": 0.6049,
+        "flow.accumulation_pattern": 0.517
+      },
+      "sample_size": 30,
+      "sharpe_by_signal": {
+        "risk.macd_bearish": 0.3665,
+        "momentum.rsi_bullish": 0.0129,
+        "momentum.macd_bullish": -0.1693,
+        "risk.rsi_overbought": -0.3159,
+        "volatility.atr_expansion": -1.7445,
+        "flow.accumulation_pattern": -1.7445
+      }
+    },
+    {
+      "regime": "low_vol",
+      "weights": {
+        "risk.macd_bearish": 1.344,
+        "momentum.rsi_bullish": 1.2052,
+        "momentum.macd_bullish": 1.2454,
+        "risk.rsi_overbought": 1.3108,
+        "volatility.atr_expansion": 0.3257,
+        "flow.accumulation_pattern": 0.517
+      },
+      "sample_size": 0,
+      "sharpe_by_signal": {
+        "risk.macd_bearish": 0.3665,
+        "momentum.rsi_bullish": 0.0129,
+        "momentum.macd_bullish": -0.1693,
+        "risk.rsi_overbought": -0.3159,
+        "volatility.atr_expansion": -1.7445,
+        "flow.accumulation_pattern": -1.7445
+      }
+    }
+  ],
+  "performance_snapshot": {
+    "avg_sharpe_20d": -0.5991333333333333,
+    "avg_hit_rate_20d": 0.6422666666666667,
+    "total_signals": 6.0,
+    "total_events": 587.0
+  }
+}

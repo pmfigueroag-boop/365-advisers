@@ -1,0 +1,423 @@
+﻿........................................................................ [  3%]
+........................................................................ [  7%]
+........................................................................ [ 11%]
+........................................................................ [ 15%]
+.FFFFFFFFFFFFF.......................................................... [ 19%]
+........................................................................ [ 23%]
+........................................................................ [ 27%]
+........................................................................ [ 30%]
+........................................................................ [ 34%]
+........................................................................ [ 38%]
+........................................................................ [ 42%]
+........................................................................ [ 46%]
+........................................................................ [ 50%]
+........................................................................ [ 54%]
+........................................................................ [ 58%]
+........................................................................ [ 61%]
+........................................................................ [ 65%]
+........................................................................ [ 69%]
+........................................................................ [ 73%]
+........................................................................ [ 77%]
+........................................................................ [ 81%]
+........................................................................ [ 85%]
+........................................................................ [ 88%]
+........................................................................ [ 92%]
+........................................................................ [ 96%]
+..............................................................           [100%]
+================================== FAILURES ===================================
+__________________________ TestRole.test_role_values __________________________
+
+self = <test_auth.TestRole object at 0x000001B0D5262C10>
+
+    def test_role_values(self):
+>       from src.auth.models import Role
+
+tests\test_auth.py:43: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\auth\__init__.py:12: in <module>
+    from src.auth.dependencies import get_current_user, require_role
+src\auth\dependencies.py:28: in <module>
+    from src.auth.jwt import decode_token
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    """
+    src/auth/jwt.py
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    JWT creation and verification using PyJWT (HS256).
+    No external auth services ÔÇö self-contained for pilot deployment.
+    """
+    
+    from __future__ import annotations
+    
+    import logging
+    from datetime import datetime, timedelta, timezone
+    
+>   import jwt
+E   ModuleNotFoundError: No module named 'jwt'
+
+src\auth\jwt.py:13: ModuleNotFoundError
+________________________ TestRole.test_role_hierarchy _________________________
+
+self = <test_auth.TestRole object at 0x000001B0D5262D50>
+
+    def test_role_hierarchy(self):
+>       from src.auth.models import Role, role_has_access
+
+tests\test_auth.py:49: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\auth\__init__.py:12: in <module>
+    from src.auth.dependencies import get_current_user, require_role
+src\auth\dependencies.py:28: in <module>
+    from src.auth.jwt import decode_token
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    """
+    src/auth/jwt.py
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    JWT creation and verification using PyJWT (HS256).
+    No external auth services ÔÇö self-contained for pilot deployment.
+    """
+    
+    from __future__ import annotations
+    
+    import logging
+    from datetime import datetime, timedelta, timezone
+    
+>   import jwt
+E   ModuleNotFoundError: No module named 'jwt'
+
+src\auth\jwt.py:13: ModuleNotFoundError
+_________________________ TestUser.test_user_creation _________________________
+
+self = <test_auth.TestUser object at 0x000001B0D5262E90>
+
+    def test_user_creation(self):
+>       from src.auth.models import Role, User
+
+tests\test_auth.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\auth\__init__.py:12: in <module>
+    from src.auth.dependencies import get_current_user, require_role
+src\auth\dependencies.py:28: in <module>
+    from src.auth.jwt import decode_token
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    """
+    src/auth/jwt.py
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    JWT creation and verification using PyJWT (HS256).
+    No external auth services ÔÇö self-contained for pilot deployment.
+    """
+    
+    from __future__ import annotations
+    
+    import logging
+    from datetime import datetime, timedelta, timezone
+    
+>   import jwt
+E   ModuleNotFoundError: No module named 'jwt'
+
+src\auth\jwt.py:13: ModuleNotFoundError
+__________________ TestJWT.test_create_and_decode_roundtrip ___________________
+
+self = <test_auth.TestJWT object at 0x000001B0D5262FD0>, mock_settings = None
+
+    def test_create_and_decode_roundtrip(self, mock_settings):
+>       from src.auth.jwt import create_access_token, decode_token
+
+tests\test_auth.py:72: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\auth\__init__.py:12: in <module>
+    from src.auth.dependencies import get_current_user, require_role
+src\auth\dependencies.py:28: in <module>
+    from src.auth.jwt import decode_token
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    """
+    src/auth/jwt.py
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    JWT creation and verification using PyJWT (HS256).
+    No external auth services ÔÇö self-contained for pilot deployment.
+    """
+    
+    from __future__ import annotations
+    
+    import logging
+    from datetime import datetime, timedelta, timezone
+    
+>   import jwt
+E   ModuleNotFoundError: No module named 'jwt'
+
+src\auth\jwt.py:13: ModuleNotFoundError
+____________________ TestJWT.test_token_with_custom_expiry ____________________
+
+self = <test_auth.TestJWT object at 0x000001B0D5263110>, mock_settings = None
+
+    def test_token_with_custom_expiry(self, mock_settings):
+>       from src.auth.jwt import create_access_token, decode_token
+
+tests\test_auth.py:84: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\auth\__init__.py:12: in <module>
+    from src.auth.dependencies import get_current_user, require_role
+src\auth\dependencies.py:28: in <module>
+    from src.auth.jwt import decode_token
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    """
+    src/auth/jwt.py
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    JWT creation and verification using PyJWT (HS256).
+    No external auth services ÔÇö self-contained for pilot deployment.
+    """
+    
+    from __future__ import annotations
+    
+    import logging
+    from datetime import datetime, timedelta, timezone
+    
+>   import jwt
+E   ModuleNotFoundError: No module named 'jwt'
+
+src\auth\jwt.py:13: ModuleNotFoundError
+______________________ TestJWT.test_expired_token_raises ______________________
+
+self = <test_auth.TestJWT object at 0x000001B0D53543E0>, mock_settings = None
+
+    def test_expired_token_raises(self, mock_settings):
+>       import jwt as pyjwt
+E       ModuleNotFoundError: No module named 'jwt'
+
+tests\test_auth.py:95: ModuleNotFoundError
+______________________ TestJWT.test_invalid_token_raises ______________________
+
+self = <test_auth.TestJWT object at 0x000001B0D5354510>, mock_settings = None
+
+    def test_invalid_token_raises(self, mock_settings):
+>       import jwt as pyjwt
+E       ModuleNotFoundError: No module named 'jwt'
+
+tests\test_auth.py:106: ModuleNotFoundError
+____________________ TestJWT.test_all_roles_can_be_encoded ____________________
+
+self = <test_auth.TestJWT object at 0x000001B0D533B530>, mock_settings = None
+
+    def test_all_roles_can_be_encoded(self, mock_settings):
+>       from src.auth.jwt import create_access_token, decode_token
+
+tests\test_auth.py:113: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\auth\__init__.py:12: in <module>
+    from src.auth.dependencies import get_current_user, require_role
+src\auth\dependencies.py:28: in <module>
+    from src.auth.jwt import decode_token
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    """
+    src/auth/jwt.py
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    JWT creation and verification using PyJWT (HS256).
+    No external auth services ÔÇö self-contained for pilot deployment.
+    """
+    
+    from __future__ import annotations
+    
+    import logging
+    from datetime import datetime, timedelta, timezone
+    
+>   import jwt
+E   ModuleNotFoundError: No module named 'jwt'
+
+src\auth\jwt.py:13: ModuleNotFoundError
+____________ TestAuthDependencies.test_auth_disabled_returns_admin ____________
+
+self = <test_auth.TestAuthDependencies object at 0x000001B0D5263250>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001B0D534E250>
+
+    def test_auth_disabled_returns_admin(self, monkeypatch):
+        import asyncio
+        monkeypatch.setenv("GOOGLE_API_KEY", "test")
+        monkeypatch.setenv("AUTH_ENABLED", "False")
+>       from src.auth.dependencies import get_current_user
+
+tests\test_auth.py:130: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\auth\__init__.py:12: in <module>
+    from src.auth.dependencies import get_current_user, require_role
+src\auth\dependencies.py:28: in <module>
+    from src.auth.jwt import decode_token
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    """
+    src/auth/jwt.py
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    JWT creation and verification using PyJWT (HS256).
+    No external auth services ÔÇö self-contained for pilot deployment.
+    """
+    
+    from __future__ import annotations
+    
+    import logging
+    from datetime import datetime, timedelta, timezone
+    
+>   import jwt
+E   ModuleNotFoundError: No module named 'jwt'
+
+src\auth\jwt.py:13: ModuleNotFoundError
+___________ TestAuthDependencies.test_auth_enabled_no_token_raises ____________
+
+self = <test_auth.TestAuthDependencies object at 0x000001B0D5263390>
+mock_settings = None
+
+    def test_auth_enabled_no_token_raises(self, mock_settings):
+        import asyncio
+>       from src.auth.dependencies import get_current_user
+
+tests\test_auth.py:139: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\auth\__init__.py:12: in <module>
+    from src.auth.dependencies import get_current_user, require_role
+src\auth\dependencies.py:28: in <module>
+    from src.auth.jwt import decode_token
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    """
+    src/auth/jwt.py
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    JWT creation and verification using PyJWT (HS256).
+    No external auth services ÔÇö self-contained for pilot deployment.
+    """
+    
+    from __future__ import annotations
+    
+    import logging
+    from datetime import datetime, timedelta, timezone
+    
+>   import jwt
+E   ModuleNotFoundError: No module named 'jwt'
+
+src\auth\jwt.py:13: ModuleNotFoundError
+__________ TestAuthDependencies.test_auth_enabled_valid_token_works ___________
+
+self = <test_auth.TestAuthDependencies object at 0x000001B0D5354640>
+mock_settings = None
+
+    def test_auth_enabled_valid_token_works(self, mock_settings):
+        import asyncio
+>       from src.auth.dependencies import get_current_user
+
+tests\test_auth.py:148: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\auth\__init__.py:12: in <module>
+    from src.auth.dependencies import get_current_user, require_role
+src\auth\dependencies.py:28: in <module>
+    from src.auth.jwt import decode_token
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    """
+    src/auth/jwt.py
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    JWT creation and verification using PyJWT (HS256).
+    No external auth services ÔÇö self-contained for pilot deployment.
+    """
+    
+    from __future__ import annotations
+    
+    import logging
+    from datetime import datetime, timedelta, timezone
+    
+>   import jwt
+E   ModuleNotFoundError: No module named 'jwt'
+
+src\auth\jwt.py:13: ModuleNotFoundError
+_____ TestAuthDependencies.test_require_role_passes_with_sufficient_role ______
+
+self = <test_auth.TestAuthDependencies object at 0x000001B0D5354770>
+mock_settings = None
+
+    def test_require_role_passes_with_sufficient_role(self, mock_settings):
+        import asyncio
+>       from src.auth.dependencies import require_role
+
+tests\test_auth.py:159: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\auth\__init__.py:12: in <module>
+    from src.auth.dependencies import get_current_user, require_role
+src\auth\dependencies.py:28: in <module>
+    from src.auth.jwt import decode_token
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    """
+    src/auth/jwt.py
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    JWT creation and verification using PyJWT (HS256).
+    No external auth services ÔÇö self-contained for pilot deployment.
+    """
+    
+    from __future__ import annotations
+    
+    import logging
+    from datetime import datetime, timedelta, timezone
+    
+>   import jwt
+E   ModuleNotFoundError: No module named 'jwt'
+
+src\auth\jwt.py:13: ModuleNotFoundError
+_______ TestAuthDependencies.test_require_role_blocks_insufficient_role _______
+
+self = <test_auth.TestAuthDependencies object at 0x000001B0D5374290>
+mock_settings = None
+
+    def test_require_role_blocks_insufficient_role(self, mock_settings):
+        import asyncio
+>       from src.auth.dependencies import require_role
+
+tests\test_auth.py:169: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\auth\__init__.py:12: in <module>
+    from src.auth.dependencies import get_current_user, require_role
+src\auth\dependencies.py:28: in <module>
+    from src.auth.jwt import decode_token
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    """
+    src/auth/jwt.py
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    JWT creation and verification using PyJWT (HS256).
+    No external auth services ÔÇö self-contained for pilot deployment.
+    """
+    
+    from __future__ import annotations
+    
+    import logging
+    from datetime import datetime, timedelta, timezone
+    
+>   import jwt
+E   ModuleNotFoundError: No module named 'jwt'
+
+src\auth\jwt.py:13: ModuleNotFoundError
+============================== warnings summary ===============================
+tests/test_phase4_orchestration.py::TestAnalysisPipeline::test_instantiation
+  C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\src\engines\fundamental\graph.py:53: LangChainDeprecationWarning: The class `TavilySearchResults` was deprecated in LangChain 0.3.25 and will be removed in 1.0. An updated version of the class exists in the `langchain-tavily package and should be used instead. To use it run `pip install -U `langchain-tavily` and import as `from `langchain_tavily import TavilySearch``.
+    _tavily = TavilySearchResults(max_results=3)
+
+tests/test_stat_arb.py::TestCointegration::test_non_cointegrated_pair
+  C:\Users\pmfig\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\main.py:250: DeprecationWarning: In future, it will be an error for 'np.bool' scalars to be interpreted as an index
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_auth.py::TestRole::test_role_values - ModuleNotFoundError: ...
+FAILED tests/test_auth.py::TestRole::test_role_hierarchy - ModuleNotFoundErro...
+FAILED tests/test_auth.py::TestUser::test_user_creation - ModuleNotFoundError...
+FAILED tests/test_auth.py::TestJWT::test_create_and_decode_roundtrip - Module...
+FAILED tests/test_auth.py::TestJWT::test_token_with_custom_expiry - ModuleNot...
+FAILED tests/test_auth.py::TestJWT::test_expired_token_raises - ModuleNotFoun...
+FAILED tests/test_auth.py::TestJWT::test_invalid_token_raises - ModuleNotFoun...
+FAILED tests/test_auth.py::TestJWT::test_all_roles_can_be_encoded - ModuleNot...
+FAILED tests/test_auth.py::TestAuthDependencies::test_auth_disabled_returns_admin
+FAILED tests/test_auth.py::TestAuthDependencies::test_auth_enabled_no_token_raises
+FAILED tests/test_auth.py::TestAuthDependencies::test_auth_enabled_valid_token_works
+FAILED tests/test_auth.py::TestAuthDependencies::test_require_role_passes_with_sufficient_role
+FAILED tests/test_auth.py::TestAuthDependencies::test_require_role_blocks_insufficient_role
+13 failed, 1849 passed, 2 warnings in 128.02s (0:02:08)

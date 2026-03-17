@@ -1,0 +1,14 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.13.3, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\pmfig\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend
+plugins: anyio-4.12.1, langsmith-0.7.9, cov-7.0.0
+collecting ... collected 5 items
+
+tests/test_calibration_integration.py::TestCalibrationIntegration::test_full_chain_calibrate_govern_store PASSED [ 20%]
+tests/test_calibration_integration.py::TestCalibrationIntegration::test_flagged_change_not_in_approved PASSED [ 40%]
+tests/test_calibration_integration.py::TestCalibrationIntegration::test_governor_rejects_without_evidence PASSED [ 60%]
+tests/test_calibration_integration.py::TestCalibrationIntegration::test_store_round_trip_preserves_types PASSED [ 80%]
+tests/test_calibration_integration.py::TestCalibrationIntegration::test_parameter_limits_cover_all_enum_members PASSED [100%]
+
+============================== 5 passed in 1.72s ==============================

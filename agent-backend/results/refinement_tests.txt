@@ -1,0 +1,70 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.13.3, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\pmfig\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend
+plugins: anyio-4.12.1, langsmith-0.7.9, cov-7.0.0
+collecting ... collected 33 items
+
+tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_positive_sharpe_increases_weight PASSED [  3%]
+tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_negative_sharpe_decreases_weight PASSED [  6%]
+tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_weight_clamped_min PASSED [  9%]
+tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_weight_clamped_max PASSED [ 12%]
+tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_insufficient_observations_no_change PASSED [ 15%]
+tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_dynamic_confidence PASSED [ 18%]
+tests/test_adaptive_calibrator.py::TestAdaptiveCalibrator::test_changes_detected PASSED [ 21%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_no_record_rejected PASSED [ 24%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_get_approved_excludes_flagged PASSED [ 27%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_stability_from_structured_field PASSED [ 30%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_abs_change_pct_clamps_negative PASSED [ 33%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_small_change_approved PASSED [ 36%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_negative_sharpe_weight_increase_rejected PASSED [ 39%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_low_hit_rate_weight_increase_flagged PASSED [ 42%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_insignificant_sharpe_weight_increase_flagged PASSED [ 45%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_strong_signal_reduction_flagged PASSED [ 48%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_low_value_clamp_uses_absolute_floor PASSED [ 51%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_clamped_change_pct_is_signed_correctly FAILED [ 54%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_half_life_uses_own_delta_floor PASSED [ 57%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_threshold_uses_stricter_max_change PASSED [ 60%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_low_sample_regime_flagged PASSED [ 63%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_significance_proxy_reason_text PASSED [ 66%]
+tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_insufficient_observations_rejected PASSED [ 69%]
+tests/test_adaptive_calibrator.py::TestCalibrationStore::test_save_and_load PASSED [ 72%]
+tests/test_adaptive_calibrator.py::TestCalibrationStore::test_load_latest PASSED [ 75%]
+tests/test_adaptive_calibrator.py::TestCalibrationStore::test_get_history PASSED [ 78%]
+tests/test_adaptive_calibrator.py::TestCalibrationStore::test_next_version_tag PASSED [ 81%]
+tests/test_adaptive_calibrator.py::TestCalibrationStore::test_apply_to_registry PASSED [ 84%]
+tests/test_adaptive_calibrator.py::TestCalibrationStore::test_missing_version PASSED [ 87%]
+tests/test_adaptive_calibrator.py::TestRegistryEnhancements::test_update_weight PASSED [ 90%]
+tests/test_adaptive_calibrator.py::TestRegistryEnhancements::test_update_weight_nonexistent PASSED [ 93%]
+tests/test_adaptive_calibrator.py::TestRegistryEnhancements::test_update_threshold PASSED [ 96%]
+tests/test_adaptive_calibrator.py::TestRegistryEnhancements::test_snapshot_restore PASSED [100%]
+
+================================== FAILURES ===================================
+_____ TestCalibrationGovernor.test_clamped_change_pct_is_signed_correctly _____
+
+self = <test_adaptive_calibrator.TestCalibrationGovernor object at 0x0000018A61ED5310>
+
+    def test_clamped_change_pct_is_signed_correctly(self):
+        """Clamped change_pct must reflect actual clamped delta, not max_change_pct."""
+        change = ParameterChange(
+            signal_id="test.sig",
+            parameter=ParameterType.WEIGHT,
+            old_value=1.0, new_value=0.5,
+            change_pct=0.50,  # 50% decrease, will be clamped
+        )
+        record = _make_performance_record(total_firings=100)
+        decisions = self.governor.review([change], {"test.sig": record})
+    
+        clamped = decisions[0].change
+        # clamped.new_value should be 0.8 (1.0 - 0.2), pct = 0.2
+>       assert clamped.change_pct == pytest.approx(0.20, abs=0.01)
+E       assert -0.2 == 0.2 ┬▒ 0.01
+E         
+E         comparison failed
+E         Obtained: -0.2
+E         Expected: 0.2 ┬▒ 0.01
+
+tests\test_adaptive_calibrator.py:417: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_adaptive_calibrator.py::TestCalibrationGovernor::test_clamped_change_pct_is_signed_correctly
+======================== 1 failed, 32 passed in 1.84s =========================

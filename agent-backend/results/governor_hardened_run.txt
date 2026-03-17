@@ -1,0 +1,159 @@
+﻿python : 00:11:34 | INFO  | ====================
+========================================
+En línea: 1 Carácter: 1
++ python scripts/calibrate.py 2>&1 | Out-File 
+-FilePath results/governo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (00 
+   :11:34 | INFO...===============:String) [],  
+   RemoteException
+    + FullyQualifiedErrorId : NativeCommandErro 
+   r
+ 
+00:11:34 | INFO  | ADAPTIVE SIGNAL CALIBRATION
+00:11:34 | INFO  | =============================
+===============================
+00:11:34 | INFO  | UNIVERSE: 'test' -> 10 
+tickers
+00:11:34 | INFO  | Universe: test (10 tickers)
+00:11:34 | INFO  | Rolling window: 2023-11-07 
+-> 2026-03-16 (~250 trading days)
+00:11:34 | INFO  | Fundamentals: False
+00:11:34 | INFO  | 
+>>> Step 1: Running backtest...
+00:11:34 | INFO  | BACKTEST: Starting run 
+af90460e-20bd-436a-acef-b3c7e2c1878f ÔÇö 10 
+tickers, 2023-11-07 to 2026-03-16
+00:11:34 | INFO  | BACKTEST-REPO: Created run 
+af90460e-20bd-436a-acef-b3c7e2c1878f
+00:11:34 | INFO  | BACKTEST: Evaluating 68 
+signals
+00:11:35 | INFO  | BACKTEST: Fetched 588 bars 
+for AMZN
+00:11:35 | INFO  | BACKTEST: Fetched 588 bars 
+for MSFT
+00:11:35 | INFO  | BACKTEST: Fetched 588 bars 
+for NEE
+00:11:35 | INFO  | BACKTEST: Fetched 588 bars 
+for XOM
+00:11:35 | INFO  | BACKTEST: Fetched 588 bars 
+for GOOGL
+00:11:35 | INFO  | BACKTEST: Fetched 588 bars 
+for SPY
+00:11:36 | INFO  | BACKTEST: Fetched 588 bars 
+for AAPL
+00:11:36 | INFO  | BACKTEST: Fetched 588 bars 
+for JPM
+00:11:36 | INFO  | BACKTEST: Fetched 588 bars 
+for JNJ
+00:11:36 | INFO  | BACKTEST: Fetched 588 bars 
+for PG
+00:11:36 | INFO  | BACKTEST: Fetched 588 bars 
+for CAT
+00:11:38 | INFO  | BACKTEST: AAPL ÔåÆ 57 signal 
+events from 68 signals over 328 days
+00:11:38 | INFO  | RETURN-TRACKER: Enriched 57 
+events with benchmark data
+00:11:39 | INFO  | BACKTEST: MSFT ÔåÆ 58 signal 
+events from 68 signals over 328 days
+00:11:39 | INFO  | RETURN-TRACKER: Enriched 58 
+events with benchmark data
+00:11:40 | INFO  | BACKTEST: JPM ÔåÆ 59 signal 
+events from 68 signals over 328 days
+00:11:40 | INFO  | RETURN-TRACKER: Enriched 59 
+events with benchmark data
+00:11:42 | INFO  | BACKTEST: JNJ ÔåÆ 59 signal 
+events from 68 signals over 328 days
+00:11:42 | INFO  | RETURN-TRACKER: Enriched 59 
+events with benchmark data
+00:11:43 | INFO  | BACKTEST: XOM ÔåÆ 57 signal 
+events from 68 signals over 328 days
+00:11:43 | INFO  | RETURN-TRACKER: Enriched 57 
+events with benchmark data
+00:11:44 | INFO  | BACKTEST: AMZN ÔåÆ 58 signal 
+events from 68 signals over 328 days
+00:11:44 | INFO  | RETURN-TRACKER: Enriched 58 
+events with benchmark data
+00:11:45 | INFO  | BACKTEST: PG ÔåÆ 59 signal 
+events from 68 signals over 328 days
+00:11:45 | INFO  | RETURN-TRACKER: Enriched 59 
+events with benchmark data
+00:11:47 | INFO  | BACKTEST: CAT ÔåÆ 59 signal 
+events from 68 signals over 328 days
+00:11:47 | INFO  | RETURN-TRACKER: Enriched 59 
+events with benchmark data
+00:11:48 | INFO  | BACKTEST: NEE ÔåÆ 58 signal 
+events from 68 signals over 328 days
+00:11:48 | INFO  | RETURN-TRACKER: Enriched 58 
+events with benchmark data
+00:11:49 | INFO  | BACKTEST: GOOGL ÔåÆ 57 
+signal events from 68 signals over 328 days
+00:11:49 | INFO  | RETURN-TRACKER: Enriched 57 
+events with benchmark data
+00:11:49 | INFO  | BACKTEST: Progress 10/10 
+tickers evaluated
+00:11:49 | INFO  | BACKTEST: Total signal 
+events: 581
+00:11:49 | INFO  | PERF-REPO: Saved 581 events 
+for run af90460e-20bd-436a-acef-b3c7e2c1878f
+00:11:49 | INFO  | BACKTEST: Persisted 581 
+events to performance DB
+00:11:49 | INFO  | CALIBRATION: Generated 1 
+suggestions
+00:11:49 | INFO  | BACKTEST-REPO: Saved 6 
+results for run 
+af90460e-20bd-436a-acef-b3c7e2c1878f
+00:11:49 | INFO  | BACKTEST: Run 
+af90460e-20bd-436a-acef-b3c7e2c1878f completed 
+in 14.9s ÔÇö 6 signal results, 1 calibration 
+suggestions
+00:11:49 | INFO  | Backtest complete: 6 
+signals, 14.8s
+00:11:49 | INFO  | 
+>>> Step 2: Detecting market regimes...
+00:11:50 | INFO  | BACKTEST: Fetched 588 bars 
+for SPY
+00:11:50 | INFO  | REGIME-DETECTOR: Classified 
+388 days ÔÇö {'bull': 204, 'range': 138, 
+'bear': 16, 'high_vol': 30}
+00:11:50 | INFO  | 
+>>> Step 3: Running adaptive calibration...
+00:11:50 | INFO  | CALIBRATOR: Produced 7 
+changes, 6 configs, 5 regime tables in 0.00s
+00:11:50 | INFO  | 
+>>> Step 4: Running governance review...
+00:11:50 | INFO  | GOVERNOR: Reviewed 7 changes 
+-- 0 approved, 0 rejected, 7 flagged
+00:11:50 | INFO  | 
+>>> Step 5: Building calibration version...
+Traceback (most recent call last):
+  File "C:\Users\pmfig\.gemini\antigravity\scrat
+ch\365-advisers\agent-backend\scripts\calibrate.
+py", line 350, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "C:\Users\pmfig\AppData\Local\Programs\Py
+thon\Python313\Lib\asyncio\runners.py", line 
+195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Users\pmfig\AppData\Local\Programs\Py
+thon\Python313\Lib\asyncio\runners.py", line 
+118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\pmfig\AppData\Local\Programs\Py
+thon\Python313\Lib\asyncio\base_events.py", 
+line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "C:\Users\pmfig\.gemini\antigravity\scrat
+ch\365-advisers\agent-backend\scripts\calibrate.
+py", line 304, in main
+    
+changes_flagged=[GovernanceDecision(change=c, 
+action=GovernanceAction.FLAGGED) for c in 
+flagged_changes],
+                     ^^^^^^^^^^^^^^^^^^
+NameError: name 'GovernanceDecision' is not 
+defined. Did you mean: 'GovernanceAction'?

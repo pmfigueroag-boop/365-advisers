@@ -3,7 +3,7 @@
 /**
  * TerminalView.tsx
  * ──────────────────────────────────────────────────────────────────────────
- * Investment Terminal (v2.0) — Decision First layout.
+ * Investment Terminal (v4.0) — Decision First layout.
  *
  * Layout:
  * ┌────────────────────────────────┬─────────────────────────────┐

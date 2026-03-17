@@ -1,0 +1,47 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.3, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\pmfig\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend
+plugins: anyio-4.12.1, langsmith-0.7.9, cov-7.0.0
+collecting ... collected 3 items
+
+tests/test_qa_system_reliability.py::TestQASystemReliabilityAndDeterminism::test_yfinance_timeout_resilience FAILED [ 33%]
+tests/test_qa_system_reliability.py::TestQASystemReliabilityAndDeterminism::test_alpha_engine_idempotency FAILED [ 66%]
+tests/test_qa_system_reliability.py::TestQASystemReliabilityAndDeterminism::test_llm_fallback_resilience FAILED [100%]
+
+================================== FAILURES ===================================
+___ TestQASystemReliabilityAndDeterminism.test_yfinance_timeout_resilience ____
+
+self = <test_qa_system_reliability.TestQASystemReliabilityAndDeterminism object at 0x000002976C0FB610>
+
+    def test_yfinance_timeout_resilience(self):
+        """Pipeline must survive yfinance timeout and return a graceful error event."""
+>       from src.orchestration.analysis_pipeline import AnalysisPipeline
+E       ModuleNotFoundError: No module named 'src'
+
+tests\test_qa_system_reliability.py:526: ModuleNotFoundError
+_____ TestQASystemReliabilityAndDeterminism.test_alpha_engine_idempotency _____
+
+self = <test_qa_system_reliability.TestQASystemReliabilityAndDeterminism object at 0x000002976D4FEAD0>
+
+    def test_alpha_engine_idempotency(self):
+        """Alpha Engine should yield exactly the same score given the same inputs."""
+>       from src.engines.scoring.opportunity_model import OpportunityModel
+E       ModuleNotFoundError: No module named 'src'
+
+tests\test_qa_system_reliability.py:549: ModuleNotFoundError
+_____ TestQASystemReliabilityAndDeterminism.test_llm_fallback_resilience ______
+
+self = <test_qa_system_reliability.TestQASystemReliabilityAndDeterminism object at 0x000002976C0F3230>
+
+    def test_llm_fallback_resilience(self):
+        """Alpha Pipeline must gracefully handle Google GenAI saturation."""
+>       from src.orchestration.analysis_pipeline import AnalysisPipeline
+E       ModuleNotFoundError: No module named 'src'
+
+tests\test_qa_system_reliability.py:573: ModuleNotFoundError
+=========================== short test summary info ===========================
+FAILED tests/test_qa_system_reliability.py::TestQASystemReliabilityAndDeterminism::test_yfinance_timeout_resilience
+FAILED tests/test_qa_system_reliability.py::TestQASystemReliabilityAndDeterminism::test_alpha_engine_idempotency
+FAILED tests/test_qa_system_reliability.py::TestQASystemReliabilityAndDeterminism::test_llm_fallback_resilience
+============================== 3 failed in 0.27s ==============================
