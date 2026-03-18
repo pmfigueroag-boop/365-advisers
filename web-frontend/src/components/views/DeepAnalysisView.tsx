@@ -24,15 +24,16 @@ import {
 import type { CombinedState } from "@/hooks/useCombinedStream";
 import type { SignalProfileResponse, SignalStatus } from "@/hooks/useAlphaSignals";
 import InvestmentStory from "@/components/InvestmentStory";
-import AlphaSignalsView from "@/components/AlphaSignalsView";
+import UnifiedAlphaDashboard from "@/components/analysis/UnifiedAlphaDashboard";
 import CompositeAlphaGauge from "@/components/CompositeAlphaGauge";
-import IndicatorGrid from "@/components/IndicatorGrid";
-import ResearchMemoCard from "@/components/ResearchMemoCard";
+import UnifiedTacticalDashboard from "@/components/analysis/UnifiedTacticalDashboard";
+import UnifiedFundamentalDashboard from "@/components/analysis/UnifiedFundamentalDashboard";
 import TradingViewChart from "@/components/TradingViewChart";
 import { CashFlowChart } from "@/components/Charts";
 import ScoreHistoryChart from "@/components/ScoreHistoryChart";
-import BacktestEvidenceTab from "@/components/analysis/BacktestEvidenceTab";
-import SignalEvidenceTab from "@/components/analysis/SignalEvidenceTab";
+import UnifiedBacktestDashboard from "@/components/analysis/UnifiedBacktestDashboard";
+import UnifiedEvidenceDashboard from "@/components/analysis/UnifiedEvidenceDashboard";
+import UnifiedSignalMapDashboard from "@/components/analysis/UnifiedSignalMapDashboard";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import SourceStatusStrip from "@/components/coverage/SourceStatusStrip";
 import WarningBanner from "@/components/coverage/WarningBanner";
@@ -217,7 +218,7 @@ export default function DeepAnalysisView({
                     )}
 
                     {section === "signals" && (
-                        <AlphaSignalsView
+                        <UnifiedAlphaDashboard
                             profile={alphaProfile}
                             status={alphaStatus}
                             error={alphaError}
@@ -226,14 +227,14 @@ export default function DeepAnalysisView({
                     )}
 
                     {section === "technical" && combined.technical && (
-                        <IndicatorGrid data={combined.technical} technicalMemo={combined.technicalMemo} />
+                        <UnifiedTacticalDashboard data={combined.technical} technicalMemo={combined.technicalMemo} />
                     )}
                     {section === "technical" && !combined.technical && (
                         <p className="text-gray-600 text-sm text-center py-8">Technical data not available yet.</p>
                     )}
 
                     {section === "fundamental" && (
-                        <ResearchMemoCard
+                        <UnifiedFundamentalDashboard
                             dataReady={combined.fundamentalDataReady}
                             agentMemos={combined.agentMemos}
                             committee={combined.committee}
@@ -245,110 +246,20 @@ export default function DeepAnalysisView({
                     )}
 
                     {section === "evidence" && (
-                        <div className="space-y-6">
-                            {/* Evidence Research Memo — LLM with deterministic fallback */}
-                            {alphaProfile?.composite_alpha && (() => {
-                                // Prefer LLM memo from backend
-                                if (alphaProfile.evidence_memo) {
-                                    return (
-                                        <ResearchMemoInsight memo={{
-                                            title: "Research Memo — Evidence",
-                                            signal: (alphaProfile.evidence_memo.signal as "BULLISH" | "BEARISH" | "NEUTRAL") || "NEUTRAL",
-                                            conviction: (alphaProfile.evidence_memo.conviction as "HIGH" | "MEDIUM" | "LOW") || "LOW",
-                                            narrative: alphaProfile.evidence_memo.narrative,
-                                            bullets: alphaProfile.evidence_memo.key_data || [],
-                                            risks: alphaProfile.evidence_memo.risk_factors || [],
-                                        }} />
-                                    );
-                                }
-
-                                // Deterministic fallback
-                                const ca = alphaProfile.composite_alpha;
-                                const caseScore = ca.score;
-                                const env = ca.environment;
-                                const activeCats = ca.active_categories;
-                                const subscores = ca.subscores || {};
-                                const sortedSubs = Object.entries(subscores)
-                                    .sort((a, b) => (b[1].score ?? 0) - (a[1].score ?? 0));
-                                const strongest = sortedSubs[0];
-                                const weakest = sortedSubs[sortedSubs.length - 1];
-
-                                const signal: "BULLISH" | "BEARISH" | "NEUTRAL" =
-                                    caseScore >= 65 ? "BULLISH" : caseScore <= 35 ? "BEARISH" : "NEUTRAL";
-                                const conviction: "HIGH" | "MEDIUM" | "LOW" =
-                                    caseScore >= 75 ? "HIGH" : caseScore >= 45 ? "MEDIUM" : "LOW";
-
-                                const narrative =
-                                    `CASE Composite Score: ${caseScore.toFixed(0)}/100 (Environment: ${env}). ` +
-                                    `${activeCats} categorías activas` +
-                                    (ca.convergence_bonus > 0 ? ` con bonus de convergencia +${ca.convergence_bonus.toFixed(1)}.` : ".") +
-                                    (ca.cross_category_conflicts?.length > 0
-                                        ? ` ${ca.cross_category_conflicts.length} conflictos inter-categoría detectados.`
-                                        : "");
-
-                                const bullets: string[] = [];
-                                if (strongest) {
-                                    bullets.push(`Categoría más fuerte: ${strongest[0]} (score ${strongest[1].score?.toFixed(0) ?? "N/A"}, ${strongest[1].fired}/${strongest[1].total} señales)`);
-                                }
-                                if (weakest && weakest !== strongest) {
-                                    bullets.push(`Categoría más débil: ${weakest[0]} (score ${weakest[1].score?.toFixed(0) ?? "N/A"}, ${weakest[1].fired}/${weakest[1].total} señales)`);
-                                }
-                                if (ca.convergence_bonus > 0) {
-                                    bullets.push(`Bonus de convergencia: +${ca.convergence_bonus.toFixed(1)} puntos por alineación multi-categoría`);
-                                }
-
-                                const risks: string[] = [];
-                                if (ca.cross_category_conflicts?.length > 0) {
-                                    risks.push(`Conflictos detectados: ${ca.cross_category_conflicts.join(", ")}`);
-                                }
-                                if (activeCats <= 2) {
-                                    risks.push("Pocas categorías activas — el score depende de pocos factores");
-                                }
-                                const decay = ca.decay;
-                                if (decay && (decay.freshness_level === "stale" || decay.freshness_level === "expired")) {
-                                    risks.push(`Señales con frescura "${decay.freshness_level}" — datos pueden estar desactualizados`);
-                                }
-
-                                return (
-                                    <ResearchMemoInsight memo={{
-                                        title: "Research Memo — Evidence",
-                                        signal,
-                                        conviction,
-                                        narrative,
-                                        bullets,
-                                        risks,
-                                    }} />
-                                );
-                            })()}
-                            {alphaProfile?.composite_alpha && (
-                                <div>
-                                    <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-3">
-                                        CASE Breakdown
-                                    </h3>
-                                    <CompositeAlphaGauge data={alphaProfile.composite_alpha} />
-                                </div>
-                            )}
-                            {ticker && (
-                                <div>
-                                    <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-3">
-                                        Score History
-                                    </h3>
-                                    <ScoreHistoryChart ticker={ticker} />
-                                </div>
-                            )}
-                        </div>
+                        <UnifiedEvidenceDashboard
+                            profile={alphaProfile}
+                            ticker={ticker ?? ""}
+                        />
                     )}
 
                     {section === "backtest" && ticker && (
-                        <BacktestEvidenceTab ticker={ticker} />
+                        <UnifiedBacktestDashboard ticker={ticker} />
                     )}
 
-                    {section === "signal_evidence" && alphaProfile && (
-                        <SignalEvidenceTab
-                            signals={alphaProfile.signals}
-                            categorySummary={alphaProfile.category_summary}
+                    {section === "signal_evidence" && (
+                        <UnifiedSignalMapDashboard
+                            profile={alphaProfile}
                             ticker={ticker ?? ""}
-                            llmMemo={alphaProfile.signal_map_memo}
                         />
                     )}
 

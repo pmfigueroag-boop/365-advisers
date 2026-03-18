@@ -22,6 +22,8 @@ export interface TechnicalIndicators {
         stochastic_k: number;
         stochastic_d: number;
         stochastic_zone: "OVERBOUGHT" | "NEUTRAL" | "OVERSOLD";
+        divergence?: "BULLISH_DIV" | "BEARISH_DIV" | "NONE";
+        divergence_strength?: number;
     };
     volatility: {
         bb_upper: number;
@@ -37,6 +39,7 @@ export interface TechnicalIndicators {
         obv_trend: "RISING" | "FLAT" | "FALLING";
         current_volume: number;
         volume_vs_avg_20: number;
+        volume_price_confirmation?: "CONFIRMED" | "DIVERGENT" | "NEUTRAL";
     };
     structure: {
         resistance_levels: number[];
@@ -133,7 +136,17 @@ export interface TechnicalSummary {
     weakest_module?: string;
     technical_confidence?: number;
     setup_quality?: number;
-    bias?: string;
+    actionable_zone?: string;
+    bias?: {
+        primary_bias: string;
+        bias_strength: number;
+        actionable_zone: string;
+        trend_alignment: string;
+        risk_reward_ratio: number;
+        key_levels: Record<string, number>;
+        time_horizon: string;
+        setup_quality: number;
+    };
     evidence?: Record<string, string[]>;
 }
 
@@ -158,6 +171,16 @@ export interface TechnicalAnalysisResult {
     mtf?: MTFInfo | null;
     tradingview_rating?: TradingViewRating;
     position_sizing?: PositionSizingInfo;
+    bias?: {
+        primary_bias: string;
+        bias_strength: number;
+        actionable_zone: string;
+        trend_alignment: string;
+        risk_reward_ratio: number;
+        key_levels: Record<string, number>;
+        time_horizon: string;
+        setup_quality: number;
+    };
 }
 
 // ─── State ────────────────────────────────────────────────────────────────────
