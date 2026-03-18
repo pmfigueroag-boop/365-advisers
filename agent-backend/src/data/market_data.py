@@ -26,6 +26,13 @@ from src.utils.helpers import sanitize_data
 from src.utils.exchange_resolver import resolve_exchange, resolve_screener
 from src.config import get_settings
 
+import asyncio
+from src.data.external.adapters.alpha_vantage import AlphaVantageAdapter
+from src.data.external.adapters.fmp import FMPAdapter
+from src.data.external.adapters.polygon import PolygonAdapter
+from src.data.external.adapters.twelve_data import TwelveDataAdapter
+from src.data.external.base import ProviderRequest, DataDomain
+
 logger = logging.getLogger("365advisers.market_data")
 _settings = get_settings()
 
@@ -91,6 +98,65 @@ def fetch_company_info(ticker: str) -> dict:
     except Exception as exc:
         logger.warning(f"fetch_company_info error for {ticker}: {exc}")
         return {"ticker": ticker.upper(), "name": ticker, "price": None}
+
+
+# ─── Fallback Helpers ─────────────────────────────────────────────────────────
+
+def _fallback_fundamental(symbol: str) -> dict | None:
+    """Fallback to EDPL: Alpha Vantage -> FMP."""
+    adapters = [
+        ("alpha_vantage", AlphaVantageAdapter, DataDomain.MARKET_DATA, {"function": "OVERVIEW"}),
+        ("fmp", FMPAdapter, DataDomain.FUNDAMENTAL, {"endpoint": "profile"})
+    ]
+    for name, adapter_cls, domain, params in adapters:
+        try:
+            adapter = adapter_cls()
+            req = ProviderRequest(ticker=symbol, domain=domain, params=params)
+            resp = asyncio.run(adapter.fetch(req))
+            if resp.ok and resp.data:
+                prof = resp.data
+                return sanitize_data({
+                    "ticker": symbol,
+                    "name": getattr(prof, "name", symbol) or symbol,
+                    "info": {"longBusinessSummary": getattr(prof, "description", ""), "marketCap": getattr(prof, "market_cap", None)},
+                    "ratios": {
+                        "valuation": {"market_cap": getattr(prof, "market_cap", None)},
+                        "profitability": {}, "leverage": {}, "quality": {}
+                    },
+                    "cashflow_series": [],
+                    "description": getattr(prof, "description", "") or "",
+                    "sector": getattr(prof, "sector", "") or "",
+                    "industry": getattr(prof, "industry", "") or "",
+                    "_fallback": name,
+                })
+        except Exception as e:
+            logger.debug(f"{name} fundamental fallback failed for {symbol}: {e}")
+    return None
+
+def _fallback_technical_ohlcv(symbol: str) -> tuple[dict, pd.DataFrame]:
+    """Fallback to EDPL: Polygon -> Alpha Vantage -> Twelve Data."""
+    adapters = [
+        ("polygon", PolygonAdapter, DataDomain.MARKET_DATA, {"resolution": "day", "days_back": 180}),
+        ("alpha_vantage", AlphaVantageAdapter, DataDomain.MARKET_DATA, {"function": "TIME_SERIES_DAILY", "outputsize": "compact"}),
+        ("twelve_data", TwelveDataAdapter, DataDomain.MARKET_DATA, {"interval": "1day", "outputsize": 180})
+    ]
+    for name, adapter_cls, domain, params in adapters:
+        try:
+            adapter = adapter_cls()
+            req = ProviderRequest(ticker=symbol, domain=domain, params=params)
+            resp = asyncio.run(adapter.fetch(req))
+            if resp.ok and resp.data and hasattr(resp.data, 'intraday_bars'):
+                bars = resp.data.intraday_bars
+                if bars:
+                    df = pd.DataFrame([
+                        {"Open": b.open, "High": b.high, "Low": b.low, "Close": b.close, "Volume": b.volume}
+                        for b in bars
+                    ], index=[b.timestamp for b in bars])
+                    df = df.sort_index()
+                    return {"_fallback": name}, df
+        except Exception as e:
+            logger.debug(f"{name} technical fallback failed for {symbol}: {e}")
+    return {}, pd.DataFrame()
 
 
 # ─── Fundamental Data ─────────────────────────────────────────────────────────
@@ -268,6 +334,8 @@ def fetch_fundamental_data(ticker: str) -> dict:
 
         if t.is_alive():
             logger.error(f"fetch_fundamental_data for {symbol} timed out after {_settings.YFINANCE_TIMEOUT}s")
+            fb = _fallback_fundamental(symbol)
+            if fb: return fb
             return sanitize_data({
                 "ticker": symbol,
                 "name": symbol,
@@ -278,12 +346,17 @@ def fetch_fundamental_data(ticker: str) -> dict:
             })
             
         if 'error' in result_container:
+            logger.error(f"fetch_fundamental_data error for {symbol}: {result_container['error']}")
+            fb = _fallback_fundamental(symbol)
+            if fb: return fb
             raise result_container['error']
             
         return result_container.get('data')
 
     except Exception as exc:
         logger.error(f"fetch_fundamental_data for {symbol}: {exc}")
+        fb = _fallback_fundamental(symbol)
+        if fb: return fb
         return sanitize_data({
             "ticker": symbol,
             "name": symbol,
@@ -343,11 +416,15 @@ def fetch_technical_data(ticker: str) -> dict:
 
         if t.is_alive():
             logger.error(f"fetch_technical_data yfinance for {symbol} timed out.")
-            # We'll continue with empty yfinance data, maybe TradingView works
+            info, history = _fallback_technical_ohlcv(symbol)
         elif 'error' in result_container:
             logger.warning(f"yfinance technical error: {result_container['error']}")
+            info, history = _fallback_technical_ohlcv(symbol)
         else:
             info, history = result_container.get('data', ({}, pd.DataFrame()))
+            if history.empty:
+                logger.warning(f"yfinance returned empty history for {symbol}, trying fallback.")
+                info, history = _fallback_technical_ohlcv(symbol)
             
         if not history.empty:
             for idx, row in history.iterrows():
@@ -378,7 +455,16 @@ def fetch_technical_data(ticker: str) -> dict:
             exchange=exchange,
             interval=Interval.INTERVAL_1_DAY,
         )
-        analysis = handler.get_analysis()
+        import time
+        analysis = None
+        for attempt in range(3):
+            try:
+                analysis = handler.get_analysis()
+                break
+            except Exception as e:
+                if attempt == 2:
+                    raise e
+                time.sleep(2 * (attempt + 1))
         inds = analysis.indicators
 
         raw_indicators = {
