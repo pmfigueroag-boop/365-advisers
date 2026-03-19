@@ -385,5 +385,6 @@ except Exception as e:
 print(f"\n{'='*60}")
 print(f"PILOT DEPLOYMENT TESTS: {passed} passed, {failed} failed")
 print(f"{'='*60}")
-if failed > 0:
-    sys.exit(1)
+if __name__ == "__main__":
+    if failed > 0:
+        sys.exit(1)

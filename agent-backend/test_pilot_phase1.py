@@ -241,4 +241,5 @@ print("=" * 60)
 print(f"PILOT PHASE 1 TESTS: {passed} passed, {failed} failed")
 print("=" * 60)
 
-sys.exit(0 if failed == 0 else 1)
+if __name__ == "__main__":
+    sys.exit(0 if failed == 0 else 1)

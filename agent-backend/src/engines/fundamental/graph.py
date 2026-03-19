@@ -62,6 +62,7 @@ class AgentMemo(TypedDict):
     conviction: float         # 0.0–1.0
     memo: str
     key_metrics_used: list[str]
+    metric_insights: list[dict]
     catalysts: list[str]
     risks: list[str]
 
@@ -115,6 +116,13 @@ Respond ONLY with valid JSON (no markdown, no prose outside JSON):
   "conviction": <float 0.0-1.0>,
   "memo": "<memo de 2-3 oraciones en español>",
   "key_metrics_used": ["<metrica1>", "<metrica2>"],
+  "metric_insights": [
+    {{
+      "metric": "<nombre de la métrica clave>",
+      "definition": "<explicación breve y didáctica de qué mide la métrica en la realidad>",
+      "interpretation": "<tu interpretación de este valor numérico para esta empresa>"
+    }}
+  ],
   "catalysts": ["<catalizador1>"],
   "risks": ["<riesgo1>"]
 }}"""
@@ -128,6 +136,7 @@ def _safe_agent_call(ticker: str, agent_name: str, framework: str, focus: str, d
         "conviction": 0.5,
         "memo": f"{agent_name} analysis unavailable.",
         "key_metrics_used": [],
+        "metric_insights": [],
         "catalysts": [],
         "risks": [],
         "is_fallback": True,
@@ -147,6 +156,7 @@ def _safe_agent_call(ticker: str, agent_name: str, framework: str, focus: str, d
             "conviction":       min(1.0, max(0.0, float(parsed.get("conviction", 0.5)))),
             "memo":             str(parsed.get("memo", "")),
             "key_metrics_used": list(parsed.get("key_metrics_used", [])),
+            "metric_insights":  list(parsed.get("metric_insights", [])),
             "catalysts":        list(parsed.get("catalysts", [])),
             "risks":            list(parsed.get("risks", [])),
             "is_fallback":      False,

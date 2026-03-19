@@ -1,0 +1,172 @@
+﻿python : Both 
+GOOGLE_API_KEY and 
+GEMINI_API_KEY are 
+set. Using 
+GOOGLE_API_KEY.
+En línea: 1 Carácter: 1
++ python run_aapl.py > 
+run_aapl_final.log 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (Both GOOGLE_A   
+ PI...GOOGLE_API_KE    
+Y.:String) [], Rem    
+oteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+Both GOOGLE_API_KEY 
+and GEMINI_API_KEY are 
+set. Using 
+GOOGLE_API_KEY.
+C:\Users\pmfig\.gemini\
+antigravity\scratch\365
+-advisers\agent-backend
+\src\engines\fundamenta
+l\graph.py:53: LangChai
+nDeprecationWarning: 
+The class 
+`TavilySearchResults` 
+was deprecated in 
+LangChain 0.3.25 and 
+will be removed in 
+1.0. An updated 
+version of the class 
+exists in the 
+`langchain-tavily 
+package and should be 
+used instead. To use 
+it run `pip install -U 
+`langchain-tavily` and 
+import as `from 
+`langchain_tavily 
+import TavilySearch``.
+  _tavily = TavilySearc
+hResults(max_results=3)
+Both GOOGLE_API_KEY 
+and GEMINI_API_KEY are 
+set. Using 
+GOOGLE_API_KEY.
+TradingView fetch 
+error for AAPL: Can't 
+access TradingView's 
+API. HTTP status code: 
+429. Check for invalid 
+symbol, exchange, or 
+indicators.
+MTF: Error fetching 1h 
+for AAPL: Can't access 
+TradingView's API. 
+HTTP status code: 429. 
+Check for invalid 
+symbol, exchange, or 
+indicators.
+MTF: Error fetching 4h 
+for AAPL: Can't access 
+TradingView's API. 
+HTTP status code: 429. 
+Check for invalid 
+symbol, exchange, or 
+indicators.
+MTF: Error fetching 1d 
+for AAPL: Can't access 
+TradingView's API. 
+HTTP status code: 429. 
+Check for invalid 
+symbol, exchange, or 
+indicators.
+MTF: Error fetching 1w 
+for AAPL: Can't access 
+TradingView's API. 
+HTTP status code: 429. 
+Check for invalid 
+symbol, exchange, or 
+indicators.
+Both GOOGLE_API_KEY 
+and GEMINI_API_KEY are 
+set. Using 
+GOOGLE_API_KEY.
+No adapters registered 
+for domain 
+'filing_events' ù 
+returning null
+No adapters registered 
+for domain 
+'geopolitical' ù 
+returning null
+No adapters registered 
+for domain 'macro' ù 
+returning null
+No adapters registered 
+for domain 'sentiment' 
+ù returning null
+No adapters registered 
+for domain 
+'volatility' ù 
+returning null
+No adapters registered 
+for domain 
+'institutional' ù 
+returning null
+Both GOOGLE_API_KEY 
+and GEMINI_API_KEY are 
+set. Using 
+GOOGLE_API_KEY.
+Both GOOGLE_API_KEY 
+and GEMINI_API_KEY are 
+set. Using 
+GOOGLE_API_KEY.
+Both GOOGLE_API_KEY 
+and GEMINI_API_KEY are 
+set. Using 
+GOOGLE_API_KEY.
+OPP-TRACKER: 
+Registration failed 
+for AAPL ù (sqlite3.Ope
+rationalError) table op
+portunity_performance 
+has no column named 
+case_score
+[SQL: INSERT INTO oppor
+tunity_performance 
+(idea_uid, ticker, 
+idea_type, confidence, 
+signal_strength, 
+opportunity_score, 
+case_score, 
+fundamental_score, 
+technical_score, 
+suggested_alloc, 
+price_at_gen, 
+generated_at, 
+return_1d, return_5d, 
+return_20d, 
+return_60d, 
+benchmark_return_20d, 
+excess_return_20d, 
+tracking_status, 
+last_updated) VALUES 
+(?, ?, ?, ?, ?, ?, ?, 
+?, ?, ?, ?, ?, ?, ?, 
+?, ?, ?, ?, ?, ?)]
+[parameters: 
+('255d44e6a724dfc9', 
+'AAPL', 'analysis', 
+'medium', 0.638, 6.38, 
+43.7, 5.5, 5.65, None, 
+254.22999572753906, 
+'2026-03-18 
+08:19:15.324343', 
+None, None, None, 
+None, None, None, 
+'pending', None)]
+(Background on this 
+error at: https://sqlal
+che.me/e/20/e3q8)
+Starting stream...
+[FUND-DB-CACHE] Stored AAPL (TTL 86400s, expires 2026-03-19T04:17:37.713959)
+[TECH-DB-CACHE] Stored AAPL (TTL 900s)
+Done.

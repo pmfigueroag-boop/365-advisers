@@ -60,7 +60,16 @@ def fetch_market_metrics(ticker: str, exchange: str = "NASDAQ") -> MarketMetrics
             exchange=resolved_exchange,
             interval=Interval.INTERVAL_1_DAY,
         )
-        analysis = handler.get_analysis()
+        import time
+        analysis = None
+        for attempt in range(3):
+            try:
+                analysis = handler.get_analysis()
+                break
+            except Exception as e:
+                if attempt == 2:
+                    raise e
+                time.sleep(2 * (attempt + 1))
         inds = analysis.indicators
 
         raw_indicators = RawIndicators(
@@ -139,7 +148,16 @@ def fetch_multi_timeframe(
                 exchange=resolved_exchange,
                 interval=tf_interval,
             )
-            analysis = handler.get_analysis()
+            import time
+            analysis = None
+            for attempt in range(3):
+                try:
+                    analysis = handler.get_analysis()
+                    break
+                except Exception as e:
+                    if attempt == 2:
+                        raise e
+                    time.sleep(2 * (attempt + 1))
             inds = analysis.indicators
 
             result[tf_key] = {

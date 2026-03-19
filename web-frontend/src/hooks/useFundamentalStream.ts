@@ -25,6 +25,7 @@ export interface AgentMemo {
     conviction: number;
     memo: string;
     key_metrics_used: string[];
+    metric_insights?: { metric: string; definition: string; interpretation: string }[];
     catalysts: string[];
     risks: string[];
 }

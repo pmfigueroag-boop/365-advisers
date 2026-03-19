@@ -1,0 +1,520 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.13.3, pytest-9.0.2, pluggy-1.6.0
+rootdir: C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend
+plugins: anyio-4.12.1, langsmith-0.7.11
+collected 2440 items
+
+test_assistant.py E...................                                   [  0%]
+test_debug_capture.py E                                                  [  0%]
+test_endpoint_final.py .                                                 [  0%]
+test_experiment_tracking.py E................                            [  1%]
+test_full_fetch.py E                                                     [  1%]
+test_graph.py E                                                          [  1%]
+test_imports.py E                                                        [  1%]
+test_knowledge_graph.py E...................                             [  2%]
+test_marketplace.py E....................                                [  3%]
+test_opp_score.py F                                                      [  3%]
+test_pilot.py E                                                          [  3%]
+test_portfolio_lab.py E.............                                     [  4%]
+test_sdf.py E...........                                                 [  4%]
+test_tv.py E                                                             [  4%]
+test_tv_final.py .                                                       [  4%]
+test_yf_final.py F                                                       [  4%]
+tests\engines\composite_alpha\test_composite_alpha.py .................. [  5%]
+........                                                                 [  5%]
+tests\engines\portfolio\test_portfolio_builder.py .....                  [  5%]
+tests\test_adaptive_calibrator.py ...................................... [  7%]
+...                                                                      [  7%]
+tests\test_agent_registry.py ..............                              [  8%]
+tests\test_alert_manager.py .............                                [  8%]
+tests\test_allocation_learning.py ....................                   [  9%]
+tests\test_alpha_decay.py ..........                                     [  9%]
+tests\test_alpha_discrimination.py ..................................    [ 11%]
+tests\test_alpha_intelligence.py ....................................    [ 12%]
+tests\test_alpha_sub_engines.py ...................................      [ 14%]
+tests\test_alt_data.py ...........                                       [ 14%]
+tests\test_analysis_core.py ............................................ [ 16%]
+..                                                                       [ 16%]
+tests\test_analyst_agent.py .............                                [ 17%]
+tests\test_apm_engine.py .............                                   [ 17%]
+tests\test_attribution.py ........                                       [ 17%]
+tests\test_auth.py .............                                         [ 18%]
+tests\test_autonomous_pm.py .........................................    [ 20%]
+tests\test_backtest.py ....................                              [ 21%]
+tests\test_benchmark_factor.py ...................                       [ 21%]
+tests\test_block_75_85.py ......................                         [ 22%]
+tests\test_block_85_95.py ......................                         [ 23%]
+tests\test_block_95_100.py .................                             [ 24%]
+tests\test_brinson_attribution.py ...........                            [ 24%]
+tests\test_broker_integration.py ...............................         [ 26%]
+tests\test_calibration_integration.py .....                              [ 26%]
+tests\test_capital_allocation.py ...........                             [ 26%]
+tests\test_compliance.py ..............                                  [ 27%]
+tests\test_compliance_rules_engine.py ...................                [ 28%]
+tests\test_concept_drift.py ........................                     [ 29%]
+tests\test_cost_model.py .....................                           [ 29%]
+tests\test_cross_sectional.py ..........                                 [ 30%]
+tests\test_dl_signals.py .........                                       [ 30%]
+tests\test_edpl.py ....................................                  [ 32%]
+tests\test_event_backtester.py .............                             [ 32%]
+tests\test_event_intelligence.py .........................               [ 33%]
+tests\test_exchange_resolver.py ......................................   [ 35%]
+tests\test_factor_risk.py ............                                   [ 35%]
+tests\test_factor_risk_decomposition.py .................                [ 36%]
+tests\test_final_institutional.py .......................                [ 37%]
+tests\test_fundamental_engine.py ....................................... [ 38%]
+...................                                                      [ 39%]
+tests\test_fundamental_provider.py .............                         [ 40%]
+tests\test_health.py ........                                            [ 40%]
+tests\test_idea_backtest.py ............................................ [ 42%]
+....................                                                     [ 43%]
+tests\test_idea_generation.py .......................................... [ 44%]
+...........................................                              [ 46%]
+tests\test_institutional.py ........................                     [ 47%]
+tests\test_integration_layer.py .....................................    [ 49%]
+tests\test_intraday_risk_monitor.py .......................              [ 50%]
+tests\test_investment_brain.py ......................................... [ 51%]
+                                                                         [ 51%]
+tests\test_live_pipeline.py ..................                           [ 52%]
+tests\test_long_short.py ..................                              [ 53%]
+tests\test_market_feed.py .................................              [ 54%]
+tests\test_meta_learning.py ......................                       [ 55%]
+tests\test_ml_signals.py .......................                         [ 56%]
+tests\test_module_registry.py ...........                                [ 56%]
+tests\test_monte_carlo_risk.py ..............                            [ 57%]
+tests\test_mtf_scorer.py ................                                [ 58%]
+tests\test_multi_asset.py ...........                                    [ 58%]
+tests\test_multi_period_brinson.py .......                               [ 58%]
+tests\test_nlp_signals.py ...............                                [ 59%]
+tests\test_observability.py ...........                                  [ 60%]
+tests\test_oms.py ..............                                         [ 60%]
+tests\test_online_learning.py ...........................                [ 61%]
+tests\test_option_a.py ...........................                       [ 62%]
+tests\test_options_pricing.py ...............                            [ 63%]
+tests\test_performance_report.py ..............                          [ 63%]
+tests\test_perturbation.py ...........                                   [ 64%]
+tests\test_phase1_contracts_features.py ................                 [ 65%]
+tests\test_phase2_data_layer.py .............                            [ 65%]
+tests\test_phase3_engine_encapsulation.py ...........                    [ 66%]
+tests\test_phase4_orchestration.py .......                               [ 66%]
+tests\test_phase5_portfolio_engine.py .................                  [ 67%]
+tests\test_portfolio_optimisation.py ......................              [ 67%]
+tests\test_predictability_backtest.py .................................. [ 69%]
+.                                                                        [ 69%]
+tests\test_prompt_cache.py .........                                     [ 69%]
+tests\test_qa_system_reliability.py .................................... [ 71%]
+........F                                                                [ 71%]
+tests\test_quant_pipeline.py .......                                     [ 71%]
+tests\test_qvf.py ..................                                     [ 72%]
+tests\test_regime_position_sizing.py ......................              [ 73%]
+tests\test_regime_weights.py ..................                          [ 74%]
+tests\test_risk.py ..............                                        [ 74%]
+tests\test_rl_optimisation.py .........                                  [ 75%]
+tests\test_robustness_wiring.py ...........                              [ 75%]
+tests\test_scenario_stress.py ..........                                 [ 76%]
+tests\test_score_push.py ........................                        [ 77%]
+tests\test_screener.py .........................................         [ 78%]
+tests\test_sector_relative.py ..........                                 [ 79%]
+tests\test_signal_attribution.py .............                           [ 79%]
+tests\test_signal_discovery.py .....................                     [ 80%]
+tests\test_signal_ensemble.py ....................                       [ 81%]
+tests\test_signal_portfolio_bridge.py ................                   [ 82%]
+tests\test_signal_selection.py .....................                     [ 82%]
+tests\test_stat_arb.py ................                                  [ 83%]
+tests\test_strategy_profiles.py ........................................ [ 85%]
+..............                                                           [ 85%]
+tests\test_stress_test.py .........                                      [ 86%]
+tests\test_structure_v2.py ........................                      [ 87%]
+tests\test_super_alpha.py .........................................      [ 88%]
+tests\test_tca_engine.py ..............                                  [ 89%]
+tests\test_technical_engine.py ......................................... [ 91%]
+................................                                         [ 92%]
+tests\test_top_bottom.py .............                                   [ 92%]
+tests\test_universe_discovery.py ....................................... [ 94%]
+......................                                                   [ 95%]
+tests\test_v3_institutional.py ......................................... [ 97%]
+.....                                                                    [ 97%]
+tests\test_validation_dashboard.py ...............                       [ 97%]
+tests\test_valuation.py ..........................                       [ 98%]
+tests\test_walk_forward.py ..........                                    [ 99%]
+tests\test_websocket_feed.py ................                            [100%]
+
+=================================== ERRORS ====================================
+___________________________ ERROR at setup of test ____________________________
+file C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\test_assistant.py, line 13
+  def test(name, fn):
+E       fixture 'name' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\test_assistant.py:13
+________________________ ERROR at setup of test_graph _________________________
+file C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\test_debug_capture.py, line 5
+  async def test_graph(symbol):
+      initial_state = {
+          "ticker": symbol,
+          "financial_data": {},
+          "macro_data": {},
+          "chart_data": {"prices": [], "cashflow": []},
+          "agent_responses": [],
+          "final_verdict": "",
+          "dalio_response": {}
+      }
+      await app_graph.ainvoke(initial_state)
+E       fixture 'symbol' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\test_debug_capture.py:5
+___________________________ ERROR at setup of test ____________________________
+file C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\test_experiment_tracking.py, line 13
+  def test(name, fn):
+E       fixture 'name' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\test_experiment_tracking.py:13
+______________________ ERROR at setup of test_full_fetch ______________________
+file C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\test_full_fetch.py, line 4
+  def test_full_fetch(symbol):
+E       fixture 'symbol' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\test_full_fetch.py:4
+________________________ ERROR at setup of test_graph _________________________
+file C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\test_graph.py, line 5
+  async def test_graph(symbol):
+      print(f"--- Testing LangGraph for {symbol} ---")
+      initial_state = {
+          "ticker": symbol,
+          "financial_data": {},
+          "macro_data": {},
+          "chart_data": {"prices": [], "cashflow": []},
+          "agent_responses": [],
+          "final_verdict": "",
+          "dalio_response": {}
+      }
+      try:
+          result = await app_graph.ainvoke(initial_state)
+          print("SUCCESS: Graph execution completed")
+          print(f"Final Verdict: {result.get('final_verdict')[:100]}...")
+
+          # Inspection
+          print("\n--- STATE INSPECTION ---")
+          fd = result.get('financial_data', {})
+          print(f"Has tech_indicators: {'tech_indicators' in fd}")
+          if 'tech_indicators' in fd:
+              print(f"Sample Tech (RSI): {fd['tech_indicators'].get('rsi')}")
+              print(f"Sample Tech (Price): {fd['tech_indicators'].get('current_price')}")
+
+          print(f"Has fundamental_engine: {'fundamental_engine' in fd}")
+          if 'fundamental_engine' in fd:
+              fe = fd['fundamental_engine']
+              print(f"Profitability Keys: {list(fe.get('profitability', {}).keys())}")
+
+          ars = result.get('agent_responses', [])
+          print(f"Number of Agent Responses: {len(ars)}")
+          for agent in ars:
+              print(f"  - {agent.get('agent_name')}: {agent.get('signal')} (Conf: {agent.get('confidence')})")
+
+      except Exception as e:
+          print(f"FAILED: Graph execution failed: {e}")
+          import traceback
+          traceback.print_exc()
+E       fixture 'symbol' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\test_graph.py:5
+________________________ ERROR at setup of test_import ________________________
+file C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\test_imports.py, line 5
+  def test_import(module_path, names):
+E       fixture 'module_path' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\test_imports.py:5
+___________________________ ERROR at setup of test ____________________________
+file C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\test_knowledge_graph.py, line 13
+  def test(name, fn):
+E       fixture 'name' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\test_knowledge_graph.py:13
+___________________________ ERROR at setup of test ____________________________
+file C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\test_marketplace.py, line 13
+  def test(name, fn):
+E       fixture 'name' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\test_marketplace.py:13
+___________________________ ERROR at setup of test ____________________________
+file C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\test_pilot.py, line 23
+  def test(name: str, condition: bool):
+E       fixture 'name' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\test_pilot.py:23
+___________________________ ERROR at setup of test ____________________________
+file C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\test_portfolio_lab.py, line 14
+  def test(name, fn):
+E       fixture 'name' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\test_portfolio_lab.py:14
+___________________________ ERROR at setup of test ____________________________
+file C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\test_sdf.py, line 12
+  def test(name, fn):
+E       fixture 'name' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\test_sdf.py:12
+__________________________ ERROR at setup of test_tv __________________________
+file C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\test_tv.py, line 4
+  def test_tv(symbol, exchange):
+E       fixture 'symbol' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\test_tv.py:4
+================================== FAILURES ===================================
+_________________________________ test_stream _________________________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+___________________________________ test_yf ___________________________________
+
+    def test_yf():
+        ticker = yf.Ticker("MSFT")
+>       print("INFO KEYS:", sorted(list(ticker.info.keys())))
+                                        ^^^^^^^^^^^
+
+test_yf_final.py:6: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+venv\Lib\site-packages\yfinance\ticker.py:159: in info
+    return self.get_info()
+           ^^^^^^^^^^^^^^^
+venv\Lib\site-packages\yfinance\base.py:282: in get_info
+    data = self._quote.info
+           ^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\yfinance\scrapers\quote.py:503: in info
+    self._fetch_info()
+venv\Lib\site-packages\yfinance\scrapers\quote.py:612: in _fetch_info
+    result = self._fetch(modules=modules)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\yfinance\scrapers\quote.py:588: in _fetch
+    result = self._data.get_raw_json(_QUOTE_SUMMARY_URL_ + f"/{self._symbol}", params=params_dict)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\yfinance\data.py:462: in get_raw_json
+    response = self.get(url, params=params, timeout=timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\yfinance\utils.py:95: in wrapper
+    result = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\yfinance\data.py:375: in get
+    response = self._make_request(url, request_method = self._session.get, params=params, timeout=timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\yfinance\utils.py:95: in wrapper
+    result = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\yfinance\data.py:444: in _make_request
+    crumb, strategy = self._get_cookie_and_crumb(timeout)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\yfinance\utils.py:95: in wrapper
+    result = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\yfinance\data.py:365: in _get_cookie_and_crumb
+    crumb = self._get_cookie_and_crumb_basic(timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\yfinance\utils.py:95: in wrapper
+    result = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\yfinance\data.py:246: in _get_cookie_and_crumb_basic
+    return self._get_crumb_basic(timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\yfinance\utils.py:95: in wrapper
+    result = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <yfinance.data.YfData object at 0x0000021A0A61D010>, timeout = 30
+
+    @utils.log_indent_decorator
+    def _get_crumb_basic(self, timeout=30):
+        if self._crumb is not None:
+            utils.get_yf_logger().debug('reusing crumb')
+            return self._crumb
+    
+        if not self._get_cookie_basic():
+            return None
+        # - 'allow_redirects' copied from @psychoz971 solution - does it help USA?
+        get_args = {
+            'url': "https://query1.finance.yahoo.com/v1/test/getcrumb",
+            'timeout': timeout,
+            'allow_redirects': True
+        }
+        if self._session_is_caching:
+            get_args['expire_after'] = self._expire_after
+            crumb_response = self._session.get(**get_args)
+        else:
+            crumb_response = self._session.get(**get_args)
+        self._crumb = crumb_response.text
+        if crumb_response.status_code == 429 or "Too Many Requests" in self._crumb:
+            utils.get_yf_logger().debug(f"Didn't receive crumb {self._crumb}")
+>           raise YFRateLimitError()
+E           yfinance.exceptions.YFRateLimitError: Too Many Requests. Rate limited. Try after a while.
+
+venv\Lib\site-packages\yfinance\data.py:233: YFRateLimitError
+_____ TestQASystemReliabilityAndDeterminism.test_llm_fallback_resilience ______
+
+self = <test_qa_system_reliability.TestQASystemReliabilityAndDeterminism object at 0x0000021A0E99C3E0>
+
+    def test_llm_fallback_resilience(self):
+        """Alpha Pipeline must gracefully handle Google GenAI saturation."""
+        from src.orchestration.analysis_pipeline import AnalysisPipeline
+        from unittest.mock import patch
+    
+        class DummyCache:
+            def get(self, k): return None
+            def set(self, k, v): pass
+    
+        pipeline = AnalysisPipeline(DummyCache(), DummyCache(), DummyCache())
+    
+        # Mock Google GenAI to simulate quota exceeded or saturation
+>       with patch('google.genai.Client', side_effect=Exception("Resource Exhausted")):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_qa_system_reliability.py:587: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\pmfig\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py:1481: in __enter__
+    self.target = self.getter()
+                  ^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'google.genai'
+
+    def resolve_name(name):
+        """
+        Resolve a name to an object.
+    
+        It is expected that `name` will be a string in one of the following
+        formats, where W is shorthand for a valid Python identifier and dot stands
+        for a literal period in these pseudo-regexes:
+    
+        W(.W)*
+        W(.W)*:(W(.W)*)?
+    
+        The first form is intended for backward compatibility only. It assumes that
+        some part of the dotted name is a package, and the rest is an object
+        somewhere within that package, possibly nested inside other objects.
+        Because the place where the package stops and the object hierarchy starts
+        can't be inferred by inspection, repeated attempts to import must be done
+        with this form.
+    
+        In the second form, the caller makes the division point clear through the
+        provision of a single colon: the dotted name to the left of the colon is a
+        package to be imported, and the dotted name to the right is the object
+        hierarchy within that package. Only one import is needed in this form. If
+        it ends with the colon, then a module object is returned.
+    
+        The function will return an object (which might be a module), or raise one
+        of the following exceptions:
+    
+        ValueError - if `name` isn't in a recognised format
+        ImportError - if an import failed when it shouldn't have
+        AttributeError - if a failure occurred when traversing the object hierarchy
+                         within the imported package to get to the desired object.
+        """
+        global _NAME_PATTERN
+        if _NAME_PATTERN is None:
+            # Lazy import to speedup Python startup time
+            import re
+            dotted_words = r'(?!\d)(\w+)(\.(?!\d)(\w+))*'
+            _NAME_PATTERN = re.compile(f'^(?P<pkg>{dotted_words})'
+                                       f'(?P<cln>:(?P<obj>{dotted_words})?)?$',
+                                       re.UNICODE)
+    
+        m = _NAME_PATTERN.match(name)
+        if not m:
+            raise ValueError(f'invalid format: {name!r}')
+        gd = m.groupdict()
+        if gd.get('cln'):
+            # there is a colon - a one-step import is all that's needed
+            mod = importlib.import_module(gd['pkg'])
+            parts = gd.get('obj')
+            parts = parts.split('.') if parts else []
+        else:
+            # no colon - have to iterate to find the package boundary
+            parts = name.split('.')
+            modname = parts.pop(0)
+            # first part *must* be a module/package.
+            mod = importlib.import_module(modname)
+            while parts:
+                p = parts[0]
+                s = f'{modname}.{p}'
+                try:
+                    mod = importlib.import_module(s)
+                    parts.pop(0)
+                    modname = s
+                except ImportError:
+                    break
+        # if we reach this point, mod is the module, already imported, and
+        # parts is the list of parts in the object hierarchy to be traversed, or
+        # an empty list if just the module is wanted.
+        result = mod
+        for p in parts:
+>           result = getattr(result, p)
+                     ^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'google' has no attribute 'genai'
+
+C:\Users\pmfig\AppData\Local\Programs\Python\Python313\Lib\pkgutil.py:528: AttributeError
+============================== warnings summary ===============================
+graph.py:37
+  C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\graph.py:37: LangChainDeprecationWarning: The class `TavilySearchResults` was deprecated in LangChain 0.3.25 and will be removed in 1.0. An updated version of the class exists in the :class:`~langchain-tavily package and should be used instead. To use it run `pip install -U :class:`~langchain-tavily` and import as `from :class:`~langchain_tavily import TavilySearch``.
+    tavily_tool = TavilySearchResults(max_results=3)
+
+test_models_connectivity.py:1
+  C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\test_models_connectivity.py:1: FutureWarning: 
+  
+  All support for the `google.generativeai` package has ended. It will no longer be receiving 
+  updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+  See README for more details:
+  
+  https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+  
+    import google.generativeai as genai
+
+test_sdf.py::test_full_config
+  C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\venv\Lib\site-packages\_pytest\python.py:170: PytestReturnNotNoneWarning: Test functions should return None, but test_sdf.py::test_full_config returned <class 'src.engines.strategy.definition.StrategyConfig'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED test_opp_score.py::test_stream - Failed: async def functions are not n...
+FAILED test_yf_final.py::test_yf - yfinance.exceptions.YFRateLimitError: Too ...
+FAILED tests/test_qa_system_reliability.py::TestQASystemReliabilityAndDeterminism::test_llm_fallback_resilience
+ERROR test_assistant.py::test
+ERROR test_debug_capture.py::test_graph
+ERROR test_experiment_tracking.py::test
+ERROR test_full_fetch.py::test_full_fetch
+ERROR test_graph.py::test_graph
+ERROR test_imports.py::test_import
+ERROR test_knowledge_graph.py::test
+ERROR test_marketplace.py::test
+ERROR test_pilot.py::test
+ERROR test_portfolio_lab.py::test
+ERROR test_sdf.py::test
+ERROR test_tv.py::test_tv
+====== 3 failed, 2425 passed, 3 warnings, 12 errors in 299.93s (0:04:59) ======

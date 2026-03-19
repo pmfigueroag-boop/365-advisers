@@ -1,0 +1,95 @@
+﻿python : Both 
+GOOGLE_API_KEY and 
+GEMINI_API_KEY are 
+set. Using 
+GOOGLE_API_KEY.
+En línea: 1 Carácter: 1
++ python run_aapl.py > 
+run_aapl_traceback.log 
+2>&1
++ ~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~
+    + CategoryInfo     
+         : 
+NotSpecified:     
+(Both GOOGLE_API...G   
+ OOGLE_API_KEY.:Strin  
+  g) [], RemoteExcepti 
+   on
+    + 
+FullyQualifiedErro    
+rId : NativeCommandE   
+ rror
+ 
+Both GOOGLE_API_KEY 
+and GEMINI_API_KEY are 
+set. Using 
+GOOGLE_API_KEY.
+C:\Users\pmfig\.gemini\
+antigravity\scratch\365
+-advisers\agent-backend
+\src\engines\fundamenta
+l\graph.py:53: LangChai
+nDeprecationWarning: 
+The class 
+`TavilySearchResults` 
+was deprecated in 
+LangChain 0.3.25 and 
+will be removed in 
+1.0. An updated 
+version of the class 
+exists in the 
+`langchain-tavily 
+package and should be 
+used instead. To use 
+it run `pip install -U 
+`langchain-tavily` and 
+import as `from 
+`langchain_tavily 
+import TavilySearch``.
+  _tavily = TavilySearc
+hResults(max_results=3)
+Both GOOGLE_API_KEY 
+and GEMINI_API_KEY are 
+set. Using 
+GOOGLE_API_KEY.
+TradingView fetch 
+error for AAPL: Can't 
+access TradingView's 
+API. HTTP status code: 
+429. Check for invalid 
+symbol, exchange, or 
+indicators.
+MTF: Error fetching 1h 
+for AAPL: Can't access 
+TradingView's API. 
+HTTP status code: 429. 
+Check for invalid 
+symbol, exchange, or 
+indicators.
+MTF: Error fetching 4h 
+for AAPL: Can't access 
+TradingView's API. 
+HTTP status code: 429. 
+Check for invalid 
+symbol, exchange, or 
+indicators.
+MTF: Error fetching 1d 
+for AAPL: Can't access 
+TradingView's API. 
+HTTP status code: 429. 
+Check for invalid 
+symbol, exchange, or 
+indicators.
+MTF: Error fetching 1w 
+for AAPL: Can't access 
+TradingView's API. 
+HTTP status code: 429. 
+Check for invalid 
+symbol, exchange, or 
+indicators.
+Both GOOGLE_API_KEY 
+and GEMINI_API_KEY are 
+set. Using 
+GOOGLE_API_KEY.

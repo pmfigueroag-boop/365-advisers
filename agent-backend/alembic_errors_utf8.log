@@ -1,0 +1,220 @@
+﻿venv\Scripts\python.exe
+ : Traceback (most 
+recent call last):
+En línea: 1 Carácter: 1
++ venv\Scripts\python.e
+xe -m alembic upgrade 
+head > 
+alembic_errors.log  ...
++ ~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (Traceback (mo   
+ st recent call las    
+t)::String) [], Re    
+moteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+  File "<frozen 
+runpy>", line 198, in 
+_run_module_as_main
+  File "<frozen 
+runpy>", line 88, in 
+_run_code
+  File "C:\Users\pmfig\
+.gemini\antigravity\scr
+atch\365-advisers\agent
+-backend\venv\Lib\site-
+packages\alembic\__main
+__.py", line 4, in 
+<module>
+    
+main(prog="alembic")
+    
+~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\pmfig\
+.gemini\antigravity\scr
+atch\365-advisers\agent
+-backend\venv\Lib\site-
+packages\alembic\config
+.py", line 1047, in 
+main
+    CommandLine(prog=pr
+og).main(argv=argv)
+    ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\pmfig\
+.gemini\antigravity\scr
+atch\365-advisers\agent
+-backend\venv\Lib\site-
+packages\alembic\config
+.py", line 1037, in 
+main
+    self.run_cmd(cfg, 
+options)
+    ~~~~~~~~~~~~^^^^^^^
+^^^^^^^
+  File "C:\Users\pmfig\
+.gemini\antigravity\scr
+atch\365-advisers\agent
+-backend\venv\Lib\site-
+packages\alembic\config
+.py", line 971, in 
+run_cmd
+    fn(
+    ~~^
+        config,
+        ^^^^^^^
+        
+*[getattr(options, k, 
+None) for k in 
+positional],
+        ^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^
+        **{k: 
+getattr(options, k, 
+None) for k in kwarg},
+        ^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\pmfig\
+.gemini\antigravity\scr
+atch\365-advisers\agent
+-backend\venv\Lib\site-
+packages\alembic\comman
+d.py", line 483, in 
+upgrade
+    script.run_env()
+    ~~~~~~~~~~~~~~^^
+  File "C:\Users\pmfig\
+.gemini\antigravity\scr
+atch\365-advisers\agent
+-backend\venv\Lib\site-
+packages\alembic\script
+\base.py", line 545, 
+in run_env
+    util.load_python_fi
+le(self.dir, "env.py")
+    ~~~~~~~~~~~~~~~~~~~
+~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\pmfig\
+.gemini\antigravity\scr
+atch\365-advisers\agent
+-backend\venv\Lib\site-
+packages\alembic\util\p
+yfiles.py", line 116, 
+in load_python_file
+    module = load_modul
+e_py(module_id, path)
+  File "C:\Users\pmfig\
+.gemini\antigravity\scr
+atch\365-advisers\agent
+-backend\venv\Lib\site-
+packages\alembic\util\p
+yfiles.py", line 136, 
+in load_module_py
+    spec.loader.exec_mo
+dule(module)  # type: 
+ignore
+    ~~~~~~~~~~~~~~~~~~~
+~~~~^^^^^^^^
+  File "<frozen importl
+ib._bootstrap_external>
+", line 1026, in 
+exec_module
+  File "<frozen importl
+ib._bootstrap>", line 
+488, in _call_with_fram
+es_removed
+  File "C:\Users\pmfig\
+.gemini\antigravity\scr
+atch\365-advisers\agent
+-backend\alembic\env.py
+", line 51, in <module>
+    
+run_migrations_online()
+    
+~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\pmfig\
+.gemini\antigravity\scr
+atch\365-advisers\agent
+-backend\alembic\env.py
+", line 37, in 
+run_migrations_online
+    connectable = 
+engine_from_config(
+        config.get_sect
+ion(config.config_ini_s
+ection, {}),
+        
+prefix="sqlalchemy.",
+        poolclass=pool.
+NullPool,
+    )
+  File "C:\Users\pmfig\
+.gemini\antigravity\scr
+atch\365-advisers\agent
+-backend\venv\Lib\site-
+packages\sqlalchemy\eng
+ine\create.py", line 
+844, in 
+engine_from_config
+    return 
+create_engine(url, 
+**options)
+  File "<string>", 
+line 2, in 
+create_engine
+  File "C:\Users\pmfig\
+.gemini\antigravity\scr
+atch\365-advisers\agent
+-backend\venv\Lib\site-
+packages\sqlalchemy\uti
+l\deprecations.py", 
+line 281, in warned
+    return fn(*args, 
+**kwargs)  # type: 
+ignore[no-any-return]
+  File "C:\Users\pmfig\
+.gemini\antigravity\scr
+atch\365-advisers\agent
+-backend\venv\Lib\site-
+packages\sqlalchemy\eng
+ine\create.py", line 
+568, in create_engine
+    entrypoint = 
+u._get_entrypoint()
+  File "C:\Users\pmfig\
+.gemini\antigravity\scr
+atch\365-advisers\agent
+-backend\venv\Lib\site-
+packages\sqlalchemy\eng
+ine\url.py", line 772, 
+in _get_entrypoint
+    cls = 
+registry.load(name)
+  File "C:\Users\pmfig\
+.gemini\antigravity\scr
+atch\365-advisers\agent
+-backend\venv\Lib\site-
+packages\sqlalchemy\uti
+l\langhelpers.py", 
+line 350, in load
+    raise 
+exc.NoSuchModuleError(
+        "Can't load 
+plugin: %s:%s" % 
+(self.group, name)
+    )
+sqlalchemy.exc.NoSuchMo
+duleError: Can't load 
+plugin: sqlalchemy.dial
+ects:driver

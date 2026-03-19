@@ -1,0 +1,150 @@
+﻿venv\Scripts\python.exe
+ : C:\Users\pmfig\.gemi
+ni\antigravity\scratch\
+365-advisers\agent-back
+end\src\engines\fundame
+ntal\graph.py:53: LangC
+hainDeprecationWarning:
+ The class 
+`TavilySearchResults` 
+was deprecated in 
+LangChain 0.3.25 and 
+will be removed in 
+1.0. An updated 
+version of the class 
+exists in the :class:`~
+langchain-tavily 
+package and should be 
+used instead. To use 
+it run `pip install -U 
+:class:`~langchain-tavi
+ly` and import as 
+`from :class:`~langchai
+n_tavily import 
+TavilySearch``.
+En línea: 1 Carácter: 1
++ venv\Scripts\python.e
+xe run_aapl.py > 
+run_aapl_verified.log 
+2>&1
++ ~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo     
+         : 
+NotSpecified:     
+(C:\Users\pmfig\...T   
+ avilySearch``.:Strin  
+  g) [], RemoteExcepti 
+   on
+    + 
+FullyQualifiedErro    
+rId : NativeCommandE   
+ rror
+ 
+  _tavily = TavilySearc
+hResults(max_results=3)
+TradingView fetch 
+error for AAPL: Can't 
+access TradingView's 
+API. HTTP status code: 
+429. Check for invalid 
+symbol, exchange, or 
+indicators.
+MTF: Error fetching 1h 
+for AAPL: Can't access 
+TradingView's API. 
+HTTP status code: 429. 
+Check for invalid 
+symbol, exchange, or 
+indicators.
+MTF: Error fetching 4h 
+for AAPL: Can't access 
+TradingView's API. 
+HTTP status code: 429. 
+Check for invalid 
+symbol, exchange, or 
+indicators.
+MTF: Error fetching 1d 
+for AAPL: Can't access 
+TradingView's API. 
+HTTP status code: 429. 
+Check for invalid 
+symbol, exchange, or 
+indicators.
+MTF: Error fetching 1w 
+for AAPL: Can't access 
+TradingView's API. 
+HTTP status code: 429. 
+Check for invalid 
+symbol, exchange, or 
+indicators.
+No adapters registered 
+for domain 
+'filing_events' ù 
+returning null
+No adapters registered 
+for domain 
+'geopolitical' ù 
+returning null
+No adapters registered 
+for domain 'macro' ù 
+returning null
+No adapters registered 
+for domain 'sentiment' 
+ù returning null
+No adapters registered 
+for domain 
+'volatility' ù 
+returning null
+No adapters registered 
+for domain 
+'institutional' ù 
+returning null
+OPP-TRACKER: 
+Registration failed 
+for AAPL ù (sqlite3.Ope
+rationalError) table op
+portunity_performance 
+has no column named 
+case_score
+[SQL: INSERT INTO oppor
+tunity_performance 
+(idea_uid, ticker, 
+idea_type, confidence, 
+signal_strength, 
+opportunity_score, 
+case_score, 
+fundamental_score, 
+technical_score, 
+suggested_alloc, 
+price_at_gen, 
+generated_at, 
+return_1d, return_5d, 
+return_20d, 
+return_60d, 
+benchmark_return_20d, 
+excess_return_20d, 
+tracking_status, 
+last_updated) VALUES 
+(?, ?, ?, ?, ?, ?, ?, 
+?, ?, ?, ?, ?, ?, ?, 
+?, ?, ?, ?, ?, ?)]
+[parameters: 
+('a876d16d6cbaae2b', 
+'AAPL', 'analysis', 
+'medium', 0.669, 6.69, 
+43.7, 6.0, 5.65, None, 
+254.22999572753906, 
+'2026-03-18 
+08:27:23.512964', 
+None, None, None, 
+None, None, None, 
+'pending', None)]
+(Background on this 
+error at: https://sqlal
+che.me/e/20/e3q8)
+Starting stream...
+[FUND-DB-CACHE] Stored AAPL (TTL 86400s, expires 2026-03-19T04:26:11.888860)
+[TECH-DB-CACHE] Stored AAPL (TTL 900s)
+Done.

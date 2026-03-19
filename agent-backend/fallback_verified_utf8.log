@@ -1,0 +1,44 @@
+﻿venv\Scripts\python.exe
+ : 
+fetch_fundamental_data 
+error for AAPL: 
+Simulated yfinance 
+crash
+En línea: 1 Carácter: 1
++ venv\Scripts\python.e
+xe scripts\test_fallbac
+k.py > 
+fallback_verified. ...
++ ~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (fetch_fundame   
+ nt... yfinance cra    
+sh:String) [], Rem    
+oteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+yfinance technical 
+error: Simulated 
+yfinance crash
+
+[TEST] Simulating yfinance crash for Fundamental Data...
+
+--- FUNDAMENTAL RESULT ---
+Name: Apple Inc
+Market Cap: 3736653529000.0
+Fallback Used: alpha_vantage
+Error logged?: False
+
+[TEST] Simulating yfinance crash for Technical Data...
+
+--- TECHNICAL OHLCV RESULT ---
+Total OHLCV bars returned: 90
+Latest Bar: {'time': '2026-03-17', 'open': 252.955, 'high': 255.13, 'low': 252.18, 'close': 254.23, 'volume': 32361607}
+
+All tests passed execution without hard crashing.

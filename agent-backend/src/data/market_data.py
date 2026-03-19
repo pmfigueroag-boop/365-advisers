@@ -202,6 +202,8 @@ def fetch_fundamental_data(ticker: str) -> dict:
         total_debt   = _safe_get(bs, ["Total Debt", "Long Term Debt"], 0.0)
         free_cash_flow = _safe_get(cf, ["Free Cash Flow"])
         interest_expense = _safe_get(is_, ["Interest Expense", "Interest Expense Non Operating"])
+        capex        = _safe_get(cf, ["Capital Expenditure", "CapitalExpenditure"])
+        repurchase   = _safe_get(cf, ["Repurchase Of Capital Stock", "RepurchaseOfCapitalStock", "Repurchase Of Stock"])
 
         # ── Clean cashflow series for chart (last 4 years) ───────────────────
         # Strategy: Build from income statement columns (reliable) + info for FCF.
@@ -305,6 +307,8 @@ def fetch_fundamental_data(ticker: str) -> dict:
                 "dividend_yield":     info.get("dividendYield") if info.get("dividendYield") is not None else 0.0,
                 "payout_ratio":       info.get("payoutRatio") if info.get("payoutRatio") is not None else 0.0,
                 "beta":               info.get("beta") if info.get("beta") is not None else "DATA_INCOMPLETE",
+                "capex_to_revenue":   pct_or_none(abs(capex) if capex is not None else None, total_rev),
+                "buyback_yield":      pct_or_none(abs(repurchase) if repurchase is not None else None, info.get("marketCap")),
             },
         }
 

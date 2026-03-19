@@ -4,11 +4,11 @@ class DecisionMatrix:
     Fundamental and Technical scores.
     """
 
-    POSITION_STRONG = "Strong Opportunity"
-    POSITION_MODERATE = "Moderate Opportunity"
-    POSITION_NEUTRAL = "Neutral"
-    POSITION_CAUTION = "Caution"
-    POSITION_AVOID = "Avoid"
+    POSITION_STRONG = "STRONG BUY"
+    POSITION_MODERATE = "BUY"
+    POSITION_NEUTRAL = "HOLD"
+    POSITION_CAUTION = "SELL"
+    POSITION_AVOID = "STRONG SELL"
 
     @classmethod
     def determine_position(cls, fund_score: float, tech_score: float) -> str:

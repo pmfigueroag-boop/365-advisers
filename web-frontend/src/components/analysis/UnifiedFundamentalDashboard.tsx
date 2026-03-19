@@ -22,7 +22,8 @@ import {
     Scale,
     ChevronDown,
     ChevronUp,
-    Clock
+    Clock,
+    ArrowRight
 } from "lucide-react";
 
 import type { FundamentalDataReady, AgentMemo, CommitteeVerdict } from "@/hooks/useFundamentalStream";
@@ -30,15 +31,15 @@ import type { FundamentalDataReady, AgentMemo, CommitteeVerdict } from "@/hooks/
 // ─── Formatting Helpers ────────────────────────────────────────────────────────
 
 function signalColor(signal: string) {
-    if (signal === "BUY" || signal === "STRONG_BUY") return "text-emerald-400";
-    if (signal === "SELL" || signal === "STRONG_SELL" || signal === "AVOID") return "text-rose-400";
-    return "text-amber-400";
+    if (signal === "BUY" || signal === "STRONG_BUY") return "text-decision-green";
+    if (signal === "SELL" || signal === "STRONG_SELL" || signal === "AVOID") return "text-decision-red";
+    return "text-decision-yellow";
 }
 
 function signalBg(signal: string) {
-    if (signal === "BUY" || signal === "STRONG_BUY") return "bg-emerald-500/10 border-emerald-500/30";
-    if (signal === "SELL" || signal === "STRONG_SELL" || signal === "AVOID") return "bg-rose-500/10 border-rose-500/30";
-    return "bg-amber-500/10 border-amber-500/30";
+    if (signal === "BUY" || signal === "STRONG_BUY") return "bg-decision-green/10 border-decision-green/30";
+    if (signal === "SELL" || signal === "STRONG_SELL" || signal === "AVOID") return "bg-decision-red/10 border-decision-red/30";
+    return "bg-decision-yellow/10 border-decision-yellow/30";
 }
 
 function normalizeSignalNumber(signal: string): number {
@@ -73,58 +74,39 @@ function formatRatio(key: string, value: number | string | undefined): string {
 
 // ─── Components ────────────────────────────────────────────────────────────────
 
-function ScoreRing({ score, size = 64 }: { score: number; size?: number }) {
-    const [displayed, setDisplayed] = useState(0);
-
-    useEffect(() => {
-        let rafId: number;
-        const duration = 800;
-        const startTime = performance.now();
-        const startVal = 0;
-
-        const tick = (now: number) => {
-            const elapsed = now - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            const eased = 1 - Math.pow(1 - progress, 3);
-            setDisplayed(startVal + eased * (score - startVal));
-            if (progress < 1) {
-                rafId = requestAnimationFrame(tick);
-            }
-        };
-
-        rafId = requestAnimationFrame(tick);
-        return () => cancelAnimationFrame(rafId);
-    }, [score]);
-
-    const radius = size / 2 - 4;
-    const circumference = 2 * Math.PI * radius;
-    const filled = (displayed / 10) * circumference;
-    const color = score >= 7 ? "#34d399" : score >= 4 ? "#fbbf24" : "#fb7185";
-
+function ConvictionScoreBar({ score, conviction }: { score: number; conviction: number }) {
+    const pct = (score / 10) * 100;
+    const color = score >= 7 ? "bg-[#10b981]" : score >= 4 ? "bg-[#d4af37]" : "bg-[#f43f5e]";
+    
     return (
-        <svg width={size} height={size} className="rotate-[-90deg]">
-            <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#21262d" strokeWidth={4} />
-            <circle
-                cx={size / 2} cy={size / 2} r={radius}
-                fill="none" stroke={color} strokeWidth={4}
-                strokeDasharray={`${filled} ${circumference}`}
-                strokeLinecap="round"
-            />
-            <text
-                x={size / 2} y={size / 2 + 1}
-                textAnchor="middle" dominantBaseline="middle"
-                fill="white" fontSize={size * 0.25} fontWeight="900"
-                style={{ transform: `rotate(90deg) translateX(0)`, transformOrigin: `${size / 2}px ${size / 2}px` }}
-            >
-                {displayed.toFixed(1)}
-            </text>
-        </svg>
+        <div className="space-y-1.5 mt-auto pt-3 border-t border-[#30363d]/50">
+            <div className="flex justify-between items-end">
+                <span className="text-[9px] text-[#8b949e] uppercase tracking-widest font-bold">
+                    Adjusted Score
+                </span>
+                <div className="flex items-baseline gap-1">
+                    <span className="text-sm font-black text-slate-200">{score.toFixed(1)}</span>
+                    <span className="text-[9px] text-[#8b949e]">/10</span>
+                </div>
+            </div>
+            {/* Split Progress bar: Score Top */}
+            <div className="h-1.5 bg-[#161b22] rounded-full overflow-hidden flex flex-col gap-[1px]">
+                <div className="h-full w-full bg-[#21262d]">
+                    <div className={`h-full transition-all duration-500 ${color}`} style={{ width: `${pct}%` }} />
+                </div>
+            </div>
+            <div className="flex justify-between items-center text-[8px] text-[#8b949e] font-mono tracking-widest uppercase mt-1">
+                <span>AI Conviction</span>
+                <span className="text-[#d4af37]">{(conviction * 100).toFixed(0)}%</span>
+            </div>
+        </div>
     );
 }
 
 // ─── Micro Card: Agent ────────────────────────────────────────────────────────
 
 function FundAgentCard({ memo, ratios }: { memo: AgentMemo, ratios: any }) {
+    const [expanded, setExpanded] = useState(false);
     const name = memo.agent.toLowerCase();
     
     // Determine category based on agent name
@@ -169,61 +151,118 @@ function FundAgentCard({ memo, ratios }: { memo: AgentMemo, ratios: any }) {
             { label: "Current", val: lev.current_ratio },
             { label: "Quick", val: lev.quick_ratio }
         ];
+    } else if (name.includes("capital") || name.includes("allocation")) {
+        title = "Capital Allocation";
+        icon = <Banknote size={14} className="text-orange-400" />;
+        const q = ratios?.quality || {};
+        // Map top capital metrics, relying on filter to clean up undefined ones, up to 4
+        relevantMetrics = [
+            { label: "Div Yield", val: q.dividend_yield },
+            { label: "Payout", val: q.payout_ratio },
+            { label: "Buybacks", val: q.buyback_yield },
+            { label: "CapEx/Rev", val: q.capex_to_revenue }
+        ];
     } else {
         title = memo.agent;
     }
 
-    // Filter out undefined metrics and fallback to agent's key_metrics_used 
-    const displayMetrics = relevantMetrics.filter(m => m.val !== undefined && m.val !== null);
+    // Filter out undefined and incomplete metrics, keeping max 4
+    const displayMetrics = relevantMetrics.filter(m => m.val !== undefined && m.val !== null && m.val !== "DATA_INCOMPLETE").slice(0, 4);
 
     // Calculate normalized score for the progress bar
     const baseScore = normalizeSignalNumber(memo.signal);
     const adjustedScore = 5 + (baseScore - 5) * memo.conviction;
 
     return (
-        <div className={`glass-card p-4 flex flex-col gap-3 border transition-colors ${signalBg(memo.signal)} hover:border-white/20`}>
+        <div className={`glass-card p-4 flex flex-col gap-3 border transition-all ${signalBg(memo.signal)}`}>
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    {icon}
-                    <h3 className="text-xs font-black uppercase tracking-widest text-gray-200">{title}</h3>
+                    {React.cloneElement(icon as React.ReactElement<{size?: number, className?: string}>, { size: 14, className: signalColor(memo.signal) })}
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-[#c9d1d9]">{title}</h3>
                 </div>
-                <div className={`text-[9px] font-black px-2 py-0.5 rounded border uppercase ${signalBg(memo.signal)} ${signalColor(memo.signal)}`}>
-                    {memo.signal}
+                <div className={`text-[8px] font-black px-1.5 py-0.5 rounded border shadow-inner uppercase ${signalBg(memo.signal)} border-[currentColor]/30 ${signalColor(memo.signal)}`}>
+                    {memo.signal.replace("_", " ")}
                 </div>
             </div>
 
-            {/* Metrics */}
-            <div className="grid grid-cols-3 gap-2 mt-1">
+            {/* Metrics Rows */}
+            <div className="space-y-2 mt-1 text-[9px]">
                 {displayMetrics.length > 0 ? displayMetrics.map((m, i) => (
-                    <div key={i} className="flex flex-col">
-                        <span className="text-[9px] text-gray-500 uppercase tracking-widest">{m.label}</span>
-                        <span className="text-xs font-mono font-medium text-gray-300">{formatRatio(m.label, m.val)}</span>
+                    <div key={i} className="flex justify-between items-center p-1.5 rounded bg-[#161b22]/80 border border-[#30363d]/50">
+                        <span className="text-[#8b949e] font-medium">{m.label}</span>
+                        <span className="font-mono font-bold text-[#c9d1d9]">{formatRatio(m.label, m.val)}</span>
                     </div>
                 )) : (
-                    <div className="col-span-3 text-[10px] text-gray-500 italic">No hard metrics mapped.</div>
+                    <div className="text-[9px] text-[#8b949e] italic p-1.5 bg-[#161b22]/50 rounded text-center">No hard metrics mapped.</div>
                 )}
             </div>
 
             {/* Score Weight Bar */}
-            <div className="mt-auto pt-2">
-                <div className="flex justify-between items-end mb-1">
-                    <span className="text-[9px] text-gray-500 uppercase font-bold">AI Conviction</span>
-                    <span className="text-[10px] font-mono font-bold text-gray-300">{(memo.conviction * 100).toFixed(0)}%</span>
-                </div>
-                <div className="relative h-1.5 bg-[#21262d] rounded-full overflow-hidden">
-                    <div 
-                        className={`absolute top-0 left-0 h-full rounded-full transition-all duration-1000 ${memo.signal.includes("BUY") ? "bg-emerald-500" : memo.signal.includes("SELL") ? "bg-rose-500" : "bg-amber-500"}`}
-                        style={{ width: `${memo.conviction * 100}%` }}
-                    />
-                </div>
-            </div>
+            <ConvictionScoreBar score={adjustedScore} conviction={memo.conviction} />
             
-            {/* AI Narrative snippet */}
-            <div className="mt-1 pt-2 border-t border-white/5">
-                <p className="text-[10px] text-gray-400 leading-relaxed italic line-clamp-2" title={memo.memo}>
-                    "{memo.memo}"
-                </p>
+            {/* AI Narrative snippet (Expandable) */}
+            <div className="mt-1 pt-3 border-t border-[#30363d]/50">
+                <button 
+                    className="w-full flex items-center justify-between text-left group cursor-pointer"
+                    onClick={() => setExpanded(!expanded)}
+                    aria-expanded={expanded}
+                >
+                    <span className="text-[9px] text-[#8b949e] font-bold uppercase tracking-widest group-hover:text-indigo-400 transition-colors flex items-center gap-1.5">
+                        <Activity size={10} /> Analyst Depth
+                    </span>
+                    <div className="flex items-center justify-center group-hover:bg-[#161b22] rounded p-0.5 transition-colors">
+                        {expanded ? <ChevronUp size={12} className="text-indigo-400" /> : <ChevronDown size={12} className="text-[#8b949e] group-hover:text-indigo-400" />}
+                    </div>
+                </button>
+                
+                {expanded && (
+                    <div className="mt-3 space-y-3 pt-3 border-t border-[#30363d]/30" style={{ animation: "fadeSlideIn 0.2s ease" }}>
+                        <div className="bg-[#161b22] p-3 rounded-lg border border-[#30363d]/50">
+                            <p className="text-[10px] text-[#c9d1d9] leading-relaxed font-serif italic border-l-2 border-indigo-500/40 pl-2">
+                                "{memo.memo}"
+                            </p>
+                        </div>
+                        
+                        {memo.metric_insights && memo.metric_insights.length > 0 && (
+                            <div>
+                                <p className="text-[8px] text-indigo-400 font-bold uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                                    <Zap size={10} /> Explicación de Métricas
+                                </p>
+                                <div className="flex flex-col gap-2">
+                                    {memo.metric_insights.map((mi, idx) => (
+                                        <div key={idx} className="bg-[#0d1117] p-3 rounded border border-[#30363d]">
+                                            <p className="text-[10px] font-black text-[#c9d1d9] mb-1 font-mono">{mi.metric}</p>
+                                            <p className="text-[9px] text-[#8b949e] italic mb-2 border-l border-[#30363d] pl-2">{mi.definition}</p>
+                                            <p className="text-[10px] text-[#8b949e] leading-relaxed">{mi.interpretation}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        
+                        {(memo.catalysts?.length > 0 || memo.risks?.length > 0) && (
+                            <div className="grid grid-cols-1 gap-2">
+                                {memo.catalysts?.length > 0 && (
+                                    <div className="bg-[#10b981]/10 p-2.5 rounded border border-[#10b981]/20">
+                                        <p className="text-[8px] text-[#10b981] font-bold uppercase tracking-widest mb-1.5 flex items-center gap-1"><TrendingUp size={10}/> Catalysts</p>
+                                        <ul className="space-y-1 ml-1">
+                                            {memo.catalysts.map(c => <li key={c} className="text-[9px] text-[#8b949e] flex items-start gap-1.5"><span className="text-[#10b981] mt-0.5">▸</span><span>{c}</span></li>)}
+                                        </ul>
+                                    </div>
+                                )}
+                                {memo.risks?.length > 0 && (
+                                    <div className="bg-[#f43f5e]/10 p-2.5 rounded border border-[#f43f5e]/20">
+                                        <p className="text-[8px] text-[#f43f5e] font-bold uppercase tracking-widest mb-1.5 flex items-center gap-1"><AlertTriangle size={10}/> Risks</p>
+                                        <ul className="space-y-1 ml-1">
+                                            {memo.risks.map(r => <li key={r} className="text-[9px] text-[#8b949e] flex items-start gap-1.5"><span className="text-[#f43f5e] mt-0.5">▸</span><span>{r}</span></li>)}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -282,218 +321,178 @@ export default function UnifiedFundamentalDashboard({
     return (
         <div className="space-y-4" style={{ animation: "fadeSlideIn 0.4s ease both" }}>
             
-            {/* 1. TOP HEADER: Radar & Logic Flow */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* 1. TOP GRID: Executive Summary (Thesis Flow + Radar) */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                 
-                {/* 1A. Radar Chart */}
-                <div className="glass-card flex flex-col items-center justify-center p-4 border border-[#30363d] relative md:col-span-1 h-64">
-                    <h3 className="absolute top-4 left-4 text-[9px] font-black uppercase tracking-widest text-gray-500">
-                        Fund. Dimensions
-                    </h3>
+                {/* 1A. Institutuional Radar Chart (Left Module) */}
+                <div className="md:col-span-3 glass-card border-[#30363d] p-4 flex flex-col h-full bg-[#0d1117] relative overflow-hidden">
+                    <div className="absolute inset-0 bg-[url('/img/dot_grid.png')] opacity-10 pointer-events-none" />
+                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-2">
+                        Institutional Radar
+                    </p>
                     {agentMemos.length >= 2 ? (
-                        <div className="w-full h-full mt-4">
+                        <div className="flex-1 w-full min-h-[160px] -ml-2">
                             <ResponsiveContainer width="100%" height="100%">
-                                <RadarChart cx="50%" cy="50%" outerRadius="65%" data={radarData}>
-                                    <PolarGrid stroke="#30363d" strokeDasharray="3 3" />
-                                    <PolarAngleAxis 
-                                        dataKey="subject" 
-                                        tick={{ fill: "#8b949e", fontSize: 10, fontWeight: "bold" }} 
-                                    />
+                                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+                                    <PolarGrid stroke="#30363d" />
+                                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#8b949e', fontSize: 9, fontWeight: 700 }} />
                                     <Radar
                                         name="Score"
                                         dataKey="score"
-                                        stroke="#a78bfa"
-                                        fill="#a78bfa"
+                                        stroke={committee?.signal.includes("BUY") ? "#10b981" : committee?.signal.includes("SELL") ? "#f43f5e" : "#d4af37"}
+                                        fill={committee?.signal.includes("BUY") ? "#10b981" : committee?.signal.includes("SELL") ? "#f43f5e" : "#d4af37"}
                                         fillOpacity={0.2}
-                                        strokeWidth={2}
                                     />
                                 </RadarChart>
                             </ResponsiveContainer>
                         </div>
                     ) : (
-                        <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-600 font-mono">
+                        <div className="flex-1 w-full flex items-center justify-center text-[10px] text-[#8b949e] font-black uppercase tracking-widest">
                             Awaiting Agents...
                         </div>
                     )}
                 </div>
 
-                {/* 1B. Actionable Logic Flow */}
-                <div className="glass-card p-5 border border-[#30363d] flex flex-col justify-center md:col-span-2 relative h-64 overflow-hidden">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2 pointer-events-none" />
-                    <h3 className="absolute top-4 left-5 text-[9px] font-black uppercase tracking-widest text-gray-500">
-                        Institutional Thesis Flow
-                    </h3>
-
+                {/* 1B. Actionable Logic Flow (Middle Module) */}
+                <div className="md:col-span-6 glass-card border-[#30363d] p-5 flex flex-col justify-center bg-[#0d1117]/80">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-4">
+                        Actionable Logic Flow
+                    </p>
+                    
                     {/* Loading State */}
                     {(status === "analyzing" || status === "fetching_data") && !committee && (
-                        <div className="flex flex-col items-center justify-center h-full mt-2">
-                             <div className="flex justify-between w-full max-w-sm text-[9px] text-gray-500 mb-2">
-                                <span className="font-bold uppercase tracking-widest">Analyst Committee</span>
-                                <span className="font-mono">{agentCount} / {totalAgents}</span>
+                        <div className="flex flex-col items-center justify-center w-full h-full my-auto">
+                            <div className="flex justify-between w-full max-w-sm text-[9px] text-[#8b949e] mb-2 font-black uppercase tracking-widest">
+                                <span>Analyst Committee</span>
+                                <span>{agentCount} / {totalAgents}</span>
                             </div>
-                            <div className="w-full max-w-sm h-1.5 bg-[#21262d] rounded-full overflow-hidden">
+                            <div className="w-full max-w-sm h-1 bg-[#21262d] rounded-full overflow-hidden">
                                 <div
-                                    className="h-full bg-blue-500 rounded-full transition-all duration-500"
+                                    className="h-full bg-indigo-500 rounded-full transition-all duration-500"
                                     style={{ width: `${(agentCount / totalAgents) * 100}%` }}
                                 />
                             </div>
-                            <p className="text-[10px] text-gray-500 mt-4 animate-pulse">Running LangGraph Agents...</p>
+                            <p className="text-[9px] text-slate-600 mt-3 animate-pulse font-bold tracking-widest uppercase">Running LangGraph Agents...</p>
                         </div>
                     )}
 
-                    {/* Completed State */}
                     {committee && (
-                       <div className="mt-2 flex flex-col sm:flex-row items-center gap-6 justify-between w-full">
-                           
-                           {/* Step 1: Context */}
-                           <div className="flex flex-col items-center text-center flex-1">
-                               <div className="w-10 h-10 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-2">
-                                   <Briefcase className="text-blue-400" size={16} />
-                               </div>
-                               <span className="text-[9px] text-gray-500 font-black uppercase tracking-wide">Context</span>
-                               <span className="text-xs font-mono text-gray-300 mt-1">{dataReady?.sector || "General"}</span>
-                           </div>
+                        <div className="flex flex-col sm:flex-row items-center gap-2 w-full mt-auto mb-auto">
+                            {/* Block 1: Sector Context */}
+                            <div className="flex-1 flex flex-col items-center justify-center p-3 rounded-lg border border-[#30363d] bg-[#161b22] text-center w-full min-h-[70px]">
+                                <span className="text-[8px] uppercase tracking-widest text-[#8b949e] mb-1">Sector Context</span>
+                                <span className="text-[10px] font-black uppercase text-blue-400">
+                                    {dataReady?.sector || "GENERAL"}
+                                </span>
+                            </div>
+                            
+                            <ArrowRight size={14} className="text-[#8b949e] rotate-90 sm:rotate-0 flex-shrink-0" />
+                            
+                            {/* Block 2: Consensus */}
+                            <div className="flex-1 flex flex-col items-center justify-center p-3 rounded-lg border border-[#30363d] bg-[#161b22] text-center w-full min-h-[70px]">
+                                <span className="text-[8px] uppercase tracking-widest text-[#8b949e] mb-1">AI Conviction</span>
+                                <span className="text-[10px] font-black uppercase text-indigo-400">
+                                    {(committee.confidence * 100).toFixed(0)}%
+                                </span>
+                            </div>
+                            
+                            <ArrowRight size={14} className="text-[#8b949e] rotate-90 sm:rotate-0 flex-shrink-0" />
 
-                           <div className="w-8 h-px bg-[#30363d] hidden sm:block" />
-
-                           {/* Step 2: Agent Consensus */}
-                           <div className="flex flex-col items-center text-center flex-1">
-                               <div className="w-10 h-10 rounded-full bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mb-2">
-                                   <Target className="text-purple-400" size={16} />
-                               </div>
-                               <span className="text-[9px] text-gray-500 font-black uppercase tracking-wide">Consensus</span>
-                               <span className="text-xs font-mono text-gray-300 mt-1">{(committee.confidence * 100).toFixed(0)}% Conviction</span>
-                           </div>
-
-                           <div className="w-8 h-px bg-[#30363d] hidden sm:block" />
-
-                           {/* Step 3: Action */}
-                           <div className="flex flex-col items-center text-center flex-1">
-                               <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${signalBg(committee.signal)}`}>
-                                   {committee.signal.includes("BUY") ? <TrendingUp className={signalColor(committee.signal)} size={20} /> : 
-                                    committee.signal.includes("SELL") ? <TrendingDown className={signalColor(committee.signal)} size={20} /> : 
-                                    <Minus className={signalColor(committee.signal)} size={20} />}
-                               </div>
-                               <span className="text-[9px] text-gray-500 font-black uppercase tracking-wide">Action</span>
-                               <span className={`text-sm font-black uppercase mt-1 ${signalColor(committee.signal)}`}>{committee.signal}</span>
-                           </div>
-
-                           {/* Big Composite Score */}
-                           <div className="flex-1 flex justify-end pl-6 sm:border-l border-[#30363d]">
-                                <div className="flex flex-col items-end">
-                                    <span className="text-[9px] text-gray-500 font-black uppercase tracking-widest mb-1.5 text-right w-full">Fundamental Score</span>
-                                    <div className="flex items-center gap-3">
-                                        <ScoreRing score={committee.score} size={70} />
-                                    </div>
-                                    <span className="text-[10px] text-gray-400 font-mono mt-1">Risk-Adj: {committee.risk_adjusted_score.toFixed(1)}</span>
-                                </div>
-                           </div>
-                       </div>
+                            {/* Block 3: Final Action */}
+                            <div className={`flex-1 flex flex-col items-center justify-center p-3 rounded-lg border text-center w-full min-h-[70px] transition-colors ${signalBg(committee.signal)}`}>
+                                <ShieldCheck size={14} className={`mb-1 ${signalColor(committee.signal)}`} />
+                                <span className={`text-[11px] font-black uppercase tracking-wider ${signalColor(committee.signal)}`}>
+                                    {committee.signal.replace("_", " ")}
+                                </span>
+                            </div>
+                        </div>
                     )}
+                </div>
+
+                {/* 1C. Fundamental Master Score (Right Module) */}
+                <div className={`md:col-span-3 glass-card border flex flex-col justify-center items-center p-6 text-center shadow-lg ${committee ? signalBg(committee.signal) : "bg-[#0d1117] border-[#30363d]"}`}>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">
+                        Fundamental Score
+                    </p>
+                    <div className="flex items-start gap-1">
+                        <span className={`text-6xl font-black tabular-nums tracking-tighter ${committee ? signalColor(committee.signal) : "text-slate-600"} drop-shadow-md`}>
+                            {committee ? committee.score.toFixed(1) : "0.0"}
+                        </span>
+                        <span className="text-sm font-bold text-[#8b949e] mt-2">/10</span>
+                    </div>
+                    
+                    <div className="mt-4 flex items-center justify-center gap-1.5 flex-wrap">
+                        {committee ? (
+                            <>
+                                <span className="text-[8px] font-black text-[#8b949e] px-2 py-1 rounded border border-[#30363d] bg-[#161b22] uppercase tracking-wider">
+                                    RISK-ADJ: {committee.risk_adjusted_score.toFixed(1)}
+                                </span>
+                                <span className="text-[8px] font-black text-[#8b949e] px-2 py-1 rounded border border-[#30363d] bg-[#161b22] uppercase tracking-wider">
+                                    ALLOC: {committee.allocation_recommendation}
+                                </span>
+                            </>
+                        ) : (
+                            <span className="text-[8px] font-black text-slate-600 px-2 py-1 rounded border border-[#30363d] bg-[#161b22] uppercase tracking-wider">
+                                PENDING...
+                            </span>
+                        )}
+                    </div>
                 </div>
             </div>
 
             {/* 2. MIDDLE GRID: Fundamental Agent Cards */}
             {agentMemos.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
                     {agentMemos.map((memo, i) => (
                         <FundAgentCard key={`agent-${i}`} memo={memo} ratios={dataReady?.ratios} />
                     ))}
                 </div>
             )}
 
-            {/* 3. BOTTOM ZONE: Research Memo & Committee */}
-            {(committee?.consensus_narrative || researchMemo) && (
-                <div className="glass-card border border-[#30363d] overflow-hidden flex flex-col">
-                    {/* Committee Header (Consensus) */}
-                    {committee?.consensus_narrative && (
-                        <div className="p-5 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 border-b border-[#30363d]/50">
-                            <div className="flex items-center gap-2 mb-3">
-                                <ShieldCheck size={16} className="text-indigo-400" />
-                                <h2 className="text-[10px] font-black uppercase tracking-widest text-indigo-400">
-                                    Investment Committee Consensus
-                                </h2>
-                            </div>
-                            <p className="text-sm text-gray-200 font-serif leading-relaxed italic mb-4">
-                                "{committee.consensus_narrative}"
+            {/* 3. BOTTOM ZONE: Research Memo Expandable */}
+            {researchMemo && (
+                <div className="glass-card p-5 border-[#30363d] mt-4" style={{ animation: "fadeSlideIn 0.5s ease both" }}>
+                    <button
+                        onClick={() => setMemoExpanded(!memoExpanded)}
+                        className="w-full flex items-center justify-between text-left group min-h-[44px] rounded-xl transition-colors"
+                        aria-expanded={memoExpanded}
+                    >
+                        <div className="flex items-center gap-2">
+                            <Activity size={16} className="text-purple-400" />
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-slate-200 transition-colors">
+                                Fundamental Analyst
+                                <span className="text-slate-600 font-normal ml-1">(Deep Dive Memo)</span>
                             </p>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4 pt-4 border-t border-[#30363d]/30">
-                                {/* Catalysts */}
-                                {committee.key_catalysts?.length > 0 && (
-                                    <div>
-                                        <h4 className="text-[9px] font-black uppercase tracking-widest text-emerald-500/70 mb-2">Key Catalysts</h4>
-                                        <ul className="space-y-1.5">
-                                            {committee.key_catalysts.map((cat, i) => (
-                                                <li key={i} className="text-[11px] text-gray-400 flex items-start gap-2">
-                                                    <span className="text-emerald-500/70 mt-0.5 text-[9px]">↗</span>
-                                                    <span className="leading-tight">{cat}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
-                                {/* Risks */}
-                                {committee.key_risks?.length > 0 && (
-                                    <div>
-                                        <h4 className="text-[9px] font-black uppercase tracking-widest text-rose-500/70 mb-2">Key Risks</h4>
-                                        <ul className="space-y-1.5">
-                                            {committee.key_risks.map((risk, i) => (
-                                                <li key={i} className="text-[11px] text-gray-400 flex items-start gap-2">
-                                                    <span className="text-rose-500/70 mt-0.5 text-[9px]">↘</span>
-                                                    <span className="leading-tight">{risk}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
-                            </div>
                         </div>
-                    )}
-
-                    {/* Deep Dive Memo Expandable */}
-                    {researchMemo && (
-                        <div className="px-5 py-3">
-                            <button
-                                onClick={() => setMemoExpanded(!memoExpanded)}
-                                className="w-full flex items-center justify-between text-left group"
-                            >
-                                <div className="flex items-center gap-2">
-                                    <Briefcase size={14} className="text-gray-500 group-hover:text-blue-400 transition-colors" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-gray-300 transition-colors">
-                                        Fundamental Analyst Deep Dive Memo
-                                    </span>
-                                </div>
-                                {memoExpanded ? <ChevronUp size={14} className="text-gray-500" /> : <ChevronDown size={14} className="text-gray-500" />}
-                            </button>
-                            
-                            {memoExpanded && (
-                                <div 
-                                    className="mt-4 pt-4 border-t border-[#30363d] prose prose-invert prose-xs max-w-none pb-4"
-                                    style={{ animation: "fadeSlideIn 0.3s ease" }}
-                                    dangerouslySetInnerHTML={{
-                                        __html: researchMemo
-                                            .replace(/^# (.+)$/gm, '<h1 class="text-sm font-black text-white mb-2 mt-4">$1</h1>')
-                                            .replace(/^## (.+)$/gm, '<h2 class="text-[11px] font-black uppercase tracking-widest text-blue-400/80 mt-6 mb-3 border-b border-[#30363d] pb-1">$1</h2>')
-                                            .replace(/\*\*(.+?)\*\*/g, '<strong class="text-white">$1</strong>')
-                                            .replace(/^\|(.+)\|$/gm, (row) => {
-                                                const cells = row.split('|').filter(c => c.trim() && !c.trim().match(/^-+$/));
-                                                if (!cells.length) return '';
-                                                return '<div class="flex gap-4 text-[10px] border-b border-[#30363d]/40 py-1.5 hover:bg-white/5">' +
-                                                    cells.map((c, i) => `<span class="${i === 0 ? 'text-gray-400 font-bold w-48 flex-shrink-0' : 'text-gray-300 font-mono'}">` + c.trim().replace(/^\*\*(.+)\*\*$/, '$1') + '</span>').join('') +
-                                                    '</div>';
-                                            })
-                                            .replace(/^\|[-| ]+\|$/gm, '')
-                                            .replace(/^- (.+)$/gm, '<li class="text-[11px] text-gray-400 ml-4 list-disc space-y-1 my-1">$1</li>')
-                                            .replace(/^([^<\n][^\n]+)$/gm, '<p class="text-[11px] text-gray-400 leading-relaxed my-2">$1</p>')
-                                    }}
-                                />
-                            )}
+                        <div className="flex items-center justify-center p-1 rounded group-hover:bg-[#161b22] transition-colors">
+                            {memoExpanded ? <ChevronUp size={14} className="text-indigo-400" /> : <ChevronDown size={14} className="text-slate-500 group-hover:text-indigo-400" />}
                         </div>
+                    </button>
+                    
+                    {memoExpanded && (
+                        <div 
+                            className="mt-4 pt-4 border-t border-[#30363d]/50 prose prose-invert prose-sm max-w-none"
+                            style={{ animation: "fadeSlideIn 0.3s ease" }}
+                            dangerouslySetInnerHTML={{
+                                __html: researchMemo
+                                    .replace(/^# (.+)$/gm, '<h1 class="text-xl sm:text-2xl font-black text-slate-100 mb-6 mt-6 tracking-tight">$1</h1>')
+                                    .replace(/^## (.+)$/gm, '<h2 class="text-sm sm:text-base font-black uppercase tracking-widest text-indigo-400/90 mt-8 mb-4 border-b border-[#30363d] pb-2">$1</h2>')
+                                    .replace(/\*\*(.+?)\*\*/g, '<strong class="text-[#c9d1d9] font-bold">$1</strong>')
+                                    .replace(/^\|(.+)\|$/gm, (row) => {
+                                        const cells = row.split('|').filter(c => c.trim() && !c.trim().match(/^-+$/));
+                                        if (!cells.length) return '';
+                                        return '<div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-8 text-xs md:text-sm border-b border-[#30363d]/50 py-3 hover:bg-[#161b22] transition-colors px-3 rounded-md">' +
+                                            cells.map((c, i) => `<span class="${i === 0 ? 'text-[#8b949e] font-bold md:w-64 flex-shrink-0' : 'text-[#c9d1d9] font-mono'}">` + c.trim().replace(/^\*\*(.+)\*\*$/, '$1') + '</span>').join('') +
+                                            '</div>';
+                                    })
+                                    .replace(/^\|[-| ]+\|$/gm, '')
+                                    .replace(/^- (.+)$/gm, '<li class="text-xs sm:text-sm text-[#8b949e] ml-6 list-disc space-y-2 my-2"><span class="text-[#c9d1d9]">$1</span></li>')
+                                    .replace(/^([^<\n][^\n]+)$/gm, '<p class="text-xs sm:text-sm text-[#8b949e] leading-relaxed my-3">$1</p>')
+                            }}
+                        />
                     )}
                 </div>
             )}
         </div>
     );
 }
-

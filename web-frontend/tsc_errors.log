@@ -1,0 +1,35 @@
+﻿src/__tests__/HelpTooltip.test.tsx(8,1): error TS2582: Cannot find name 'describe'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/__tests__/HelpTooltip.test.tsx(9,5): error TS2582: Cannot find name 'test'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/__tests__/HelpTooltip.test.tsx(11,9): error TS2304: Cannot find name 'expect'.
+src/__tests__/HelpTooltip.test.tsx(14,5): error TS2582: Cannot find name 'test'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/__tests__/HelpTooltip.test.tsx(16,13): error TS2304: Cannot find name 'expect'.
+src/__tests__/HelpTooltip.test.tsx(17,13): error TS2304: Cannot find name 'expect'.
+src/__tests__/HelpTooltip.test.tsx(18,13): error TS2304: Cannot find name 'expect'.
+src/__tests__/HelpTooltip.test.tsx(19,13): error TS2304: Cannot find name 'expect'.
+src/__tests__/HelpTooltip.test.tsx(23,5): error TS2582: Cannot find name 'test'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/__tests__/HelpTooltip.test.tsx(27,9): error TS2304: Cannot find name 'expect'.
+src/__tests__/HelpTooltip.test.tsx(29,13): error TS2304: Cannot find name 'expect'.
+src/__tests__/HelpTooltip.test.tsx(30,13): error TS2304: Cannot find name 'expect'.
+src/__tests__/HelpTooltip.test.tsx(34,5): error TS2582: Cannot find name 'test'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/__tests__/HelpTooltip.test.tsx(37,13): error TS2304: Cannot find name 'expect'.
+src/__tests__/HelpTooltip.test.tsx(38,13): error TS2304: Cannot find name 'expect'.
+src/__tests__/HelpTooltip.test.tsx(42,5): error TS2582: Cannot find name 'test'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/__tests__/HelpTooltip.test.tsx(48,13): error TS2304: Cannot find name 'expect'.
+src/__tests__/HelpTooltip.test.tsx(49,13): error TS2304: Cannot find name 'expect'.
+src/__tests__/HelpTooltip.test.tsx(53,5): error TS2582: Cannot find name 'test'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/__tests__/HelpTooltip.test.tsx(54,9): error TS2304: Cannot find name 'expect'.
+src/__tests__/HelpTooltip.test.tsx(55,9): error TS2304: Cannot find name 'expect'.
+src/__tests__/HelpTooltip.test.tsx(56,9): error TS2304: Cannot find name 'expect'.
+src/__tests__/HelpTooltip.test.tsx(62,1): error TS2582: Cannot find name 'describe'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/__tests__/HelpTooltip.test.tsx(63,5): error TS2582: Cannot find name 'test'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/__tests__/HelpTooltip.test.tsx(65,9): error TS2304: Cannot find name 'expect'.
+src/__tests__/HelpTooltip.test.tsx(66,9): error TS2304: Cannot find name 'expect'.
+src/__tests__/HelpTooltip.test.tsx(69,5): error TS2582: Cannot find name 'test'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/__tests__/HelpTooltip.test.tsx(71,9): error TS2304: Cannot find name 'expect'.
+src/__tests__/HelpTooltip.test.tsx(72,9): error TS2304: Cannot find name 'expect'.
+src/__tests__/HelpTooltip.test.tsx(75,5): error TS2582: Cannot find name 'test'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/__tests__/HelpTooltip.test.tsx(76,9): error TS2304: Cannot find name 'expect'.
+src/__tests__/HelpTooltip.test.tsx(77,9): error TS2304: Cannot find name 'expect'.
+src/__tests__/HelpTooltip.test.tsx(78,9): error TS2304: Cannot find name 'expect'.
+src/__tests__/HelpTooltip.test.tsx(81,5): error TS2582: Cannot find name 'test'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/__tests__/HelpTooltip.test.tsx(85,21): error TS2304: Cannot find name 'expect'.

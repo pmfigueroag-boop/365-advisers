@@ -1,0 +1,35 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.13.3, pytest-9.0.2, pluggy-1.6.0
+rootdir: C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend
+plugins: anyio-4.12.1, langsmith-0.7.9, cov-7.0.0
+collected 2433 items / 2 errors
+
+=================================== ERRORS ====================================
+________________ ERROR collecting test_models_connectivity.py _________________
+ImportError while importing test module 'C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\test_models_connectivity.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\pmfig\AppData\Local\Programs\Python\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+test_models_connectivity.py:1: in <module>
+    import google.generativeai as genai
+E   ModuleNotFoundError: No module named 'google.generativeai'
+___________________ ERROR collecting tests/test_backtest.py ___________________
+import file mismatch:
+imported module 'test_backtest' has this __file__ attribute:
+  C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\test_backtest.py
+which is not the same as the test file we want to collect:
+  C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\tests\test_backtest.py
+HINT: remove __pycache__ / .pyc files and/or use a unique basename for your test file modules
+============================== warnings summary ===============================
+graph.py:37
+  C:\Users\pmfig\.gemini\antigravity\scratch\365-advisers\agent-backend\graph.py:37: LangChainDeprecationWarning: The class `TavilySearchResults` was deprecated in LangChain 0.3.25 and will be removed in 1.0. An updated version of the class exists in the `langchain-tavily package and should be used instead. To use it run `pip install -U `langchain-tavily` and import as `from `langchain_tavily import TavilySearch``.
+    tavily_tool = TavilySearchResults(max_results=3)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+ERROR test_models_connectivity.py
+ERROR tests/test_backtest.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!
+======================== 1 warning, 2 errors in 56.52s ========================
