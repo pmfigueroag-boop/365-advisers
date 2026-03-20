@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { BarChart3, Loader2, Play, TrendingUp, TrendingDown, Target, Zap, ChevronDown, ChevronRight, CheckCircle2 } from "lucide-react";
+import { BarChart3, Loader2, Play, TrendingUp, TrendingDown, Target, Zap, ChevronDown, ChevronRight, CheckCircle2, ChevronUp, Activity } from "lucide-react";
 import { useBacktest } from "@/hooks/useBacktest";
 import type { BacktestResult, BacktestTrade } from "@/hooks/useBacktest";
 import ResearchMemoInsight from "./ResearchMemoInsight";
@@ -9,6 +9,90 @@ import type { MemoInsight } from "./ResearchMemoInsight";
 
 interface UnifiedBacktestDashboardProps {
     ticker: string;
+}
+
+// ── Backtest Metric Definitions ─────────────────────────────────────────────
+
+const BACKTEST_DEFS = [
+    {
+        metric: "Walk-Forward Evaluation",
+        definition: "Recorre cada barra histórica y evalúa si la señal habría disparado en ese punto. Luego mide el retorno forward real a T+1, 5, 10, 20, 60 días. Usa cooldown (50% de la ventana) para evitar overlap de señales.",
+    },
+    {
+        metric: "Win Rate",
+        definition: "Porcentaje de señales que generaron retorno positivo en la ventana forward. Win Rate >55% con N>30 se considera estadísticamente significativo. >60% es excelente.",
+    },
+    {
+        metric: "Sharpe Ratio",
+        definition: "Retorno promedio / desviación estándar, anualizado. Mide el retorno ajustado por riesgo. Sharpe >1.0 = bueno, >2.0 = excelente. Se calcula por ventana (T+5, T+20, etc.).",
+    },
+    {
+        metric: "Sortino Ratio",
+        definition: "Similar al Sharpe pero solo penaliza la volatilidad a la baja (downside deviation). Más relevante que Sharpe cuando la distribución de retornos es asimétrica.",
+    },
+    {
+        metric: "Alpha Decay Curve",
+        definition: "Retorno excedente promedio para cada día 1..60 post-señal. Muestra cómo pierde poder predictivo la señal con el tiempo. El half-life es cuando el alpha cae al 50% del pico.",
+    },
+    {
+        metric: "Profit Factor",
+        definition: "Suma de ganancias / suma de pérdidas (en valor absoluto). PF >1.5 indica edge real. PF <1.0 = la señal destruye valor.",
+    },
+    {
+        metric: "Excess Return (vs SPY)",
+        definition: "Retorno de la señal menos el retorno del benchmark (SPY) en el mismo período. Excess positivo = la señal genera alpha sobre el mercado. Es la métrica más importante.",
+    },
+    {
+        metric: "Calibration Suggestions",
+        definition: "Sugerencias automáticas para ajustar thresholds, pesos, o half-life de señales basadas en evidencia del backtest. Generadas por el report_builder.",
+    },
+];
+
+// ── Backtest Analyst Depth Component ────────────────────────────────────────
+
+function BacktestAnalystDepth() {
+    const [expanded, setExpanded] = useState(false);
+
+    return (
+        <div className="mt-4 pt-3 border-t border-[#30363d]/50">
+            <button
+                className="w-full flex items-center justify-between text-left group cursor-pointer"
+                onClick={() => setExpanded(!expanded)}
+                aria-expanded={expanded}
+            >
+                <span className="text-[9px] text-[#8b949e] font-bold uppercase tracking-widest group-hover:text-[#d4af37] transition-colors flex items-center gap-1.5">
+                    <Activity size={10} /> Analyst Depth
+                </span>
+                <div className="flex items-center justify-center group-hover:bg-[#161b22] rounded p-0.5 transition-colors">
+                    {expanded ? <ChevronUp size={12} className="text-[#d4af37]" /> : <ChevronDown size={12} className="text-[#8b949e] group-hover:text-[#d4af37]" />}
+                </div>
+            </button>
+
+            {expanded && (
+                <div className="mt-3 space-y-3 pt-3 border-t border-[#30363d]/30" style={{ animation: "fadeSlideIn 0.2s ease" }}>
+                    <div className="bg-[#161b22] p-3 rounded-lg border border-[#30363d]/50">
+                        <p className="text-[10px] text-[#c9d1d9] leading-relaxed font-serif italic border-l-2 border-[#d4af37]/40 pl-2">
+                            "El Backtest Engine evalúa retrospectivamente si las señales Alpha habrían generado retorno real. Usa walk-forward evaluation con cooldown para evitar sesgo, y mide excess returns vs SPY."
+                        </p>
+                    </div>
+
+                    <div>
+                        <p className="text-[8px] text-[#d4af37] font-bold uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                            <Zap size={10} /> Métricas Explicadas
+                        </p>
+                        <div className="flex flex-col gap-2">
+                            {BACKTEST_DEFS.map((d, idx) => (
+                                <div key={idx} className="bg-[#0d1117] p-3 rounded border border-[#30363d]">
+                                    <p className="text-[10px] font-black text-[#c9d1d9] mb-1 font-mono">{d.metric}</p>
+                                    <p className="text-[9px] text-[#8b949e] leading-relaxed">{d.definition}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 }
 
 function buildBacktestMemo(results: BacktestResult[], ticker: string): MemoInsight | null {
@@ -19,44 +103,53 @@ function buildBacktestMemo(results: BacktestResult[], ticker: string): MemoInsig
     const avgWinRate = results.reduce((s, r) => s + n(r.win_rate), 0) / results.length;
     const avgReturn = results.reduce((s, r) => s + n(r.avg_return), 0) / results.length;
     const avgSharpe = results.reduce((s, r) => s + n(r.sharpe_ratio), 0) / results.length;
-    const avgPF = results.reduce((s, r) => s + n(r.profit_factor), 0) / results.length;
+    const avgExcess = results.reduce((s, r) => s + n(r.excess_return), 0) / results.length;
     const totalSignals = results.reduce((s, r) => s + n(r.total_signals), 0);
+
+    // Compute proper Profit Factor: sum(positive returns) / abs(sum(negative returns))
+    const returns = results.map(r => n(r.avg_return));
+    const totalGains = returns.filter(r => r > 0).reduce((s, r) => s + r, 0);
+    const totalLosses = Math.abs(returns.filter(r => r < 0).reduce((s, r) => s + r, 0));
+    const avgPF = totalLosses > 0 ? +(totalGains / totalLosses).toFixed(2) : (totalGains > 0 ? 999 : 0);
 
     const best = results.reduce((a, b) => n(a.avg_return) > n(b.avg_return) ? a : b);
     const worst = results.reduce((a, b) => n(a.avg_return) < n(b.avg_return) ? a : b);
 
+    // Signal is BULLISH only if excess return vs SPY is positive
     const signal: MemoInsight["signal"] =
-        avgWinRate >= 60 && avgReturn > 0 ? "BULLISH" :
-        avgWinRate < 40 || avgReturn < -1 ? "BEARISH" : "NEUTRAL";
+        avgWinRate >= 55 && avgExcess > 0 ? "BULLISH" :
+        avgWinRate < 45 || avgExcess < -1 ? "BEARISH" : "NEUTRAL";
     const conviction: MemoInsight["conviction"] =
-        totalSignals >= 10 && avgWinRate >= 65 ? "HIGH" :
+        totalSignals >= 10 && avgSharpe >= 0.5 ? "HIGH" :
         totalSignals >= 5 ? "MEDIUM" : "LOW";
 
     const narrative =
-        `Backtest empírico sobre ${results.length} vectores atómicos con ${totalSignals} señales conjuntas evaluadas. ` +
-        `Win Rate ponderado del bloque: ${avgWinRate.toFixed(1)}%. ` +
-        `Retorno promedio extraído: ${avgReturn >= 0 ? "+" : ""}${avgReturn.toFixed(2)}%. ` +
-        (avgSharpe !== 0 ? `Sharpe consolidado: ${avgSharpe.toFixed(2)}. ` : "") +
-        (avgPF !== 0 ? `Multiplicador de retorno (PF): ${avgPF.toFixed(2)}.` : "");
+        `Backtest empírico sobre ${results.length} vectores atómicos con ${totalSignals} señales conjuntas evaluadas (ventana T+20). ` +
+        `Win Rate ponderado: ${avgWinRate.toFixed(1)}%. ` +
+        `Retorno promedio T+20: ${avgReturn >= 0 ? "+" : ""}${avgReturn.toFixed(2)}%. ` +
+        `Excess Return vs SPY: ${avgExcess >= 0 ? "+" : ""}${avgExcess.toFixed(2)}%. ` +
+        `Sharpe: ${avgSharpe.toFixed(2)}. PF: ${avgPF.toFixed(2)}.`;
 
     const bullets: string[] = [];
-    bullets.push(`Vector óptimo líder: ${best.ticker || best.signal_id} (retorno ${n(best.avg_return) >= 0 ? "+" : ""}${n(best.avg_return).toFixed(2)}%)`);
+    bullets.push(`Alpha vs SPY (T+20): ${avgExcess >= 0 ? "+" : ""}${avgExcess.toFixed(2)}%`);
+    bullets.push(`Vector líder: ${best.ticker || best.signal_id} (retorno ${n(best.avg_return) >= 0 ? "+" : ""}${n(best.avg_return).toFixed(2)}%)`);
     if (worst !== best) {
-        bullets.push(`Módulo drag (de menor rendimiento): ${worst.ticker || worst.signal_id} (retorno ${n(worst.avg_return) >= 0 ? "+" : ""}${n(worst.avg_return).toFixed(2)}%)`);
+        bullets.push(`Módulo drag: ${worst.ticker || worst.signal_id} (retorno ${n(worst.avg_return) >= 0 ? "+" : ""}${n(worst.avg_return).toFixed(2)}%)`);
     }
-    bullets.push(`Densidad de prueba paramétrica: ${results.length} módulos evaluados temporalmente`);
+    bullets.push(`Profit Factor: ${avgPF.toFixed(2)} (wins/losses ratio)`);
 
     const risks: string[] = [];
-    if (totalSignals < 5) risks.push(`Validación estadística en riesgo: N-size = ${totalSignals} observaciones históricas`);
-    if (avgWinRate < 50) risks.push(`Carencia de Edge Estadístico: Base de Win Rate inferior a 50%`);
-    if (avgSharpe < 0.5 && avgSharpe !== 0) risks.push(`Insuficiencia R/R: Volatilidad asimétrica o Sharpe comprimido (${avgSharpe.toFixed(2)})`);
+    if (totalSignals < 5) risks.push(`Validación estadística en riesgo: N-size = ${totalSignals} observaciones`);
+    if (avgWinRate < 50) risks.push(`Sin Edge Estadístico: Win Rate ${avgWinRate.toFixed(1)}% < 50%`);
+    if (avgSharpe < 0) risks.push(`Sharpe Negativo (${avgSharpe.toFixed(2)}): el sistema destruye valor ajustado por riesgo`);
+    if (avgExcess < 0) risks.push(`Alpha Negativo vs SPY: las señales no superan al benchmark`);
 
     return { title: "Research Memo — Empirical Backtest", signal, conviction, narrative, bullets, risks };
 }
 
 export default function UnifiedBacktestDashboard({ ticker }: UnifiedBacktestDashboardProps) {
     const { results, status, error, run, backtestMemo: llmMemo } = useBacktest();
-    const [period, setPeriod] = useState("1y");
+    const [period, setPeriod] = useState("2y");
 
     const handleRun = () => {
         if (ticker) run(ticker, { period });
@@ -87,59 +180,65 @@ export default function UnifiedBacktestDashboard({ ticker }: UnifiedBacktestDash
         <div className="space-y-4" style={{ animation: "fadeSlideIn 0.4s ease both" }}>
             
             {/* 1. TOP ROW: Aggregate Logic Flow & Control Strip */}
-            <div className="glass-card p-5 border border-[#30363d] flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
+            <div className="glass-card border border-[#30363d] relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-[#d4af37]/5 blur-2xl rounded-full" />
-                
-                {/* Aggregate Flow */}
-                <div className="flex items-center gap-6 z-10 w-full md:w-auto">
-                    <div className="flex flex-col gap-1">
-                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-1 flex items-center gap-1.5"><Target size={10} className="text-[#d4af37]" /> Total Observations</span>
-                        <p className="text-2xl font-black font-mono text-white leading-none">{totalSignals}</p>
-                    </div>
-                    
-                    <div className="w-px h-10 bg-[#30363d] hidden sm:block" />
-                    
-                    <div className="flex flex-col gap-1">
-                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-1">Blended Win Rate</span>
-                        <p className={`text-xl font-black font-mono leading-none ${avgWinRate >= 50 ? "text-green-400" : "text-gray-400"}`}>
-                            {avgWinRate.toFixed(1)}%
-                        </p>
+                <div className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    {/* Aggregate Flow */}
+                    <div className="flex items-center gap-6 z-10 w-full md:w-auto">
+                        <div className="flex flex-col gap-1">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-1 flex items-center gap-1.5"><Target size={10} className="text-[#d4af37]" /> Total Observations</span>
+                            <p className="text-2xl font-black font-mono text-white leading-none">{totalSignals}</p>
+                        </div>
+                        
+                        <div className="w-px h-10 bg-[#30363d] hidden sm:block" />
+                        
+                        <div className="flex flex-col gap-1">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-1">Blended Win Rate</span>
+                            <p className={`text-xl font-black font-mono leading-none ${avgWinRate >= 50 ? "text-green-400" : "text-gray-400"}`}>
+                                {avgWinRate.toFixed(1)}%
+                            </p>
+                        </div>
+
+                        <div className="w-px h-10 bg-[#30363d] hidden sm:block" />
+
+                        <div className="flex flex-col gap-1">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-1">Blended Sharpe</span>
+                            <p className={`text-xl font-black font-mono leading-none ${avgSharpe >= 1 ? "text-blue-400" : avgSharpe > 0 ? "text-gray-300" : "text-gray-500"}`}>
+                                {avgSharpe.toFixed(2)}
+                            </p>
+                        </div>
                     </div>
 
-                    <div className="w-px h-10 bg-[#30363d] hidden sm:block" />
-
-                    <div className="flex flex-col gap-1">
-                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-1">Blended Sharpe</span>
-                        <p className={`text-xl font-black font-mono leading-none ${avgSharpe >= 1 ? "text-blue-400" : avgSharpe > 0 ? "text-gray-300" : "text-gray-500"}`}>
-                            {avgSharpe.toFixed(2)}
-                        </p>
+                    {/* Engine Controls */}
+                    <div className="flex items-center gap-3 z-10 w-full md:w-auto mt-4 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 border-[#30363d]">
+                        <div className="flex items-center gap-2 flex-1 md:flex-auto">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 hidden sm:block">Timeframe</span>
+                            <select
+                                value={period}
+                                onChange={(e) => setPeriod(e.target.value)}
+                                className="bg-[#161b22] border border-[#30363d] rounded-lg text-[10px] uppercase font-bold tracking-wider px-3 py-2 text-gray-300 focus:outline-none focus:border-[#d4af37]/40 w-full sm:w-auto transition-colors"
+                            >
+                                <option value="6m">6 Months</option>
+                                <option value="1y">1 Year</option>
+                                <option value="2y">2 Years (Def)</option>
+                                <option value="3y">3 Years</option>
+                            </select>
+                        </div>
+                        
+                        <button
+                            onClick={handleRun}
+                            disabled={status === "running" || !ticker}
+                            className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider bg-[#d4af37] text-black hover:bg-[#e8c84a] border border-transparent hover:shadow-[0_0_15px_rgba(212,175,55,0.3)] transition-all disabled:opacity-50 disabled:hover:shadow-none min-w-[130px]"
+                        >
+                            {status === "running" ? <Loader2 size={11} className="animate-spin" /> : <Play size={11} fill="currentColor" />}
+                            Execute Engine
+                        </button>
                     </div>
                 </div>
 
-                {/* Engine Controls */}
-                <div className="flex items-center gap-3 z-10 w-full md:w-auto mt-4 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 border-[#30363d]">
-                    <div className="flex items-center gap-2 flex-1 md:flex-auto">
-                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 hidden sm:block">Timeframe</span>
-                        <select
-                            value={period}
-                            onChange={(e) => setPeriod(e.target.value)}
-                            className="bg-[#161b22] border border-[#30363d] rounded-lg text-[10px] uppercase font-bold tracking-wider px-3 py-2 text-gray-300 focus:outline-none focus:border-[#d4af37]/40 w-full sm:w-auto transition-colors"
-                        >
-                            <option value="3m">3 Months</option>
-                            <option value="6m">6 Months</option>
-                            <option value="1y">1 Year (Def)</option>
-                            <option value="2y">2 Years</option>
-                        </select>
-                    </div>
-                    
-                    <button
-                        onClick={handleRun}
-                        disabled={status === "running" || !ticker}
-                        className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider bg-[#d4af37] text-black hover:bg-[#e8c84a] border border-transparent hover:shadow-[0_0_15px_rgba(212,175,55,0.3)] transition-all disabled:opacity-50 disabled:hover:shadow-none min-w-[130px]"
-                    >
-                        {status === "running" ? <Loader2 size={11} className="animate-spin" /> : <Play size={11} fill="currentColor" />}
-                        Execute Engine
-                    </button>
+                {/* Analyst Depth — full width below the flow row */}
+                <div className="px-5 pb-5">
+                    <BacktestAnalystDepth />
                 </div>
             </div>
 

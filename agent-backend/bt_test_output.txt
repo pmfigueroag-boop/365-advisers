@@ -1,0 +1,66 @@
+RUN: status=completed, msg=Backtest completed in 5.2s — 18 signal results
+RESULTS: 18 signals
+
+  Moving Average Crossover (Golden Cross)
+    total_firings   = 6
+    win_rate        = 33.33
+    avg_return_flat = -0.033884
+    sharpe_flat     = 0.0
+    profit_factor   = 1.0
+    ticker          = Moving Average Crossover (Golden Cross)
+
+  Strong Price Trend
+    total_firings   = 8
+    win_rate        = 37.5
+    avg_return_flat = -0.026857
+    sharpe_flat     = 0.0
+    profit_factor   = 1.0
+    ticker          = Strong Price Trend
+
+  ADX Trend Strength
+    total_firings   = 8
+    win_rate        = 50.0
+    avg_return_flat = 0.001455
+    sharpe_flat     = 0.0
+    profit_factor   = 1.0
+    ticker          = ADX Trend Strength
+
+  ATR Expansion
+    total_firings   = 9
+    win_rate        = 33.33
+    avg_return_flat = -0.03272
+    sharpe_flat     = 0.0
+    profit_factor   = 1.0
+    ticker          = ATR Expansion
+
+  Realized Volatility Regime
+    total_firings   = 4
+    win_rate        = 75.0
+    avg_return_flat = 0.035229
+    sharpe_flat     = 0.0
+    profit_factor   = 1.0
+    ticker          = Realized Volatility Regime
+
+  Accumulation Patterns
+    total_firings   = 9
+    win_rate        = 33.33
+    avg_return_flat = -0.03272
+    sharpe_flat     = 0.0
+    profit_factor   = 1.0
+    ticker          = Accumulation Patterns
+
+  MACD Bearish Divergence
+    total_firings   = 8
+    win_rate        = 62.5
+    avg_return_flat = 0.018365
+    sharpe_flat     = 0.0
+    profit_factor   = 1.0
+    ticker          = MACD Bearish Divergence
+
+  Volume-Price Divergence
+    total_firings   = 8
+    win_rate        = 62.5
+    avg_return_flat = 0.016934
+    sharpe_flat     = 0.0
+    profit_factor   = 1.0
+    ticker          = Volume-Price Divergence

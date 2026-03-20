@@ -38,6 +38,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import SourceStatusStrip from "@/components/coverage/SourceStatusStrip";
 import WarningBanner from "@/components/coverage/WarningBanner";
 import ResearchMemoInsight from "@/components/analysis/ResearchMemoInsight";
+import DataFreshnessBadge from "@/components/ui/DataFreshnessBadge";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -130,6 +131,13 @@ export default function DeepAnalysisView({
                             {isLoading && <Loader2 size={10} className="animate-spin inline ml-2" />}
                         </p>
                     </div>
+                    {/* P3: Data Freshness Badge */}
+                    {alphaProfile && (alphaProfile as any)._data_freshness && (
+                        <DataFreshnessBadge
+                            freshness={(alphaProfile as any)._data_freshness}
+                            onRefresh={onEvaluateSignals}
+                        />
+                    )}
                 </div>
                 {/* Add to Watchlist button */}
                 <div className="flex items-center gap-2">

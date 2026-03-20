@@ -17,6 +17,72 @@ from src.engines.technical.scoring import TechnicalScore
 from src.utils.helpers import sanitize_data
 
 
+# ── Regime context derivation (interpretive, does NOT alter scores) ───────────
+
+# Relevance describes how actionable a technical score is in each regime.
+# In expansion, technical signals are highly relevant (momentum drives alpha).
+# In crisis/recession, technical signals are less reliable (macro dominates).
+
+_REGIME_RELEVANCE: dict[str, dict] = {
+    "expansion": {
+        "relevance": "high",
+        "interpretation": "Technical momentum is a leading indicator in bull markets. Trend-following signals are highly reliable.",
+    },
+    "recovery": {
+        "relevance": "high",
+        "interpretation": "Early cycle recovery rewards momentum. Technical breakouts often precede fundamental confirmation.",
+    },
+    "slowdown": {
+        "relevance": "moderate",
+        "interpretation": "Decelerating environment. Technical signals may lag the fundamental deterioration. Use with caution.",
+    },
+    "recession": {
+        "relevance": "low",
+        "interpretation": "Risk-off regime. Technical signals are less reliable as macro forces dominate price action.",
+    },
+    "high_volatility": {
+        "relevance": "low",
+        "interpretation": "Elevated volatility distorts technical indicators. Wider stops and reduced position sizing recommended.",
+    },
+}
+
+
+def _derive_regime_context(volatility_condition: str, signal: str) -> dict:
+    """
+    Derive macro regime context from the technical data itself.
+
+    Returns a dict with:
+      - regime: the detected macro regime label
+      - relevance: how actionable technical signals are in this regime
+      - interpretation: guidance for the consumer
+
+    Does NOT modify the technical score — this is purely interpretive.
+    """
+    vol = (volatility_condition or "NORMAL").upper()
+    sig = (signal or "HOLD").upper()
+
+    if vol == "HIGH":
+        regime = "high_volatility"
+    elif vol == "ELEVATED":
+        regime = "slowdown"
+    elif vol == "LOW":
+        regime = "expansion" if sig in ("BUY", "STRONG_BUY") else "slowdown"
+    else:  # NORMAL
+        if sig in ("BUY", "STRONG_BUY"):
+            regime = "recovery"
+        elif sig in ("SELL", "STRONG_SELL"):
+            regime = "recession"
+        else:
+            regime = "expansion"
+
+    ctx = _REGIME_RELEVANCE.get(regime, _REGIME_RELEVANCE["expansion"])
+    return {
+        "regime": regime,
+        "relevance": ctx["relevance"],
+        "interpretation": ctx["interpretation"],
+    }
+
+
 def build_technical_summary(
     ticker: str,
     tech_data: dict,
@@ -148,6 +214,9 @@ def build_technical_summary(
             "actionable_zone":   score.bias.actionable_zone,
             "time_horizon":      score.bias.time_horizon,
         },
+        # Regime context label — provides macro context without altering the score.
+        # The technical score stays objective; this tells the consumer HOW to interpret it.
+        "regime_context": _derive_regime_context(vol.condition, score.signal),
     }
 
     # ── TradingView Rating (reference benchmark) ────────────────────────────

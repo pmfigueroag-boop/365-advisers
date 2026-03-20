@@ -52,30 +52,54 @@ def synthesize_backtest_memo(
         }
 
     count = len(backtest_results)
-    total_signals = sum(n(r.get("total_signals", 0)) for r in backtest_results)
-    avg_wr = sum(n(r.get("win_rate", 0)) for r in backtest_results) / count
-    avg_ret = sum(n(r.get("avg_return", 0)) for r in backtest_results) / count
-    avg_sharpe = sum(n(r.get("sharpe_ratio", 0)) for r in backtest_results) / count
-    avg_pf = sum(n(r.get("profit_factor", 0)) for r in backtest_results) / count
+
+    # Helper: backend returns hit_rate, avg_return, sharpe_ratio as dicts
+    # keyed by forward window (1/5/10/20/60). Extract T+20 as reference.
+    def extract_window(v, window: int = 20) -> float:
+        if isinstance(v, (int, float)):
+            return float(v) if v == v else 0.0  # NaN guard
+        if isinstance(v, dict):
+            return float(v.get(str(window), v.get(window, 0.0)))
+        return 0.0
+
+    total_signals = sum(n(r.get("total_firings", 0)) for r in backtest_results)
+    avg_wr = sum(extract_window(r.get("hit_rate", r.get("win_rate", 0))) for r in backtest_results) / count * 100
+    avg_ret = sum(extract_window(r.get("avg_return", 0)) for r in backtest_results) / count * 100
+    avg_sharpe = sum(extract_window(r.get("sharpe_ratio", 0)) for r in backtest_results) / count
+    avg_excess = sum(extract_window(r.get("avg_excess_return", 0)) for r in backtest_results) / count * 100
+
+    # Compute proper Profit Factor from individual signal returns at T+20:
+    # PF = sum(winning returns) / abs(sum(losing returns))
+    all_returns = [extract_window(r.get("avg_return", 0)) for r in backtest_results]
+    total_gains = sum(r for r in all_returns if r > 0)
+    total_losses = abs(sum(r for r in all_returns if r < 0))
+    avg_pf = round(total_gains / total_losses, 2) if total_losses > 0 else (999.0 if total_gains > 0 else 0.0)
 
     # Build per-signal results
     results_block = "\n".join(
-        f"  - {r.get('signal_id', 'N/A')}: WR={n(r.get('win_rate', 0)):.1f}%, "
-        f"Return={n(r.get('avg_return', 0)):.2f}%, "
-        f"Sharpe={n(r.get('sharpe_ratio', 0)):.2f}, "
-        f"PF={n(r.get('profit_factor', 0)):.2f}, "
-        f"Signals={n(r.get('total_signals', 0)):.0f}"
+        f"  - {r.get('signal_name', r.get('signal_id', 'N/A'))}: "
+        f"WR={extract_window(r.get('hit_rate', r.get('win_rate', 0))) * 100:.1f}%, "
+        f"Return={extract_window(r.get('avg_return', 0)) * 100:.2f}%, "
+        f"Sharpe={extract_window(r.get('sharpe_ratio', 0)):.2f}, "
+        f"Excess={extract_window(r.get('avg_excess_return', 0)) * 100:.2f}%, "
+        f"N={n(r.get('total_firings', 0)):.0f}"
         for r in backtest_results[:10]
     )
 
     fallback: BacktestMemoOutput = {
-        "signal": "BULLISH" if avg_wr >= 60 and avg_ret > 0 else
+        "signal": "BULLISH" if avg_wr >= 60 and avg_excess > 0 else
                   "BEARISH" if avg_wr < 40 or avg_ret < -1 else "NEUTRAL",
         "conviction": "HIGH" if total_signals >= 10 and avg_wr >= 65 else
                       "MEDIUM" if total_signals >= 5 else "LOW",
         "narrative": f"Backtest de {count} estrategias. WR: {avg_wr:.1f}%, "
-                     f"Ret: {avg_ret:.2f}%, Sharpe: {avg_sharpe:.2f}.",
-        "key_data": [f"Win Rate: {avg_wr:.1f}%", f"Avg Return: {avg_ret:.2f}%"],
+                     f"Ret: {avg_ret:.2f}%, Excess vs SPY: {avg_excess:+.2f}%, "
+                     f"Sharpe: {avg_sharpe:.2f}, PF: {avg_pf:.2f}.",
+        "key_data": [
+            f"Win Rate: {avg_wr:.1f}%",
+            f"Retorno T+20: {avg_ret:+.2f}%",
+            f"Excess vs SPY: {avg_excess:+.2f}%",
+            f"Profit Factor: {avg_pf:.2f}",
+        ],
         "risk_factors": ["Análisis LLM no disponible — usando fallback determinístico."],
     }
 
@@ -84,13 +108,14 @@ Se te proporcionan resultados REALES de backtesting de señales Alpha para {tick
 
 RESULTADOS DE BACKTEST DE {ticker}:
 
-[AGREGADOS]
+[AGREGADOS — ventana T+20 días]
 - Estrategias evaluadas: {count}
 - Total observaciones: {total_signals:.0f}
 - Win Rate promedio: {avg_wr:.1f}%
-- Retorno promedio: {avg_ret:+.2f}%
+- Retorno promedio T+20: {avg_ret:+.2f}%
+- Excess Return vs SPY: {avg_excess:+.2f}%  ← MÉTRICA CLAVE DE ALPHA
 - Sharpe promedio: {avg_sharpe:.2f}
-- Profit Factor promedio: {avg_pf:.2f}
+- Profit Factor: {avg_pf:.2f}
 
 [RESULTADOS POR SEÑAL]
 {results_block}

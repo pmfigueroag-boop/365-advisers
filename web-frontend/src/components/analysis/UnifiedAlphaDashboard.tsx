@@ -16,6 +16,8 @@ import {
     Minus,
     Briefcase,
     Target,
+    ChevronDown,
+    ChevronUp,
 } from "lucide-react";
 import type {
     SignalProfileResponse,
@@ -26,6 +28,7 @@ import AlphaRadarChart from "../AlphaRadarChart";
 import FreshnessBadge from "../FreshnessBadge";
 import ResearchMemoInsight from "./ResearchMemoInsight";
 import type { MemoInsight } from "./ResearchMemoInsight";
+import DataFreshnessBadge from "@/components/ui/DataFreshnessBadge";
 
 // ── Category Config ────────────────────────────────────────────────────────
 
@@ -151,7 +154,151 @@ function ScoreRing({ score, size = 64 }: { score: number; size?: number }) {
     );
 }
 
-// ── Micro Card: Alpha Module ───────────────────────────────────────────────
+// ── Alpha Category Definitions ─────────────────────────────────────────────
+
+interface AlphaCatDef {
+    metric: string;
+    definition: string;
+}
+
+const ALPHA_CATEGORY_DEFS: Record<string, { description: string; defs: AlphaCatDef[] }> = {
+    value: {
+        description: "Evalúa si el activo cotiza por debajo de su valor intrínseco. Busca descuentos en múltiplos de valoración.",
+        defs: [
+            { metric: "P/E Ratio", definition: "Precio / Beneficio. Un P/E bajo vs sector sugiere infravaloración. P/E alto indica expectativas de crecimiento." },
+            { metric: "EV/EBITDA", definition: "Enterprise Value / EBITDA. Mide el valor de la empresa relativo a su flujo operativo. <10x generalmente se considera atractivo." },
+            { metric: "Dividend Yield", definition: "Rendimiento por dividendo. Yield alto vs promedio histórico puede indicar oportunidad de valor." },
+        ],
+    },
+    quality: {
+        description: "Evalúa la solidez operativa de la empresa. Empresas de alta calidad tienen ventajas competitivas duraderas (moats).",
+        defs: [
+            { metric: "ROIC", definition: "Return on Invested Capital. Mide la eficiencia con que la empresa genera retornos sobre el capital invertido. >15% es excelente." },
+            { metric: "ROE", definition: "Return on Equity. Rentabilidad sobre el patrimonio neto. Indica qué tan bien se usa el dinero de los accionistas." },
+            { metric: "Earnings Quality", definition: "Score compuesto de calidad de beneficios (accruals, consistencia, cash conversion). >7 indica beneficios de alta fiabilidad." },
+        ],
+    },
+    growth: {
+        description: "Detecta aceleración en las métricas de crecimiento. Busca inflexiones positivas en revenue, EPS, y márgenes.",
+        defs: [
+            { metric: "Revenue Acceleration", definition: "Tasa de cambio del crecimiento de ingresos. Aceleración positiva indica mejora en la demanda del negocio." },
+            { metric: "EPS Growth", definition: "Crecimiento de beneficios por acción. Mide la evolución de la rentabilidad ajustada al número de acciones." },
+            { metric: "Operating Leverage", definition: "Apalancamiento operativo. Mide cuánto crece el beneficio operativo por cada unidad de crecimiento en ingresos." },
+        ],
+    },
+    momentum: {
+        description: "Mide la inercia del precio. Activos en tendencia alcista tienden a continuar subiendo (efecto momentum).",
+        defs: [
+            { metric: "Golden Cross", definition: "SMA50 cruza sobre SMA200. Señal técnica clásica de inicio de tendencia alcista. Alta importancia institucional." },
+            { metric: "Price Trend", definition: "Precio relativo a medias móviles clave. Precio > EMA20 y SMA50 indica momentum positivo sostenido." },
+            { metric: "RSI Momentum", definition: "Zona del RSI que confirma fuerza direccional. RSI 40-60 = neutral, >60 = momentum alcista, <40 = momentum bajista." },
+        ],
+    },
+    volatility: {
+        description: "Evalúa el régimen de volatilidad del activo. Baja volatilidad puede indicar acumulación; alta volatilidad indica riesgo.",
+        defs: [
+            { metric: "ATR Position", definition: "Posición del ATR vs su mediana histórica. ATR bajo = calma (posible squeeze). ATR alto = riesgo elevado." },
+            { metric: "BB Squeeze", definition: "Bandas de Bollinger estrechas. Compresión de volatilidad que precede movimientos explosivos. Señal de timing." },
+        ],
+    },
+    flow: {
+        description: "Analiza flujos de capital institucional. Volumen anormal y acumulación indican interés de smart money.",
+        defs: [
+            { metric: "Volume Surge", definition: "Volumen inusualmente alto vs promedio 20d. >2x sugiere actividad institucional o evento catalizador." },
+            { metric: "OBV Accumulation", definition: "On-Balance Volume en tendencia alcista. Dinero entrando al activo de forma consistente = acumulación." },
+        ],
+    },
+    event: {
+        description: "Detecta eventos catalizadores o cambios de régimen. Earnings surprises, revenue inflection, mean reversion.",
+        defs: [
+            { metric: "Revenue Acceleration", definition: "Cambio en la tasa de crecimiento de ingresos. Una aceleración >10% indica un potencial punto de inflexión." },
+            { metric: "Mean Reversion", definition: "Z-score de reversión a la media. Activos desviados >2σ de su media tienden a revertir. Señal contrarian." },
+        ],
+    },
+    macro: {
+        description: "Evalúa el contexto macroeconómico para el sector del activo. Tipos de interés, ciclo y posicionamiento sectorial.",
+        defs: [
+            { metric: "Sector Relative", definition: "Rendimiento del activo vs su sector. Outperformance sostenida indica liderazgo sectorial." },
+            { metric: "Beta Adjustment", definition: "Sensibilidad al mercado. Beta >1 amplifica movimientos del mercado. Beta <1 es defensivo." },
+        ],
+    },
+};
+
+// ── Alpha Analyst Depth Component ──────────────────────────────────────────
+
+function AlphaAnalystDepth({ catKey, signals }: { catKey: string; signals: EvaluatedSignal[] }) {
+    const [expanded, setExpanded] = useState(false);
+    const catInfo = ALPHA_CATEGORY_DEFS[catKey];
+
+    if (!catInfo) return null;
+
+    return (
+        <div className="mt-1 pt-3 border-t border-[#30363d]/50">
+            <button
+                className="w-full flex items-center justify-between text-left group cursor-pointer"
+                onClick={() => setExpanded(!expanded)}
+                aria-expanded={expanded}
+            >
+                <span className="text-[9px] text-[#8b949e] font-bold uppercase tracking-widest group-hover:text-indigo-400 transition-colors flex items-center gap-1.5">
+                    <Activity size={10} /> Analyst Depth
+                </span>
+                <div className="flex items-center justify-center group-hover:bg-[#161b22] rounded p-0.5 transition-colors">
+                    {expanded ? <ChevronUp size={12} className="text-indigo-400" /> : <ChevronDown size={12} className="text-[#8b949e] group-hover:text-indigo-400" />}
+                </div>
+            </button>
+
+            {expanded && (
+                <div className="mt-3 space-y-3 pt-3 border-t border-[#30363d]/30" style={{ animation: "fadeSlideIn 0.2s ease" }}>
+                    {/* Category Description */}
+                    <div className="bg-[#161b22] p-3 rounded-lg border border-[#30363d]/50">
+                        <p className="text-[10px] text-[#c9d1d9] leading-relaxed font-serif italic border-l-2 border-indigo-500/40 pl-2">
+                            "{catInfo.description}"
+                        </p>
+                    </div>
+
+                    {/* Signal Definitions */}
+                    <div>
+                        <p className="text-[8px] text-indigo-400 font-bold uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                            <Zap size={10} /> Señales Explicadas
+                        </p>
+                        <div className="flex flex-col gap-2">
+                            {catInfo.defs.map((d, idx) => (
+                                <div key={idx} className="bg-[#0d1117] p-3 rounded border border-[#30363d]">
+                                    <p className="text-[10px] font-black text-[#c9d1d9] mb-1 font-mono">{d.metric}</p>
+                                    <p className="text-[9px] text-[#8b949e] leading-relaxed">{d.definition}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* All Fired Signal Details */}
+                    {signals.length > 0 && (
+                        <div>
+                            <p className="text-[8px] text-emerald-400 font-bold uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                                <TrendingUp size={10} /> Señales Activas
+                            </p>
+                            <div className="flex flex-col gap-1.5">
+                                {signals.map((sig, i) => (
+                                    <div key={i} className="flex items-center justify-between bg-[#0d1117]/70 p-2 rounded border border-white/5">
+                                        <div className="flex-1 min-w-0">
+                                            <span className="text-[9px] text-gray-300 leading-tight block truncate">{sig.signal_name}</span>
+                                            <span className="text-[8px] text-gray-500 font-mono">
+                                                val={sig.value?.toFixed(4)} | thr={sig.threshold.toFixed(4)} | conf={sig.confidence.toFixed(2)}
+                                            </span>
+                                        </div>
+                                        <span className={`text-[7px] font-black uppercase px-1.5 py-0.5 rounded ml-2 flex-shrink-0 ${STRENGTH_STYLE[sig.strength] || ""}`}>
+                                            {sig.strength}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+}
 
 function AlphaCategoryCard({ catKey, cfg, score, signals }: { catKey: string; cfg: any; score?: CategoryScore; signals: EvaluatedSignal[] }) {
     const hasFired = score && score.fired > 0;
@@ -218,6 +365,9 @@ function AlphaCategoryCard({ catKey, cfg, score, signals }: { catKey: string; cf
                     <div className={`absolute top-0 left-0 h-full rounded-full transition-all duration-1000 ${barColor}`} style={{ width: `${score.composite_strength * 100}%` }} />
                 </div>
             </div>
+
+            {/* Analyst Depth */}
+            <AlphaAnalystDepth catKey={catKey} signals={signals} />
         </div>
     );
 }

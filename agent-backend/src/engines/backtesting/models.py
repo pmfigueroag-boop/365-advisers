@@ -231,6 +231,7 @@ class BacktestReport(BaseModel):
     execution_time_seconds: float = 0.0
     status: BacktestStatus = BacktestStatus.PENDING
     error_message: str | None = None
+    backtest_memo: dict | None = None  # Persisted LLM memo (generated once at run time)
 
 
 # ─── Backtest Run Summary (for listing) ─────────────────────────────────────

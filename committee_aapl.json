@@ -1,0 +1,17 @@
+{
+  "signal": "HOLD",
+  "score": 8.0,
+  "confidence": 0.6,
+  "risk_adjusted_score": 5.0,
+  "consensus_narrative": "Apple es una compa\u00f1\u00eda de calidad excepcional con un foso econ\u00f3mico formidable y una gesti\u00f3n de capital ejemplar. Sin embargo, esta fortaleza fundamental se ve contrarrestada por una valoraci\u00f3n exigente que no ofrece margen de seguridad y est\u00e1 expuesta a riesgos significativos. La dependencia cr\u00edtica de China, tanto para la cadena de suministro como para el mercado, junto con el creciente escrutinio regulatorio global, introducen una considerable incertidumbre. En consecuencia, el perfil riesgo/recompensa actual justifica una postura neutral a la espera de un punto de entrada m\u00e1s atractivo o una mayor claridad sobre los riesgos clave.",
+  "key_catalysts": [
+    "Crecimiento acelerado y de alto margen en el segmento de Servicios, mejorando la diversificaci\u00f3n de ingresos y la rentabilidad del ecosistema.",
+    "Lanzamiento exitoso y adopci\u00f3n masiva de una nueva categor\u00eda de producto disruptiva (ej. IA generativa, Realidad Mixta) que abra nuevas y significativas fuentes de ingresos."
+  ],
+  "key_risks": [
+    "Compresi\u00f3n de m\u00faltiplos debido a una valoraci\u00f3n excesiva (PER >30x), vulnerable a una desaceleraci\u00f3n macroecon\u00f3mica o una percepci\u00f3n de menor innovaci\u00f3n ('trampa de la innovaci\u00f3n').",
+    "Riesgo geopol\u00edtico severo por la alta dependencia de China para la manufactura y las ventas, ante una posible intensificaci\u00f3n del desacoplamiento econ\u00f3mico entre EE.UU. y China."
+  ],
+  "allocation_recommendation": "Ponderar en l\u00ednea",
+  "elapsed_ms": 54582
+}

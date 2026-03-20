@@ -48,6 +48,16 @@ class FundamentalFeatureSet(BaseModel):
     dividend_yield: float = 0.0
     payout_ratio: float = 0.0
     beta: float | None = None
+    interest_coverage: float | None = None  # EBIT / interest expense
+    f_score: float | None = None            # Piotroski F-Score (0-9)
+    asset_turnover: float | None = None     # Revenue / Total Assets
+
+    # Extended valuation (for Value signals)
+    shareholder_yield: float | None = None  # div_yield + buyback_yield
+    peg_ratio: float | None = None          # PE / earnings_growth
+    ev_revenue: float | None = None         # EV / Revenue
+    ebit_ev: float | None = None            # EBIT / EV (Greenblatt)
+    ncav_ratio: float | None = None         # NCAV / Market Cap
 
     # Margin Trend (direction)
     margin_trend: float | None = None  # positive = expanding, negative = contracting

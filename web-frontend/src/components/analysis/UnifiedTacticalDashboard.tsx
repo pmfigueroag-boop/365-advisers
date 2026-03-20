@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
-import { TrendingUp, Activity, Zap, BarChart3, Layers, Target, Clock, AlertTriangle, ArrowRight, ShieldCheck } from "lucide-react";
+import { useMemo, useState } from "react";
+import { TrendingUp, Activity, Zap, BarChart3, Layers, Target, Clock, AlertTriangle, ArrowRight, ShieldCheck, ChevronDown, ChevronUp } from "lucide-react";
 import { TechnicalAnalysisResult } from "@/hooks/useTechnicalAnalysis";
+import type { SpecialtyOpinion } from "@/hooks/useCombinedStream";
 import GlossaryTooltip from "../GlossaryTooltip";
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from "recharts";
 
@@ -83,9 +84,133 @@ function ScoreWeightBar({ score, weight, label }: { score: number; weight: numbe
     );
 }
 
+// ─── Indicator Definitions ────────────────────────────────────────────────────
+
+interface IndicatorDef {
+    metric: string;
+    definition: string;
+}
+
+const INDICATOR_DEFS: Record<string, IndicatorDef[]> = {
+    trend: [
+        { metric: "SMA 50", definition: "Media Móvil Simple de 50 períodos. Mide la dirección de la tendencia a corto plazo. Precio por encima = tendencia alcista." },
+        { metric: "SMA 200", definition: "Media Móvil Simple de 200 períodos. Define la tendencia de largo plazo (institucional). Es la línea divisoria entre mercado alcista y bajista." },
+        { metric: "MACD Signal", definition: "Moving Average Convergence Divergence. Mide la convergencia/divergencia entre medias rápidas y lentas. Cruces al alza = momentum positivo." },
+        { metric: "Golden/Death Cross", definition: "Golden Cross: SMA50 cruza sobre SMA200 (señal alcista fuerte). Death Cross: SMA50 cruza bajo SMA200 (señal bajista fuerte). Eventos raros de alta importancia." },
+    ],
+    momentum: [
+        { metric: "RSI (14)", definition: "Relative Strength Index. Oscilador 0-100 que mide velocidad y cambio de movimientos de precio. <30 = sobreventa (oportunidad), >70 = sobrecompra (riesgo)." },
+        { metric: "Stochastic %K", definition: "Oscilador Estocástico. Compara el precio de cierre con el rango de precios del período. <20 = sobreventa, >80 = sobrecompra. Más sensible que RSI." },
+        { metric: "Divergencia", definition: "Cuando el precio hace nuevos máximos/mínimos pero el oscilador no. Divergencia bajista = debilidad oculta. Divergencia alcista = fortaleza oculta." },
+    ],
+    volatility: [
+        { metric: "BB Position", definition: "Posición del precio dentro de las Bandas de Bollinger. LOWER = cerca del suelo (posible rebote), UPPER = cerca del techo (posible retroceso)." },
+        { metric: "BB Width", definition: "Ancho de las Bandas de Bollinger. Bandas estrechas = baja volatilidad (squeeze, posible explosión). Bandas anchas = alta volatilidad activa." },
+        { metric: "ATR", definition: "Average True Range. Mide la volatilidad real del activo en valor absoluto y porcentual. ATR alto = movimientos amplios, requiere stops más amplios." },
+    ],
+    volume: [
+        { metric: "Vol vs Avg 20", definition: "Volumen actual relativo al promedio de 20 días. >1.5x = alta convicción del movimiento. <0.7x = bajo interés, movimiento no confirmado." },
+        { metric: "OBV Trend", definition: "On-Balance Volume. Acumula volumen en dirección del precio. RISING = dinero entrando (acumulación). FALLING = dinero saliendo (distribución)." },
+        { metric: "Confirmación Vol-Precio", definition: "Verifica si el volumen respalda el movimiento de precio. CONFIRMED = tendencia saludable. DIVERGENT = movimiento sin convicción (peligro)." },
+    ],
+    structure: [
+        { metric: "Soporte", definition: "Nivel de precio donde históricamente se concentra interés comprador. Actúa como piso. Rupturas por debajo son señales bajistas fuertes." },
+        { metric: "Resistencia", definition: "Nivel de precio donde históricamente se concentra presión vendedora. Actúa como techo. Rupturas por encima son señales alcistas fuertes." },
+        { metric: "Market Structure", definition: "Secuencia de máximos y mínimos. HH/HL = Higher Highs/Higher Lows (tendencia alcista). LH/LL = Lower Highs/Lower Lows (tendencia bajista)." },
+    ],
+};
+
+// ─── Analyst Depth Component ─────────────────────────────────────────────────
+
+function TactAnalystDepth({ module, opinion }: { module: string; opinion?: SpecialtyOpinion }) {
+    const [expanded, setExpanded] = useState(false);
+    const defs = INDICATOR_DEFS[module] || [];
+
+    if (!opinion && defs.length === 0) return null;
+
+    const signalBadge = (sig: string) => {
+        const s = sig.toUpperCase();
+        if (s === "BULLISH") return "bg-emerald-500/15 border-emerald-500/30 text-emerald-400";
+        if (s === "BEARISH") return "bg-rose-500/15 border-rose-500/30 text-rose-400";
+        return "bg-slate-500/10 border-slate-500/30 text-slate-400";
+    };
+    const convictionDot = (c: string) => {
+        const v = c.toUpperCase();
+        if (v === "HIGH") return "text-emerald-400";
+        if (v === "MEDIUM") return "text-yellow-400";
+        return "text-slate-500";
+    };
+
+    return (
+        <div className="mt-1 pt-3 border-t border-[#30363d]/50">
+            <button
+                className="w-full flex items-center justify-between text-left group cursor-pointer"
+                onClick={() => setExpanded(!expanded)}
+                aria-expanded={expanded}
+            >
+                <span className="text-[9px] text-[#8b949e] font-bold uppercase tracking-widest group-hover:text-indigo-400 transition-colors flex items-center gap-1.5">
+                    <Activity size={10} /> Analyst Depth
+                </span>
+                <div className="flex items-center justify-center group-hover:bg-[#161b22] rounded p-0.5 transition-colors">
+                    {expanded ? <ChevronUp size={12} className="text-indigo-400" /> : <ChevronDown size={12} className="text-[#8b949e] group-hover:text-indigo-400" />}
+                </div>
+            </button>
+
+            {expanded && (
+                <div className="mt-3 space-y-3 pt-3 border-t border-[#30363d]/30" style={{ animation: "fadeSlideIn 0.2s ease" }}>
+                    {/* AI Narrative */}
+                    {opinion && (
+                        <div className="bg-[#161b22] p-3 rounded-lg border border-[#30363d]/50">
+                            <div className="flex items-center gap-1.5 mb-2">
+                                <span className={`text-[8px] font-black px-1.5 py-0.5 rounded border uppercase ${signalBadge(opinion.signal)}`}>
+                                    {opinion.signal}
+                                </span>
+                                <span className={`text-[7px] font-bold ${convictionDot(opinion.conviction)}`}>
+                                    ● {opinion.conviction}
+                                </span>
+                            </div>
+                            <p className="text-[10px] text-[#c9d1d9] leading-relaxed font-serif italic border-l-2 border-indigo-500/40 pl-2">
+                                "{opinion.narrative}"
+                            </p>
+                        </div>
+                    )}
+
+                    {/* Indicator Definitions */}
+                    {defs.length > 0 && (
+                        <div>
+                            <p className="text-[8px] text-indigo-400 font-bold uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                                <Zap size={10} /> Indicadores Explicados
+                            </p>
+                            <div className="flex flex-col gap-2">
+                                {defs.map((d, idx) => (
+                                    <div key={idx} className="bg-[#0d1117] p-3 rounded border border-[#30363d]">
+                                        <p className="text-[10px] font-black text-[#c9d1d9] mb-1 font-mono">{d.metric}</p>
+                                        <p className="text-[9px] text-[#8b949e] leading-relaxed">{d.definition}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Key Data Tags */}
+                    {opinion && opinion.key_data.length > 0 && (
+                        <div className="flex flex-wrap gap-1 pt-1 border-t border-[#30363d]/50">
+                            {opinion.key_data.map((d, i) => (
+                                <span key={i} className="text-[7px] bg-[#21262d] text-slate-500 px-1.5 py-0.5 rounded font-mono">
+                                    {d}
+                                </span>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+}
+
 // ─── Module Cards (Tactical Grid) ──────────────────────────────────────────────
 
-function TactTrendCard({ data, weight }: { data: TechnicalAnalysisResult; weight: number }) {
+function TactTrendCard({ data, weight, opinion }: { data: TechnicalAnalysisResult; weight: number; opinion?: SpecialtyOpinion }) {
     const t = data.indicators.trend;
     const score = data.summary.subscores.trend;
     const status = data.summary.trend_status;
@@ -129,11 +254,12 @@ function TactTrendCard({ data, weight }: { data: TechnicalAnalysisResult; weight
             </div>
 
             <ScoreWeightBar score={score} weight={weight} label="Trend Score" />
+            <TactAnalystDepth module="trend" opinion={opinion} />
         </div>
     );
 }
 
-function TactMomentumCard({ data, weight }: { data: TechnicalAnalysisResult; weight: number }) {
+function TactMomentumCard({ data, weight, opinion }: { data: TechnicalAnalysisResult; weight: number; opinion?: SpecialtyOpinion }) {
     const m = data.indicators.momentum;
     const score = data.summary.subscores.momentum;
     const status = data.summary.momentum_status;
@@ -187,11 +313,12 @@ function TactMomentumCard({ data, weight }: { data: TechnicalAnalysisResult; wei
             </div>
 
             <ScoreWeightBar score={score} weight={weight} label="Momentum Score" />
+            <TactAnalystDepth module="momentum" opinion={opinion} />
         </div>
     );
 }
 
-function TactVolatilityCard({ data, weight }: { data: TechnicalAnalysisResult; weight: number }) {
+function TactVolatilityCard({ data, weight, opinion }: { data: TechnicalAnalysisResult; weight: number; opinion?: SpecialtyOpinion }) {
     const v = data.indicators.volatility;
     const score = data.summary.subscores.volatility;
     const condition = data.summary.volatility_condition;
@@ -223,11 +350,12 @@ function TactVolatilityCard({ data, weight }: { data: TechnicalAnalysisResult; w
             </div>
 
             <ScoreWeightBar score={score} weight={weight} label="Vol Score" />
+            <TactAnalystDepth module="volatility" opinion={opinion} />
         </div>
     );
 }
 
-function TactVolumeCard({ data, weight }: { data: TechnicalAnalysisResult; weight: number }) {
+function TactVolumeCard({ data, weight, opinion }: { data: TechnicalAnalysisResult; weight: number; opinion?: SpecialtyOpinion }) {
     const v = data.indicators.volume;
     const score = data.summary.subscores.volume;
     const strength = data.summary.volume_strength;
@@ -259,11 +387,12 @@ function TactVolumeCard({ data, weight }: { data: TechnicalAnalysisResult; weigh
             </div>
 
             <ScoreWeightBar score={score} weight={weight} label="Volume Score" />
+            <TactAnalystDepth module="volume" opinion={opinion} />
         </div>
     );
 }
 
-function TactStructureCard({ data, weight }: { data: TechnicalAnalysisResult; weight: number }) {
+function TactStructureCard({ data, weight, opinion }: { data: TechnicalAnalysisResult; weight: number; opinion?: SpecialtyOpinion }) {
     const s = data.indicators.structure;
     const score = data.summary.subscores.structure;
     const dir = s.breakout_direction;
@@ -306,6 +435,7 @@ function TactStructureCard({ data, weight }: { data: TechnicalAnalysisResult; we
             </div>
 
             <ScoreWeightBar score={score} weight={weight} label="Struct Score" />
+            <TactAnalystDepth module="structure" opinion={opinion} />
         </div>
     );
 }
@@ -440,11 +570,11 @@ export default function UnifiedTacticalDashboard({ data, technicalMemo }: Unifie
 
             {/* ── 2. ZONA CENTRAL: Grid Táctico de Componentes ──────────────────── */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                <TactTrendCard data={data} weight={getWeight(trendRegime, "trend")} />
-                <TactMomentumCard data={data} weight={getWeight(trendRegime, "momentum")} />
-                <TactVolatilityCard data={data} weight={getWeight(trendRegime, "volatility")} />
-                <TactVolumeCard data={data} weight={getWeight(trendRegime, "volume")} />
-                <TactStructureCard data={data} weight={getWeight(trendRegime, "structure")} />
+                <TactTrendCard data={data} weight={getWeight(trendRegime, "trend")} opinion={technicalMemo?.trend} />
+                <TactMomentumCard data={data} weight={getWeight(trendRegime, "momentum")} opinion={technicalMemo?.momentum} />
+                <TactVolatilityCard data={data} weight={getWeight(trendRegime, "volatility")} opinion={technicalMemo?.volatility} />
+                <TactVolumeCard data={data} weight={getWeight(trendRegime, "volume")} opinion={technicalMemo?.volume} />
+                <TactStructureCard data={data} weight={getWeight(trendRegime, "structure")} opinion={technicalMemo?.structure} />
             </div>
 
             {/* ── 3. ZONA INFERIOR: MTF Heatmap ─────────────────────────────────── */}

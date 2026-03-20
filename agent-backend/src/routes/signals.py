@@ -71,33 +71,40 @@ class SignalRegistryEntry(BaseModel):
     "/{ticker}",
     summary="Evaluate alpha signals for a ticker",
 )
-async def evaluate_signals(ticker: str):
+async def evaluate_signals(ticker: str, force_refresh: bool = False):
     """
     Fetch market data, extract features, and evaluate all enabled alpha
     signals for the given ticker.  Returns the full SignalProfile + CompositeScore.
+
+    Pass ?force_refresh=true to bypass cached market data.
     """
     import asyncio
 
     symbol = ticker.upper().strip()
-    logger.info(f"SIGNAL-API: Evaluating signals for {symbol}")
+    logger.info(f"SIGNAL-API: Evaluating signals for {symbol} (force_refresh={force_refresh})")
 
     # Reuse IGE's data fetching helpers
     fundamental_features = None
     technical_features = None
+    freshness_info = {}
 
     try:
         from src.data.market_data import fetch_fundamental_data
-        fund_raw = await asyncio.to_thread(fetch_fundamental_data, symbol)
+        fund_raw = await asyncio.to_thread(fetch_fundamental_data, symbol, force_refresh)
         if fund_raw and "error" not in fund_raw:
             fundamental_features = _ige._build_fundamental_features(symbol, fund_raw)
+            if "_data_freshness" in fund_raw:
+                freshness_info["fundamental"] = fund_raw["_data_freshness"]
     except Exception as exc:
         logger.debug(f"SIGNAL-API: Fundamental fetch failed for {symbol}: {exc}")
 
     try:
         from src.data.market_data import fetch_technical_data
-        tech_raw = await asyncio.to_thread(fetch_technical_data, symbol)
+        tech_raw = await asyncio.to_thread(fetch_technical_data, symbol, force_refresh)
         if tech_raw and "error" not in tech_raw:
             technical_features = _ige._build_technical_features(symbol, tech_raw)
+            if "_data_freshness" in tech_raw:
+                freshness_info["technical"] = tech_raw["_data_freshness"]
     except Exception as exc:
         logger.debug(f"SIGNAL-API: Technical fetch failed for {symbol}: {exc}")
 
@@ -147,56 +154,81 @@ async def evaluate_signals(ticker: str):
                 "freshness_level": case_result.freshness_level.value,
             },
         },
+        # P2: Data freshness metadata for frontend transparency
+        "_data_freshness": freshness_info,
     }
 
-    # ── LLM Research Memos (concurrent, non-blocking) ─────────────────────
-    try:
-        from src.engines.alpha.alpha_memo_agent import synthesize_alpha_memo
-        from src.engines.alpha.evidence_memo_agent import synthesize_evidence_memo
-        from src.engines.alpha.signal_map_memo_agent import synthesize_signal_map_memo
+    # ── LLM Research Memos (cached with TTL, concurrent) ────────────────────
+    from src.data.cache import get_cache, TTL_SIGNALS
 
-        alpha_memo_task = asyncio.to_thread(
-            synthesize_alpha_memo, ticker=symbol, signal_profile=response_data,
-        )
-        evidence_memo_task = asyncio.to_thread(
-            synthesize_evidence_memo,
-            ticker=symbol,
-            composite_alpha=response_data["composite_alpha"],
-            category_summary=response_data["category_summary"],
-        )
-        signal_map_memo_task = asyncio.to_thread(
-            synthesize_signal_map_memo,
-            ticker=symbol,
-            signals=response_data["signals"],
-            category_summary=response_data["category_summary"],
-        )
+    memo_cache = get_cache()
+    cached_memos = None if force_refresh else memo_cache.get(symbol, "signal_memos")
 
-        alpha_memo, evidence_memo, signal_map_memo = await asyncio.gather(
-            alpha_memo_task, evidence_memo_task, signal_map_memo_task,
-            return_exceptions=True,
-        )
+    if cached_memos is not None:
+        # Serve cached memos — no LLM calls needed
+        response_data["alpha_memo"] = cached_memos.data.get("alpha_memo")
+        response_data["evidence_memo"] = cached_memos.data.get("evidence_memo")
+        response_data["signal_map_memo"] = cached_memos.data.get("signal_map_memo")
+        logger.info(f"SIGNAL-API: Serving cached memos for {symbol} (age={cached_memos.age_seconds}s)")
+    else:
+        # Generate fresh memos via LLM
+        try:
+            from src.engines.alpha.alpha_memo_agent import synthesize_alpha_memo
+            from src.engines.alpha.evidence_memo_agent import synthesize_evidence_memo
+            from src.engines.alpha.signal_map_memo_agent import synthesize_signal_map_memo
 
-        if not isinstance(alpha_memo, Exception):
-            response_data["alpha_memo"] = alpha_memo
-            logger.info(f"SIGNAL-API: Alpha memo generated for {symbol}")
-        else:
-            logger.warning(f"SIGNAL-API: Alpha memo failed for {symbol}: {alpha_memo}")
+            alpha_memo_task = asyncio.to_thread(
+                synthesize_alpha_memo, ticker=symbol, signal_profile=response_data,
+            )
+            evidence_memo_task = asyncio.to_thread(
+                synthesize_evidence_memo,
+                ticker=symbol,
+                composite_alpha=response_data["composite_alpha"],
+                category_summary=response_data["category_summary"],
+            )
+            signal_map_memo_task = asyncio.to_thread(
+                synthesize_signal_map_memo,
+                ticker=symbol,
+                signals=response_data["signals"],
+                category_summary=response_data["category_summary"],
+            )
 
-        if not isinstance(evidence_memo, Exception):
-            response_data["evidence_memo"] = evidence_memo
-            logger.info(f"SIGNAL-API: Evidence memo generated for {symbol}")
-        else:
-            logger.warning(f"SIGNAL-API: Evidence memo failed for {symbol}: {evidence_memo}")
+            alpha_memo, evidence_memo, signal_map_memo = await asyncio.gather(
+                alpha_memo_task, evidence_memo_task, signal_map_memo_task,
+                return_exceptions=True,
+            )
 
-        if not isinstance(signal_map_memo, Exception):
-            response_data["signal_map_memo"] = signal_map_memo
-            logger.info(f"SIGNAL-API: Signal Map memo generated for {symbol}")
-        else:
-            logger.warning(f"SIGNAL-API: Signal Map memo failed for {symbol}: {signal_map_memo}")
+            memos_to_cache = {}
 
-    except Exception as exc:
-        logger.warning(f"SIGNAL-API: Memo agents import failed: {exc}")
-        # Non-fatal — response is complete without memos
+            if not isinstance(alpha_memo, Exception):
+                response_data["alpha_memo"] = alpha_memo
+                memos_to_cache["alpha_memo"] = alpha_memo
+                logger.info(f"SIGNAL-API: Alpha memo generated for {symbol}")
+            else:
+                logger.warning(f"SIGNAL-API: Alpha memo failed for {symbol}: {alpha_memo}")
+
+            if not isinstance(evidence_memo, Exception):
+                response_data["evidence_memo"] = evidence_memo
+                memos_to_cache["evidence_memo"] = evidence_memo
+                logger.info(f"SIGNAL-API: Evidence memo generated for {symbol}")
+            else:
+                logger.warning(f"SIGNAL-API: Evidence memo failed for {symbol}: {evidence_memo}")
+
+            if not isinstance(signal_map_memo, Exception):
+                response_data["signal_map_memo"] = signal_map_memo
+                memos_to_cache["signal_map_memo"] = signal_map_memo
+                logger.info(f"SIGNAL-API: Signal Map memo generated for {symbol}")
+            else:
+                logger.warning(f"SIGNAL-API: Signal Map memo failed for {symbol}: {signal_map_memo}")
+
+            # Cache the memos for future requests
+            if memos_to_cache:
+                memo_cache.set(symbol, "signal_memos", memos_to_cache, ttl_seconds=TTL_SIGNALS)
+                logger.info(f"SIGNAL-API: Cached {len(memos_to_cache)} memos for {symbol} (ttl={TTL_SIGNALS}s)")
+
+        except Exception as exc:
+            logger.warning(f"SIGNAL-API: Memo agents import failed: {exc}")
+            # Non-fatal — response is complete without memos
 
     return response_data
 

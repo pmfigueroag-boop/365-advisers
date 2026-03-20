@@ -270,6 +270,7 @@ class BacktestRun(Base):
     execution_time_s = Column(Float, default=0.0)
     config_json      = Column(Text, default="{}")             # Full BacktestConfig
     calibration_json = Column(Text, default="[]")             # CalibrationSuggestion list
+    memo_json        = Column(Text, default=None)             # LLM backtest memo (persisted once)
     error_message    = Column(Text)
     created_at       = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
@@ -1088,7 +1089,7 @@ class FundamentalDBCache:
             allocation=committee.get("allocation_recommendation"),
             committee_json=json.dumps(committee),
             agent_memos_json=json.dumps(agent_memos),
-            ratios_json=json.dumps(data_ready.get("ratios", {})),
+            ratios_json=json.dumps(data_ready),
             research_memo=research,
             expires_at=expires,
         )
@@ -1143,8 +1144,13 @@ class FundamentalDBCache:
         """Reconstruct the events list from a DB row."""
         events = []
         try:
-            ratios = json.loads(row.ratios_json or "{}")
-            events.append({"event": "data_ready", "data": {"ticker": row.ticker, "ratios": ratios}})
+            data_ready_payload = json.loads(row.ratios_json or "{}")
+            if "ratios" not in data_ready_payload and data_ready_payload != {}:
+                # Legacy cache: ratios_json was just the ratios dict
+                data_ready_payload = {"ticker": row.ticker, "ratios": data_ready_payload}
+            elif "ticker" not in data_ready_payload:
+                data_ready_payload["ticker"] = row.ticker
+            events.append({"event": "data_ready", "data": data_ready_payload})
         except Exception:
             pass
 

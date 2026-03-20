@@ -1,0 +1,413 @@
+{
+  "ticker": "AAPL",
+  "evaluated_at": "2026-03-19T05:45:37.445631+00:00",
+  "total_signals": 68,
+  "fired_signals": 10,
+  "signals": [
+    {
+      "signal_id": "value.div_yield_vs_hist",
+      "signal_name": "Dividend Yield vs Historical Average",
+      "category": "value",
+      "fired": true,
+      "value": 0.42,
+      "threshold": 0.03,
+      "strength": "strong",
+      "confidence": 1.0,
+      "description": "\u2713 Dividend Yield vs Historical Average: 42.0% > 3%"
+    },
+    {
+      "signal_id": "quality.high_roic",
+      "signal_name": "High ROIC",
+      "category": "quality",
+      "fired": true,
+      "value": 0.578847,
+      "threshold": 0.15,
+      "strength": "strong",
+      "confidence": 1.0,
+      "description": "\u2713 High ROIC: 57.9% > 15%"
+    },
+    {
+      "signal_id": "quality.strong_earnings_quality",
+      "signal_name": "Strong Earnings Quality",
+      "category": "quality",
+      "fired": true,
+      "value": 9.13,
+      "threshold": 7.0,
+      "strength": "strong",
+      "confidence": 0.945,
+      "description": "\u2713 Strong Earnings Quality: 9.13 > 7.0"
+    },
+    {
+      "signal_id": "quality.low_leverage",
+      "signal_name": "Low Leverage",
+      "category": "quality",
+      "fired": true,
+      "value": 1.33803,
+      "threshold": 0.5,
+      "strength": "moderate",
+      "confidence": 0.001,
+      "description": "\u2713 Low Leverage: 1.34 < 0.5"
+    },
+    {
+      "signal_id": "quality.high_roe",
+      "signal_name": "High Return on Equity",
+      "category": "quality",
+      "fired": true,
+      "value": 1.51913,
+      "threshold": 0.15,
+      "strength": "strong",
+      "confidence": 1.0,
+      "description": "\u2713 High Return on Equity: 1.52 > 0.1"
+    },
+    {
+      "signal_id": "momentum.golden_cross",
+      "signal_name": "Moving Average Crossover (Golden Cross)",
+      "category": "momentum",
+      "fired": true,
+      "value": 0.062029,
+      "threshold": 0.0,
+      "strength": "moderate",
+      "confidence": 0.5,
+      "description": "\u2713 Moving Average Crossover (Golden Cross): 6.2% > 0%"
+    },
+    {
+      "signal_id": "momentum.price_above_ema20",
+      "signal_name": "Strong Price Trend",
+      "category": "momentum",
+      "fired": true,
+      "value": 0.4672,
+      "threshold": 0.0,
+      "strength": "moderate",
+      "confidence": 0.5,
+      "description": "\u2713 Strong Price Trend: 46.7% > 0%"
+    },
+    {
+      "signal_id": "event.revenue_acceleration",
+      "signal_name": "Revenue Acceleration",
+      "category": "event",
+      "fired": true,
+      "value": 0.157,
+      "threshold": 0.1,
+      "strength": "strong",
+      "confidence": 0.681,
+      "description": "\u2713 Revenue Acceleration: 15.7% > 10%"
+    },
+    {
+      "signal_id": "fundmom.revenue_accelerating",
+      "signal_name": "Revenue Growth Accelerating",
+      "category": "growth",
+      "fired": true,
+      "value": 0.04613,
+      "threshold": 0.02,
+      "strength": "strong",
+      "confidence": 0.658,
+      "description": "\u2713 Revenue Growth Accelerating: 4.6% > 2%"
+    },
+    {
+      "signal_id": "fundmom.margin_compressing",
+      "signal_name": "Margin Compression",
+      "category": "quality",
+      "fired": true,
+      "value": -0.100786,
+      "threshold": -0.1,
+      "strength": "strong",
+      "confidence": 0.501,
+      "description": "\u2713 Margin Compression: -10.1% < -10%"
+    }
+  ],
+  "category_summary": {
+    "value": {
+      "category": "value",
+      "fired": 1,
+      "total": 14,
+      "composite_strength": 0.071,
+      "confidence": "low",
+      "dominant_strength": "strong"
+    },
+    "quality": {
+      "category": "quality",
+      "fired": 5,
+      "total": 12,
+      "composite_strength": 0.292,
+      "confidence": "medium",
+      "dominant_strength": "strong"
+    },
+    "growth": {
+      "category": "growth",
+      "fired": 1,
+      "total": 11,
+      "composite_strength": 0.06,
+      "confidence": "low",
+      "dominant_strength": "strong"
+    },
+    "momentum": {
+      "category": "momentum",
+      "fired": 2,
+      "total": 12,
+      "composite_strength": 0.05,
+      "confidence": "low",
+      "dominant_strength": "moderate"
+    },
+    "volatility": {
+      "category": "volatility",
+      "fired": 0,
+      "total": 7,
+      "composite_strength": 0.0,
+      "confidence": "low",
+      "dominant_strength": "weak"
+    },
+    "flow": {
+      "category": "flow",
+      "fired": 0,
+      "total": 5,
+      "composite_strength": 0.0,
+      "confidence": "low",
+      "dominant_strength": "weak"
+    },
+    "event": {
+      "category": "event",
+      "fired": 1,
+      "total": 4,
+      "composite_strength": 0.17,
+      "confidence": "low",
+      "dominant_strength": "strong"
+    },
+    "macro": {
+      "category": "macro",
+      "fired": 0,
+      "total": 3,
+      "composite_strength": 0.0,
+      "confidence": "low",
+      "dominant_strength": "weak"
+    }
+  },
+  "composite": {
+    "overall_strength": 0.279,
+    "overall_confidence": "medium",
+    "category_scores": {
+      "value": {
+        "category": "value",
+        "fired": 1,
+        "total": 14,
+        "composite_strength": 0.071,
+        "confidence": "low",
+        "dominant_strength": "strong"
+      },
+      "quality": {
+        "category": "quality",
+        "fired": 5,
+        "total": 12,
+        "composite_strength": 0.292,
+        "confidence": "medium",
+        "dominant_strength": "strong"
+      },
+      "growth": {
+        "category": "growth",
+        "fired": 1,
+        "total": 11,
+        "composite_strength": 0.06,
+        "confidence": "low",
+        "dominant_strength": "strong"
+      },
+      "momentum": {
+        "category": "momentum",
+        "fired": 2,
+        "total": 12,
+        "composite_strength": 0.05,
+        "confidence": "low",
+        "dominant_strength": "moderate"
+      },
+      "volatility": {
+        "category": "volatility",
+        "fired": 0,
+        "total": 7,
+        "composite_strength": 0.0,
+        "confidence": "low",
+        "dominant_strength": "weak"
+      },
+      "flow": {
+        "category": "flow",
+        "fired": 0,
+        "total": 5,
+        "composite_strength": 0.0,
+        "confidence": "low",
+        "dominant_strength": "weak"
+      },
+      "event": {
+        "category": "event",
+        "fired": 1,
+        "total": 4,
+        "composite_strength": 0.17,
+        "confidence": "low",
+        "dominant_strength": "strong"
+      },
+      "macro": {
+        "category": "macro",
+        "fired": 0,
+        "total": 3,
+        "composite_strength": 0.0,
+        "confidence": "low",
+        "dominant_strength": "weak"
+      }
+    },
+    "multi_category_bonus": true,
+    "dominant_category": "quality",
+    "active_categories": 5
+  },
+  "composite_alpha": {
+    "score": 66.8,
+    "environment": "Strong Opportunity",
+    "subscores": {
+      "value": {
+        "category": "value",
+        "score": 90.7,
+        "fired": 1,
+        "total": 14,
+        "coverage": 0.071,
+        "conflict_detected": false,
+        "conflict_penalty": 1.0,
+        "top_signals": [
+          "Dividend Yield vs Historical Average"
+        ]
+      },
+      "quality": {
+        "category": "quality",
+        "score": 80.0,
+        "fired": 5,
+        "total": 12,
+        "coverage": 0.417,
+        "conflict_detected": true,
+        "conflict_penalty": 0.8,
+        "top_signals": [
+          "High ROIC",
+          "Strong Earnings Quality",
+          "High Return on Equity"
+        ]
+      },
+      "growth": {
+        "category": "growth",
+        "score": 32.4,
+        "fired": 1,
+        "total": 11,
+        "coverage": 0.091,
+        "conflict_detected": false,
+        "conflict_penalty": 1.0,
+        "top_signals": [
+          "Revenue Growth Accelerating"
+        ]
+      },
+      "momentum": {
+        "category": "momentum",
+        "score": 100.0,
+        "fired": 2,
+        "total": 12,
+        "coverage": 0.167,
+        "conflict_detected": false,
+        "conflict_penalty": 1.0,
+        "top_signals": [
+          "Moving Average Crossover (Golden Cross)",
+          "Strong Price Trend"
+        ]
+      },
+      "volatility": {
+        "category": "volatility",
+        "score": 0.0,
+        "fired": 0,
+        "total": 7,
+        "coverage": 0.0,
+        "conflict_detected": false,
+        "conflict_penalty": 1.0,
+        "top_signals": []
+      },
+      "flow": {
+        "category": "flow",
+        "score": 0.0,
+        "fired": 0,
+        "total": 5,
+        "coverage": 0.0,
+        "conflict_detected": false,
+        "conflict_penalty": 1.0,
+        "top_signals": []
+      },
+      "event": {
+        "category": "event",
+        "score": 100.0,
+        "fired": 1,
+        "total": 4,
+        "coverage": 0.25,
+        "conflict_detected": false,
+        "conflict_penalty": 1.0,
+        "top_signals": [
+          "Revenue Acceleration"
+        ]
+      },
+      "macro": {
+        "category": "macro",
+        "score": 0.0,
+        "fired": 0,
+        "total": 3,
+        "coverage": 0.0,
+        "conflict_detected": false,
+        "conflict_penalty": 1.0,
+        "top_signals": []
+      }
+    },
+    "active_categories": 5,
+    "convergence_bonus": 5.78,
+    "cross_category_conflicts": [
+      "Value vs Quality: potential value trap",
+      "Quality vs Event: quality degradation event detected"
+    ],
+    "decay": {
+      "applied": true,
+      "average_freshness": 0.9343,
+      "expired_signals": 0,
+      "freshness_level": "fresh"
+    }
+  },
+  "alpha_memo": {
+    "signal": "NEUTRAL",
+    "conviction": "MEDIUM",
+    "narrative": "El perfil de se\u00f1ales Alpha de AAPL sugiere una tesis de inversi\u00f3n NEUTRAL con una convicci\u00f3n MEDIA. Si bien hay una oportunidad significativa en el entorno y la categor\u00eda QUALITY domina con 5 de 12 se\u00f1ales activas y una fuerza de 0.29, incluyendo m\u00e9tricas s\u00f3lidas como High ROIC y Strong Earnings Quality, existen conflictos notables. La compresi\u00f3n de m\u00e1rgenes y la detecci\u00f3n de un evento de degradaci\u00f3n de calidad (Quality vs Event) junto con una posible trampa de valor (Value vs Quality) contrarrestan el optimismo, indicando una situaci\u00f3n compleja donde los fundamentales positivos se ven mitigados por riesgos importantes.",
+    "key_data": [
+      "Fuerza compuesta: 27.9%",
+      "Categor\u00eda dominante: QUALITY (5 de 12 se\u00f1ales activas, fuerza 0.29)",
+      "Environment: Strong Opportunity"
+    ],
+    "risk_factors": [
+      "Compresi\u00f3n de m\u00e1rgenes (Margin Compression) con strength=STRONG y value=-0.100786, lo que indica una presi\u00f3n significativa sobre la rentabilidad operativa.",
+      "Detecci\u00f3n de un evento de degradaci\u00f3n de calidad (conflicto 'Quality vs Event: quality degradation event detected') que podr\u00eda socavar la solidez de las m\u00e9tricas de calidad positiva."
+    ]
+  },
+  "evidence_memo": {
+    "signal": "BULLISH",
+    "conviction": "LOW",
+    "narrative": "El sistema CASE de AAPL muestra una puntuaci\u00f3n general de 66.8/100 en un entorno de \"Strong Opportunity\", con un bonus de convergencia de +5.8 puntos, indicando cierta alineaci\u00f3n factorial. Las categor\u00edas de Momentum (100) y Eventos (100) son las m\u00e1s fuertes, mientras que Crecimiento (32), Volatilidad (0), Flujo (0) y Macro (0) son d\u00e9biles o inactivas. Sin embargo, existen conflictos significativos entre categor\u00edas, como la detecci\u00f3n de una \"potential value trap\" (Valor vs Calidad) y un \"quality degradation event detected\" (Calidad vs Eventos). Esta evidencia, aunque sugiere un sesgo alcista inicial por el momentum y el entorno, es contrarrestada por los serios problemas de calidad y valor, reduciendo la confianza y justificando una baja convicci\u00f3n.",
+    "key_data": [
+      "CASE Score: 66.8/100",
+      "Convergence Bonus: +5.8",
+      "Momentum Score: 100",
+      "Environment: Strong Opportunity"
+    ],
+    "risk_factors": [
+      "Potential value trap (conflicto Valor vs Calidad)",
+      "Quality degradation event detected (conflicto Calidad vs Eventos)"
+    ]
+  },
+  "signal_map_memo": {
+    "signal": "BULLISH",
+    "conviction": "MEDIUM",
+    "narrative": "El mapa de se\u00f1ales de AAPL exhibe una clara convergencia alcista, con 10 se\u00f1ales activas dominadas por factores de Calidad (High ROIC=0.5788, Strong Earnings Quality=9.13) y Crecimiento (Revenue Acceleration=0.157). La mayor\u00eda de estas se\u00f1ales son de fuerza 'STRONG', indicando un perfil fundamental robusto y un impulso positivo ('Moving Average Crossover'). Sin embargo, la se\u00f1al 'Margin Compression' (value=-0.100786) es una divergencia fuerte y negativa dentro de la Calidad, sugiriendo presiones en la rentabilidad. La ausencia de se\u00f1ales activas en 3 de las 8 categor\u00edas totales podr\u00eda indicar \u00e1reas sin catalizadores o riesgos no capturados por el modelo.",
+    "key_data": [
+      "100% de se\u00f1ales activas (10/10), con 5/8 categor\u00edas cubiertas",
+      "Dominancia de se\u00f1ales 'STRONG' en Calidad (5/12), Crecimiento (1/11) y Valor (1/14)",
+      "High ROIC: 0.578847 (STRONG)",
+      "Margin Compression: -0.100786 (STRONG)"
+    ],
+    "risk_factors": [
+      "Presi\u00f3n en los m\u00e1rgenes de beneficio evidenciada por la se\u00f1al 'Margin Compression', lo cual podr\u00eda afectar la rentabilidad futura.",
+      "La ausencia de se\u00f1ales activas en 3 de las 8 categor\u00edas del modelo podr\u00eda implicar puntos ciegos o riesgos no capturados.",
+      "Aunque el impulso es positivo, su fuerza 'MODERATE' podr\u00eda ser vulnerable a cambios en el sentimiento del mercado si la compresi\u00f3n de m\u00e1rgenes persiste."
+    ]
+  }
+}

@@ -115,6 +115,71 @@ def _build_technical_snapshot(
         sign = close_diff.apply(lambda x: 1 if x > 0 else (-1 if x < 0 else 0))
         obv = (sign * window["Volume"]).cumsum().iloc[-1]
 
+    # ── Derived metrics required by signal definitions ────────────────────
+
+    # SMA 50/200 spread (for Golden Cross / Death Cross signals)
+    sma_50_200_spread = 0.0
+    if sma_200 != 0:
+        sma_50_200_spread = (sma_50 - sma_200) / sma_200
+
+    # Mean reversion z-score (price vs 50-day SMA, normalized by std)
+    mean_reversion_z = 0.0
+    if len(window) >= 50:
+        std_50 = window["Close"].rolling(50).std().iloc[-1]
+        if std_50 > 0:
+            mean_reversion_z = (close - sma_50) / std_50
+
+    # Percentage from 52-week high
+    pct_from_52w_high = 0.0
+    if len(window) >= 252 and "High" in window.columns:
+        high_52w = window["High"].tail(252).max()
+        if high_52w > 0:
+            pct_from_52w_high = (close - high_52w) / high_52w
+    elif "High" in window.columns:
+        high_all = window["High"].max()
+        if high_all > 0:
+            pct_from_52w_high = (close - high_all) / high_all
+
+    # Volume surprise (current volume / 20-day average)
+    volume_surprise = 0.0
+    if volume_avg_20 > 0:
+        volume_surprise = volume / volume_avg_20
+
+    # ADX (Average Directional Index, simplified 14-period)
+    adx = 25.0  # Neutral default
+    if len(window) >= 28 and "High" in window.columns and "Low" in window.columns:
+        try:
+            high = window["High"]
+            low = window["Low"]
+            prev_close = window["Close"].shift(1)
+            plus_dm = (high - high.shift(1)).clip(lower=0)
+            minus_dm = (low.shift(1) - low).clip(lower=0)
+            # Zero out when other DM is larger
+            plus_dm = plus_dm.where(plus_dm > minus_dm, 0)
+            minus_dm = minus_dm.where(minus_dm > plus_dm, 0)
+            tr = pd.concat([
+                (high - low),
+                (high - prev_close).abs(),
+                (low - prev_close).abs(),
+            ], axis=1).max(axis=1)
+            atr_14 = tr.rolling(14).mean()
+            plus_di = 100.0 * (plus_dm.rolling(14).mean() / atr_14)
+            minus_di = 100.0 * (minus_dm.rolling(14).mean() / atr_14)
+            dx = 100.0 * ((plus_di - minus_di).abs() / (plus_di + minus_di + 1e-10))
+            adx = dx.rolling(14).mean().iloc[-1]
+            if pd.isna(adx):
+                adx = 25.0
+        except Exception:
+            adx = 25.0
+
+    # Realized volatility (20-day annualized)
+    realized_vol_20d = 0.0
+    if len(window) >= 21:
+        daily_returns = window["Close"].pct_change().tail(20)
+        realized_vol_20d = daily_returns.std() * (252 ** 0.5)
+        if pd.isna(realized_vol_20d):
+            realized_vol_20d = 0.0
+
     return {
         "current_price": close,
         "sma_50": sma_50,
@@ -133,6 +198,13 @@ def _build_technical_snapshot(
         "volume": volume,
         "obv": obv,
         "volume_avg_20": volume_avg_20,
+        # Derived metrics
+        "sma_50_200_spread": sma_50_200_spread,
+        "mean_reversion_z": mean_reversion_z,
+        "pct_from_52w_high": pct_from_52w_high,
+        "volume_surprise": volume_surprise,
+        "adx": adx,
+        "realized_vol_20d": realized_vol_20d,
     }
 
 

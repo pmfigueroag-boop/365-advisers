@@ -293,24 +293,30 @@ export default function UnifiedFundamentalDashboard({
 
     // Compute Radar Chart Data
     const radarData = useMemo(() => {
-        let value = 5, quality = 5, growth = 5, risk = 5;
+        // Group scores by category to average them if multiple agents map to the same axis
+        const categories: Record<string, number[]> = {
+            Value: [], Quality: [], Growth: [], Solvency: []
+        };
 
         agentMemos.forEach(memo => {
             const base = normalizeSignalNumber(memo.signal); 
             const adjustedScore = 5 + (base - 5) * memo.conviction;
 
             const name = memo.agent.toLowerCase();
-            if (name.includes("value") || name.includes("margin")) value = adjustedScore;
-            else if (name.includes("quality") || name.includes("moat")) quality = adjustedScore;
-            else if (name.includes("growth") || name.includes("catalyst")) growth = adjustedScore;
-            else if (name.includes("risk") || name.includes("solvency")) risk = adjustedScore;
+            if (name.includes("value") || name.includes("margin")) categories.Value.push(adjustedScore);
+            else if (name.includes("quality") || name.includes("moat")) categories.Quality.push(adjustedScore);
+            else if (name.includes("growth") || name.includes("catalyst") || name.includes("momentum")) categories.Growth.push(adjustedScore);
+            else if (name.includes("risk") || name.includes("solvency") || name.includes("allocation")) categories.Solvency.push(adjustedScore);
         });
 
+        // Helper to get average or default 5
+        const getAvg = (arr: number[]) => arr.length > 0 ? arr.reduce((a,b) => a+b, 0) / arr.length : 5;
+
         return [
-            { subject: "Value", score: parseFloat(value.toFixed(1)), fullMark: 10 },
-            { subject: "Quality", score: parseFloat(quality.toFixed(1)), fullMark: 10 },
-            { subject: "Growth", score: parseFloat(growth.toFixed(1)), fullMark: 10 },
-            { subject: "Solvency", score: parseFloat(risk.toFixed(1)), fullMark: 10 },
+            { subject: "Value", score: parseFloat(getAvg(categories.Value).toFixed(1)), fullMark: 10 },
+            { subject: "Quality", score: parseFloat(getAvg(categories.Quality).toFixed(1)), fullMark: 10 },
+            { subject: "Growth", score: parseFloat(getAvg(categories.Growth).toFixed(1)), fullMark: 10 },
+            { subject: "Solvency", score: parseFloat(getAvg(categories.Solvency).toFixed(1)), fullMark: 10 },
         ];
     }, [agentMemos]);
 
@@ -369,7 +375,7 @@ export default function UnifiedFundamentalDashboard({
                             <div className="w-full max-w-sm h-1 bg-[#21262d] rounded-full overflow-hidden">
                                 <div
                                     className="h-full bg-indigo-500 rounded-full transition-all duration-500"
-                                    style={{ width: `${(agentCount / totalAgents) * 100}%` }}
+                                    style={{ width: `${totalAgents > 0 ? (agentCount / totalAgents) * 100 : 0}%` }}
                                 />
                             </div>
                             <p className="text-[9px] text-slate-600 mt-3 animate-pulse font-bold tracking-widest uppercase">Running LangGraph Agents...</p>

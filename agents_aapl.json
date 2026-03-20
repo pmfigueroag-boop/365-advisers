@@ -1,0 +1,22 @@
+[
+  {
+    "agent": "Value & Margin of Safety",
+    "signal": "AVOID",
+    "conviction": 0.9
+  },
+  {
+    "agent": "Quality & Moat",
+    "signal": "BUY",
+    "conviction": 0.9
+  },
+  {
+    "agent": "Risk & Macro Stress",
+    "signal": "HOLD",
+    "conviction": 0.6
+  },
+  {
+    "agent": "Capital Allocation",
+    "signal": "BUY",
+    "conviction": 0.9
+  }
+]

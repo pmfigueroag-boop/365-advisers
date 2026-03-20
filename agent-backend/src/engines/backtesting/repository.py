@@ -108,6 +108,25 @@ class BacktestRepository:
                 row.calibration_json = json.dumps([s.model_dump() for s in suggestions])
                 db.commit()
 
+    @staticmethod
+    def save_memo(run_id: str, memo: dict) -> None:
+        """Persist the LLM backtest memo for a run (called once at run time)."""
+        with SessionLocal() as db:
+            row = db.query(BacktestRun).filter(BacktestRun.run_id == run_id).first()
+            if row:
+                row.memo_json = json.dumps(memo)
+                db.commit()
+                logger.info(f"BACKTEST-REPO: Saved memo for run {run_id}")
+
+    @staticmethod
+    def get_memo(run_id: str) -> dict | None:
+        """Retrieve persisted memo for a run."""
+        with SessionLocal() as db:
+            row = db.query(BacktestRun).filter(BacktestRun.run_id == run_id).first()
+            if row and row.memo_json:
+                return json.loads(row.memo_json)
+            return None
+
     # ── Read ──────────────────────────────────────────────────────────────
 
     @staticmethod

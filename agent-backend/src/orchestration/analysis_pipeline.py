@@ -36,6 +36,43 @@ from src.data.database import SessionLocal, OpportunityScoreHistory
 logger = logging.getLogger("365advisers.orchestration.pipeline")
 
 
+# ── Regime Detection Helper ──────────────────────────────────────────────────
+
+def _detect_regime(tech_data: dict | None) -> str:
+    """
+    Derive a macro regime from technical data for dynamic Opportunity Score
+    dimension weights.
+
+    Maps volatility_condition + trend signal → regime:
+      HIGH vol           → "high_volatility"
+      ELEVATED vol       → "slowdown"
+      LOW vol  + BUY     → "expansion"
+      LOW vol  + SELL    → "slowdown"
+      NORMAL   + BUY     → "recovery"
+      NORMAL   + SELL    → "recession"
+      fallback           → "expansion"
+    """
+    if not tech_data:
+        return "expansion"
+
+    summary = tech_data.get("summary", {})
+    vol_cond = summary.get("volatility_condition", "NORMAL").upper()
+    signal = summary.get("action", summary.get("signal", "HOLD")).upper()
+
+    if vol_cond == "HIGH":
+        return "high_volatility"
+    if vol_cond == "ELEVATED":
+        return "slowdown"
+    if vol_cond == "LOW":
+        return "expansion" if signal in ("BUY", "STRONG_BUY") else "slowdown"
+    # NORMAL
+    if signal in ("BUY", "STRONG_BUY"):
+        return "recovery"
+    if signal in ("SELL", "STRONG_SELL"):
+        return "recession"
+    return "expansion"
+
+
 class AnalysisPipeline:
     """
     Full analysis pipeline orchestrator.
@@ -315,6 +352,7 @@ class AnalysisPipeline:
                     fundamental_metrics=fund_ratios,
                     fundamental_agents=fund_agents,
                     technical_summary=tech_data or {},
+                    regime=_detect_regime(tech_data),
                 )
 
                 # Persist to DB

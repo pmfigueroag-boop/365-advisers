@@ -1,0 +1,32 @@
+Total: 13, Fired: 13
+
+=== FIRED SIGNALS ===
+  [value       ] High Shareholder Yield              v=0.42
+  [value       ] Dividend Yield vs Historical Average v=0.42
+  [quality     ] High ROIC                           v=0.578847
+  [quality     ] Strong Earnings Quality             v=9.13
+  [quality     ] Low Leverage                        v=1.33803
+  [quality     ] High Return on Equity               v=1.51913
+  [quality     ] Piotroski F-Score                   v=8.0
+  [quality     ] Asset Turnover Efficiency           v=1.8106
+  [momentum    ] Moving Average Crossover (Golden Cross) v=0.062029
+  [momentum    ] Strong Price Trend                  v=0.4672
+  [event       ] Revenue Acceleration                v=0.157
+  [growth      ] Revenue Growth Accelerating         v=0.04613
+  [quality     ] Margin Compression                  v=-0.100786
+
+=== QUALITY SIGNALS ===
+  FIRE High ROIC                           v=0.578847 thr=0.15
+  FIRE Strong Earnings Quality             v=9.13 thr=7.0
+  FIRE Low Leverage                        v=1.33803 thr=0.5
+  FIRE High Return on Equity               v=1.51913 thr=0.15
+  FIRE Piotroski F-Score                   v=8.0 thr=6.0
+  FIRE Asset Turnover Efficiency           v=1.8106 thr=0.5
+  FIRE Margin Compression                  v=-0.100786 thr=-0.1
+
+=== VALUE SIGNALS ===
+  FIRE High Shareholder Yield              v=0.42 thr=0.03
+  FIRE Dividend Yield vs Historical Average v=0.42 thr=0.03
+
+=== GROWTH SIGNALS ===
+  FIRE Revenue Growth Accelerating         v=0.04613 thr=0.02

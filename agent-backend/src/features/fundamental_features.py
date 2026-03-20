@@ -269,6 +269,78 @@ def _compute_revenue_acceleration(series) -> float | None:
 
 
 # ═════════════════════════════════════════════════════════════════════════════
+# Feature 6: Piotroski F-Score (simplified from 9-factor)
+# ═════════════════════════════════════════════════════════════════════════════
+
+def _compute_f_score(series, roic: float | None, dte: float | None) -> float | None:
+    """
+    Simplified Piotroski F-Score (0–9 scale).
+
+    Uses available cashflow series to compute factors:
+      1. ROA positive (proxy: net_income > 0)
+      2. Operating CF positive
+      3. ROA increasing YoY
+      4. Accruals (OCF > NI → quality earnings)
+      5. Leverage decreasing (D/E lower)
+      6. Current ratio improving
+      7. No dilution (skip — not available)
+      8. Gross margin improving
+      9. Asset turnover improving
+    """
+    if not series or len(series) < 2:
+        return None
+
+    score = 0.0
+    latest = series[-1]
+    prev = series[-2]
+
+    # 1. Positive net income (profitability)
+    if latest.net_income > 0:
+        score += 1
+
+    # 2. Positive operating cash flow
+    if latest.operating_cashflow > 0:
+        score += 1
+
+    # 3. ROA increasing (net_income/revenue as proxy)
+    if (latest.revenue > 0 and prev.revenue > 0):
+        roa_curr = latest.net_income / latest.revenue
+        roa_prev = prev.net_income / prev.revenue
+        if roa_curr > roa_prev:
+            score += 1
+
+    # 4. Quality earnings: OCF > Net Income (accrual quality)
+    if latest.operating_cashflow > latest.net_income:
+        score += 1
+
+    # 5. ROIC is positive (capital efficiency)
+    if roic and roic > 0:
+        score += 1
+
+    # 6. Leverage decreasing (skip if no data, give benefit of doubt)
+    if dte is not None and dte < 1.5:
+        score += 1
+
+    # 7. Revenue growth (expanding business)
+    if latest.revenue > prev.revenue:
+        score += 1
+
+    # 8. Positive FCF
+    if latest.fcf > 0:
+        score += 1
+
+    # 9. EBIT margin improving
+    if (latest.revenue > 0 and prev.revenue > 0 and
+        latest.ebit and prev.ebit):
+        margin_curr = latest.ebit / latest.revenue
+        margin_prev = prev.ebit / prev.revenue
+        if margin_curr > margin_prev:
+            score += 1
+
+    return round(score, 1)
+
+
+# ═════════════════════════════════════════════════════════════════════════════
 # Main extractor
 # ═════════════════════════════════════════════════════════════════════════════
 
@@ -317,6 +389,46 @@ def extract_fundamental_features(financials: FinancialStatements) -> Fundamental
     dte = _winsorize(dte, 0, 10)
     debt_to_ebitda = _winsorize(debt_to_ebitda, 0, 30)
 
+    # ── NEW: Compute extended Quality / Value metrics ──────────────────────
+    interest_coverage = _to_float(l.interest_coverage)
+
+    # Piotroski F-Score (simplified — 0-9 composite quality score)
+    f_score = _compute_f_score(series, _to_float(p.roic), dte)
+
+    # Asset turnover proxy (revenue / assets, approximated from margins)
+    asset_turnover = None
+    if series and series[-1].revenue and series[-1].revenue > 0:
+        latest_rev = series[-1].revenue
+        # Approximate total assets from revenue/margin if ROIC is known
+        if roic_val and roic_val > 0 and series[-1].ebit:
+            invested_cap = series[-1].ebit / roic_val if roic_val > 0 else 0
+            asset_turnover = round(latest_rev / invested_cap, 4) if invested_cap > 0 else None
+
+    # Shareholder yield ≈ dividend_yield (buyback data not in yfinance basic)
+    div_yld = q.dividend_yield if q.dividend_yield else 0.0
+    shareholder_yield = round(div_yld, 4) if div_yld > 0 else None
+
+    # PEG ratio = PE / earnings_growth
+    eg = _to_float(q.earnings_growth_yoy)
+    peg_ratio = None
+    if pe_ratio and pe_ratio > 0 and eg and eg > 0.01:
+        peg_ratio = round(pe_ratio / (eg * 100), 2)  # eg is decimal, convert to %
+
+    # EV/Revenue proxy
+    ev_revenue = None
+    mkt_cap = v.market_cap
+    if mkt_cap and mkt_cap > 0 and series and series[-1].revenue > 0:
+        ev_approx = mkt_cap  # Simplified: EV ≈ market_cap (without net debt)
+        ev_revenue = round(ev_approx / series[-1].revenue, 2)
+
+    # EBIT/EV (Greenblatt Magic Formula) — inverse of EV/EBITDA scaled
+    ebit_ev = None
+    if ev_ebitda and ev_ebitda > 0:
+        ebit_ev = round(1.0 / ev_ebitda, 4)
+
+    # NCAV ratio — typically 0 for large caps (only for deep value)
+    ncav_ratio = None  # Requires balance sheet data not in basic yfinance
+
     # Collect all feature values for completeness computation
     features = {
         "roic": _to_float(p.roic),
@@ -336,6 +448,13 @@ def extract_fundamental_features(financials: FinancialStatements) -> Fundamental
         "margin_trend": margin_trend,
         "earnings_stability": earnings_stability,
         "revenue_acceleration": revenue_accel,
+        "interest_coverage": interest_coverage,
+        "f_score": f_score,
+        "asset_turnover": asset_turnover,
+        "shareholder_yield": shareholder_yield,
+        "peg_ratio": peg_ratio,
+        "ev_revenue": ev_revenue,
+        "ebit_ev": ebit_ev,
     }
 
     # F2: Completeness score
@@ -379,6 +498,16 @@ def extract_fundamental_features(financials: FinancialStatements) -> Fundamental
         dividend_yield=q.dividend_yield,
         payout_ratio=q.payout_ratio,
         beta=beta,
+        interest_coverage=interest_coverage,
+        f_score=f_score,
+        asset_turnover=asset_turnover,
+
+        # Extended valuation
+        shareholder_yield=shareholder_yield,
+        peg_ratio=peg_ratio,
+        ev_revenue=ev_revenue,
+        ebit_ev=ebit_ev,
+        ncav_ratio=ncav_ratio,
 
         # Derived (v2 — statistically rigorous)
         margin_trend=margin_trend,

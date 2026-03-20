@@ -64,6 +64,7 @@ export interface BacktestResult {
     total_signals: number;
     win_rate: number;
     avg_return: number;
+    excess_return: number;
     max_return: number;
     min_return: number;
     sharpe_ratio: number;
@@ -103,12 +104,12 @@ export interface BacktestState {
 function periodToStartDate(period: string): string {
     const now = new Date();
     const map: Record<string, number> = {
-        "3m": 90,
         "6m": 180,
         "1y": 365,
         "2y": 730,
+        "3y": 1095,
     };
-    const days = map[period] ?? 365;
+    const days = map[period] ?? 730;
     now.setDate(now.getDate() - days);
     return now.toISOString().split("T")[0];
 }
@@ -158,17 +159,30 @@ export function useBacktest() {
             if (reportRes.ok) {
                 report = await reportRes.json();
                 // Map signal results → BacktestResult for the UI
+                // Backend returns win_rate, avg_return, sharpe_ratio as dicts
+                // keyed by forward window (1/5/10/20/60). We extract T+20
+                // as the institutional reference window.
+                const extractWindow = (v: unknown, w: number = 20): number => {
+                    if (typeof v === "number") return v;
+                    if (v && typeof v === "object") {
+                        const d = v as Record<string, number>;
+                        return d[String(w)] ?? d["20"] ?? 0;
+                    }
+                    return 0;
+                };
+
                 if (report?.signal_results) {
                     results = report.signal_results.map((sr: any) => ({
                         ticker: sr.ticker || ticker.toUpperCase(),
                         signal_id: sr.signal_id,
                         period: opts?.period ?? "1y",
                         total_signals: sr.total_firings ?? 0,
-                        win_rate: sr.win_rate ?? 0,
-                        avg_return: sr.avg_return_flat ?? sr.avg_return ?? 0,
+                        win_rate: extractWindow(sr.hit_rate ?? sr.win_rate, 20) * 100,
+                        avg_return: extractWindow(sr.avg_return, 20) * 100,
+                        excess_return: extractWindow(sr.avg_excess_return, 20) * 100,
                         max_return: sr.max_return ?? 0,
                         min_return: sr.min_return ?? 0,
-                        sharpe_ratio: sr.sharpe_ratio_flat ?? sr.sharpe_ratio ?? 0,
+                        sharpe_ratio: extractWindow(sr.sharpe_ratio, 20),
                         profit_factor: sr.profit_factor ?? 0,
                         trades: [],
                     }));

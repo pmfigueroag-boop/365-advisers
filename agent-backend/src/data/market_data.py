@@ -32,6 +32,7 @@ from src.data.external.adapters.fmp import FMPAdapter
 from src.data.external.adapters.polygon import PolygonAdapter
 from src.data.external.adapters.twelve_data import TwelveDataAdapter
 from src.data.external.base import ProviderRequest, DataDomain
+from src.data.cache import get_cache, TTL_FUNDAMENTAL, TTL_TECHNICAL
 
 logger = logging.getLogger("365advisers.market_data")
 _settings = get_settings()
@@ -161,23 +162,31 @@ def _fallback_technical_ohlcv(symbol: str) -> tuple[dict, pd.DataFrame]:
 
 # ─── Fundamental Data ─────────────────────────────────────────────────────────
 
-def fetch_fundamental_data(ticker: str) -> dict:
+def fetch_fundamental_data(ticker: str, force_refresh: bool = False) -> dict:
     """
-    Fetch data required by the Fundamental Engine:
-    - Company info (name, sector, market cap, etc.)
-    - Income statement, balance sheet, cash flow
-    - Computed ratios (profitability, valuation, leverage, quality)
-    - Web context hint (raw yfinance summary, used before Tavily search)
+    Fetch data required by the Fundamental Engine.
+    Uses TTL cache (30 min) to avoid redundant yfinance calls.
 
-    Returns a sanitized dict with:
-      {
-        ticker, name, info,
-        ratios: { profitability, valuation, leverage, quality },
-        raw_statements: { income_statement, balance_sheet, cash_flow },
-      }
+    Parameters
+    ----------
+    ticker : str
+        Stock symbol.
+    force_refresh : bool
+        If True, bypass cache and fetch fresh data.
     """
     symbol = ticker.upper()
-    logger.info(f"Fetching fundamental data for {symbol}")
+    cache = get_cache()
+
+    # Check cache first
+    if not force_refresh:
+        entry = cache.get(symbol, "fundamental")
+        if entry is not None:
+            logger.info(f"CACHE HIT: fundamental data for {symbol} (age={entry.age_seconds}s)")
+            result = dict(entry.data)  # shallow copy
+            result["_data_freshness"] = entry.freshness.to_dict()
+            return result
+
+    logger.info(f"Fetching fundamental data for {symbol} (force_refresh={force_refresh})")
 
     def _fetch():
         stock = yf.Ticker(symbol)
@@ -355,7 +364,14 @@ def fetch_fundamental_data(ticker: str) -> dict:
             if fb: return fb
             raise result_container['error']
             
-        return result_container.get('data')
+        data = result_container.get('data')
+        # P1: Store in cache and add freshness metadata
+        if data and "error" not in data:
+            cache.set(symbol, "fundamental", data, ttl_seconds=TTL_FUNDAMENTAL)
+        freshness = cache.make_live_freshness("fundamental", TTL_FUNDAMENTAL)
+        if data:
+            data["_data_freshness"] = freshness.to_dict()
+        return data
 
     except Exception as exc:
         logger.error(f"fetch_fundamental_data for {symbol}: {exc}")
@@ -373,26 +389,31 @@ def fetch_fundamental_data(ticker: str) -> dict:
 
 # ─── Technical Data ───────────────────────────────────────────────────────────
 
-def fetch_technical_data(ticker: str) -> dict:
+def fetch_technical_data(ticker: str, force_refresh: bool = False) -> dict:
     """
-    Fetch data required by the Technical Engine:
-    - OHLCV history (1 year, daily)
-    - TradingView indicators (summary, oscillators, moving averages)
-    - Derived indicator values aligned to the TV schema
+    Fetch data required by the Technical Engine.
+    Uses TTL cache (5 min) to avoid redundant yfinance/TV calls.
 
-    Returns a sanitized dict with:
-      {
-        ticker, current_price,
-        ohlcv: [ {time, open, high, low, close, volume} ],
-        indicators: { raw TV indicator map },
-        tv_summary: { RECOMMENDATION, BUY, SELL, NEUTRAL counts },
-        tv_oscillators: { ... },
-        tv_moving_averages: { ... },
-        exchange: str,
-      }
+    Parameters
+    ----------
+    ticker : str
+        Stock symbol.
+    force_refresh : bool
+        If True, bypass cache and fetch fresh data.
     """
     symbol = ticker.upper()
-    logger.info(f"Fetching technical data for {symbol}")
+    cache = get_cache()
+
+    # Check cache first
+    if not force_refresh:
+        entry = cache.get(symbol, "technical")
+        if entry is not None:
+            logger.info(f"CACHE HIT: technical data for {symbol} (age={entry.age_seconds}s)")
+            result = dict(entry.data)  # shallow copy
+            result["_data_freshness"] = entry.freshness.to_dict()
+            return result
+
+    logger.info(f"Fetching technical data for {symbol} (force_refresh={force_refresh})")
 
     def _fetch_yf():
         stock = yf.Ticker(symbol)
@@ -525,7 +546,7 @@ def fetch_technical_data(ticker: str) -> dict:
             "_tv_error": str(exc),
         }
 
-    return sanitize_data({
+    data = sanitize_data({
         "ticker":            symbol,
         "current_price":     raw_indicators.get("close", last_price),
         "exchange":          exchange,
@@ -535,6 +556,12 @@ def fetch_technical_data(ticker: str) -> dict:
         "tv_oscillators":    tv_oscillators,
         "tv_moving_averages": tv_moving_averages,
     })
+
+    # P1: Store in cache and add freshness metadata
+    cache.set(symbol, "technical", data, ttl_seconds=TTL_TECHNICAL)
+    freshness = cache.make_live_freshness("technical", TTL_TECHNICAL)
+    data["_data_freshness"] = freshness.to_dict()
+    return data
 
 
 # ─── Legacy compatibility shim ────────────────────────────────────────────────

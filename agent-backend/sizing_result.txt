@@ -1,0 +1,33 @@
+=== AAPL (score=6.79, NORMAL risk) ===
+  opportunity_score: 6.79
+  conviction_level: Moderate
+  risk_level: Medium
+  base_position_size: 2.79
+  risk_adjustment: 1.0
+  conviction_boost: 1.0
+  suggested_allocation: 2.79
+  recommended_action: Build Position
+
+=== AAPL + Signal Conviction (10/11 STRONG = 0.91) ===
+  opportunity_score: 6.79
+  conviction_level: Moderate
+  risk_level: Medium
+  base_position_size: 2.79
+  risk_adjustment: 1.0
+  conviction_boost: 1.17
+  suggested_allocation: 3.25
+  recommended_action: Maintain Position
+
+=== Score Comparison ===
+   5.00 -> Watch      base= 1.00% final= 1.00%
+   5.50 -> Watch      base= 1.50% final= 1.50%
+   6.00 -> Moderate   base= 2.00% final= 2.00%
+   6.50 -> Moderate   base= 2.50% final= 2.50%
+   6.79 -> Moderate   base= 2.79% final= 2.79%
+   7.00 -> Moderate   base= 3.00% final= 3.00%
+   7.50 -> High       base= 4.25% final= 4.25%
+   8.00 -> High       base= 5.50% final= 5.50%
+   8.50 -> High       base= 6.75% final= 6.75%
+   9.00 -> Very High  base= 8.00% final= 8.00%
+   9.50 -> Very High  base= 9.00% final= 9.00%
+  10.00 -> Very High  base=10.00% final=10.00%

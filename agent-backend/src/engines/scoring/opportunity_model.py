@@ -1,8 +1,67 @@
 from typing import TypedDict, Optional
 from datetime import datetime, timezone
+import logging
 
 from src.engines.alpha_signals.models import SignalProfile
 from src.engines.composite_alpha.models import CompositeAlphaResult
+
+logger = logging.getLogger("365advisers.scoring.opportunity")
+
+# ── Regime-Aware Dynamic Dimension Weights ───────────────────────────────────
+# Quant-institutional approach: emphasize what MATTERS in each regime.
+# BQ = Business Quality, Val = Valuation, FS = Financial Strength, MB = Market Behavior
+
+REGIME_DIMENSION_WEIGHTS: dict[str, dict[str, float]] = {
+    "expansion": {
+        # Bull market: momentum + quality drive alpha, valuation matters less
+        "business_quality": 0.30,
+        "valuation": 0.15,
+        "financial_strength": 0.20,
+        "market_behavior": 0.35,
+    },
+    "slowdown": {
+        # Decelerating: quality + valuation matter, reduce tech weight
+        "business_quality": 0.25,
+        "valuation": 0.30,
+        "financial_strength": 0.30,
+        "market_behavior": 0.15,
+    },
+    "recession": {
+        # Defensive: financial strength + valuation > everything
+        "business_quality": 0.20,
+        "valuation": 0.30,
+        "financial_strength": 0.35,
+        "market_behavior": 0.15,
+    },
+    "recovery": {
+        # Early cycle: momentum + quality lead the rebound
+        "business_quality": 0.25,
+        "valuation": 0.20,
+        "financial_strength": 0.20,
+        "market_behavior": 0.35,
+    },
+    "high_volatility": {
+        # Risk-off: financial safety > all
+        "business_quality": 0.15,
+        "valuation": 0.25,
+        "financial_strength": 0.40,
+        "market_behavior": 0.20,
+    },
+}
+
+_DEFAULT_WEIGHTS = {
+    "business_quality": 0.25,
+    "valuation": 0.25,
+    "financial_strength": 0.25,
+    "market_behavior": 0.25,
+}
+
+
+def get_regime_weights(regime: str | None) -> dict[str, float]:
+    """Return dimension weights for the given regime, or equal weights."""
+    if regime and regime.lower() in REGIME_DIMENSION_WEIGHTS:
+        return REGIME_DIMENSION_WEIGHTS[regime.lower()]
+    return _DEFAULT_WEIGHTS.copy()
 
 class OpportunitySubscores(TypedDict, total=False):
     competitive_moat: float
@@ -46,6 +105,7 @@ class OpportunityModel:
         signal_profile: SignalProfile | None = None,
         composite_alpha: CompositeAlphaResult | None = None,
         dimension_weights: dict[str, float] | None = None,
+        regime: str | None = None,
     ) -> OpportunityScoreResult:
         
         # 1. Extract Agent Subscores
@@ -196,12 +256,26 @@ class OpportunityModel:
         )
 
         # 6. Calculate Final Opportunity Score (0-10)
-        _weights = dimension_weights or {
-            "business_quality": 0.25,
-            "valuation": 0.25,
-            "financial_strength": 0.25,
-            "market_behavior": 0.25,
-        }
+        # Priority: explicit dimension_weights > regime-based > default equal
+        if dimension_weights:
+            _weights = dimension_weights
+            _regime_used = None
+        elif regime:
+            _weights = get_regime_weights(regime)
+            _regime_used = regime.lower()
+        else:
+            _weights = _DEFAULT_WEIGHTS.copy()
+            _regime_used = None
+
+        if _regime_used:
+            logger.info(
+                "OPPORTUNITY: Using regime '%s' weights — BQ=%.0f%% Val=%.0f%% FS=%.0f%% MB=%.0f%%",
+                _regime_used,
+                _weights['business_quality'] * 100,
+                _weights['valuation'] * 100,
+                _weights['financial_strength'] * 100,
+                _weights['market_behavior'] * 100,
+            )
         opportunity_score = sum(
             dimensions[dim] * _weights.get(dim, 0.25)  # type: ignore
             for dim in dimensions
@@ -243,6 +317,7 @@ class OpportunityModel:
             "dimensions": {k: round(v, 2) for k, v in dimensions.items()}, # type: ignore
             "factors": {k: round(v, 2) for k, v in factors.items()},
             "dimension_weights": {k: round(v, 4) for k, v in _weights.items()},
+            "regime_applied": _regime_used,
             "source_decomposition": source_decomposition,
             "recorded_at": datetime.now(timezone.utc).isoformat()
         }

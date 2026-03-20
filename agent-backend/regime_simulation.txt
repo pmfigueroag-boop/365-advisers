@@ -1,0 +1,35 @@
+===========================================================================
+  SIMULATION: Dynamic Regime Weights — AAPL Case Study
+===========================================================================
+
+AAPL Dimension Scores:
+  business_quality         7.8/10  ███████░░░
+  valuation                5.2/10  █████░░░░░
+  financial_strength       7.5/10  ███████░░░
+  market_behavior          7.2/10  ███████░░░
+
+BASELINE (Static 25/25/25/25):
+  Score: 6.92/10  →  Allocation: 2.92%
+
+---------------------------------------------------------------------------
+Regime                BQ   Val    FS    MB   Score   Alloc   vs Static
+---------------------------------------------------------------------------
+expansion           30%  15%  20%  35%   7.14   3.35%  ++0.21 (+3%)
+slowdown            25%  30%  30%  15%   6.84   2.84%  -0.08 (-1%)
+recession           20%  30%  35%  15%   6.83   2.83%  -0.10 (-1%)
+recovery            25%  20%  20%  35%   7.01   3.02%  ++0.08 (+1%)
+high_volatility     15%  25%  40%  20%   6.91   2.91%  -0.01 (-0%)
+---------------------------------------------------------------------------
+
+KEY INSIGHT:
+  In EXPANSION: AAPL scores 7.14 → 3.35% allocation
+    (Momentum/quality weighted up, weak valuation weighted down)
+  In RECESSION: AAPL scores 6.83 → 2.83% allocation
+    (Financial strength weighted up, compensating for expensive valuation)
+  Static baseline:         6.92 → 2.92% allocation
+    (Valuation drags equally regardless of regime)
+
+CONCLUSION:
+  Dynamic weights eliminate the regime-blind valuation drag.
+  AAPL benefits in expansion (+momentum) and recovery (+quality),
+  while maintaining discipline in recession (+financial strength).

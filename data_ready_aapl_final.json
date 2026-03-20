@@ -1,0 +1,71 @@
+{
+  "ticker": "AAPL",
+  "name": "Apple Inc.",
+  "sector": "Technology",
+  "industry": "Consumer Electronics",
+  "ratios": {
+    "profitability": {
+      "gross_margin": 0.4690516410716045,
+      "ebit_margin": 0.31970799762591884,
+      "net_margin": 0.2691506412181824,
+      "roe": 1.5191298333175105,
+      "roic": 0.5788473809385696
+    },
+    "valuation": {
+      "pe_ratio": 31.637974,
+      "pb_ratio": 41.670555,
+      "ev_ebitda": 24.153,
+      "fcf_yield": 0.02688561988643834,
+      "market_cap": 3673599508480
+    },
+    "leverage": {
+      "debt_to_equity": 1.3380304612588665,
+      "interest_coverage": "DATA_INCOMPLETE",
+      "current_ratio": 0.974,
+      "quick_ratio": 0.845
+    },
+    "quality": {
+      "revenue_growth_yoy": 0.157,
+      "earnings_growth_yoy": 0.183,
+      "dividend_yield": 0.42,
+      "payout_ratio": 0.1304,
+      "beta": 1.116,
+      "capex_to_revenue": 0.030553079216937677,
+      "buyback_yield": 0.024692675342155863
+    }
+  },
+  "cashflow_series": [
+    {
+      "year": "2022",
+      "fcf": 99803000000.0,
+      "revenue": 394328000000.0,
+      "net_income": 99803000000.0,
+      "ebit": 119437000000.0,
+      "operating_cashflow": 122151000000.0
+    },
+    {
+      "year": "2023",
+      "fcf": 96995000000.0,
+      "revenue": 383285000000.0,
+      "net_income": 96995000000.0,
+      "ebit": 114301000000.0,
+      "operating_cashflow": 110543000000.0
+    },
+    {
+      "year": "2024",
+      "fcf": 93736000000.0,
+      "revenue": 391035000000.0,
+      "net_income": 93736000000.0,
+      "ebit": 123216000000.0,
+      "operating_cashflow": 118254000000.0
+    },
+    {
+      "year": "2025",
+      "fcf": 106312753152.0,
+      "revenue": 416161000000.0,
+      "net_income": 112010000000.0,
+      "ebit": 133050000000.0,
+      "operating_cashflow": 111482000000.0
+    }
+  ]
+}

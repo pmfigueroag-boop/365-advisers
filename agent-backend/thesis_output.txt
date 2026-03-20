@@ -1,0 +1,34 @@
+AAPL THESIS CONSTRUCTION
+============================================================
+
+--- LAYER 3: ALPHA SIGNALS ---
+Total signals: 10
+Fired signals: 10
+  [VALUE       ] Dividend Yield vs Historical Average v=0.42 str=strong
+  [QUALITY     ] High ROIC                      v=0.578847 str=strong
+  [QUALITY     ] Strong Earnings Quality        v=9.13 str=strong
+  [QUALITY     ] Low Leverage                   v=1.33803 str=moderate
+  [QUALITY     ] High Return on Equity          v=1.51913 str=strong
+  [MOMENTUM    ] Moving Average Crossover (Golden Cross) v=0.062029 str=moderate
+  [MOMENTUM    ] Strong Price Trend             v=0.4672 str=moderate
+  [EVENT       ] Revenue Acceleration           v=0.157 str=strong
+  [GROWTH      ] Revenue Growth Accelerating    v=0.04613 str=strong
+  [QUALITY     ] Margin Compression             v=-0.100786 str=strong
+
+--- LAYER 4: COMPOSITE ALPHA ---
+CASE Score: None
+Classification: None
+Conviction: None
+Dominant Category: None
+
+--- LAYER 5: EVIDENCE ---
+Conflicts: 2
+  Value vs Quality: potential value trap
+  Quality vs Event: quality degradation event detected
+Convergence: 5.78
+
+--- MEMOS ---
+alpha_memo: signal=BULLISH, conviction=MEDIUM
+  El perfil de señales Alpha de AAPL sugiere una perspectiva fundamentalmente BULLISH, impulsada por un entorno de 'Strong Opportunity' y una categoría dominante de CALIDAD (5/12 señales activas, fuerza
+evidence_memo: signal=BULLISH, conviction=MEDIUM
+  El puntaje CASE de AAPL de 66.8/100, junto con un entorno de 'Strong Opportunity' y un bonus de convergencia de +5.8, sugiere una tesis factorial generalmente positiva. Las categorías de Momentum (100

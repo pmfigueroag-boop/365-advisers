@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Radio, Shield, Zap, TrendingUp, Activity, BarChart3, Rocket, Globe, Clock, CheckCircle2, XCircle, ChevronDown, ChevronRight } from "lucide-react";
+import { Radio, Shield, Zap, TrendingUp, Activity, BarChart3, Rocket, Globe, Clock, CheckCircle2, XCircle, ChevronDown, ChevronRight, ChevronUp } from "lucide-react";
 import type { SignalProfileResponse, EvaluatedSignal, CategoryScore } from "@/hooks/useAlphaSignals";
 import ResearchMemoInsight from "./ResearchMemoInsight";
 import type { MemoInsight } from "./ResearchMemoInsight";
@@ -37,6 +37,82 @@ const STRENGTH_STYLES: Record<string, string> = {
 export interface UnifiedSignalMapDashboardProps {
     profile: SignalProfileResponse | null;
     ticker: string;
+}
+
+// ── Signal Map Definitions ───────────────────────────────────────────────
+
+const SIGNAL_MAP_DEFS = [
+    {
+        metric: "Signal Origin Log",
+        definition: "Registro de cuántas de las 68 señales Alpha registradas dispararon (cumplieron su condición threshold). Cada señal evalúa una variable específica (P/E, RSI, ROIC, etc.) contra un umbral predefinido.",
+    },
+    {
+        metric: "Dominant Origin",
+        definition: "La categoría de señales con mayor presencia activa. Indica dónde está concentrada la evidencia factorial. Quality = ventajas competitivas, Value = descuento, Momentum = inercia de precio.",
+    },
+    {
+        metric: "Coverage Breadth",
+        definition: "Porcentaje de señales activas vs total. Mide la amplitud de la evidencia. <15% = muy selectiva (pocas condiciones cumplidas). >50% = amplia cobertura (múltiples factores alineados).",
+    },
+    {
+        metric: "Strength Level",
+        definition: "Cada señal tiene un nivel de fuerza: STRONG (valor muy por encima del threshold), MODERATE (justo por encima), WEAK (marginal). Se determina comparando el valor con strong_threshold.",
+    },
+    {
+        metric: "Active vs Inactive",
+        definition: "Señales activas (FIRED) cumplieron su condición. Señales inactivas no la cumplieron — esto NO es negativo, solo indica que esa condición específica no aplica para este activo en este momento.",
+    },
+    {
+        metric: "Category Coverage Bars",
+        definition: "Las 8 micro-tarjetas muestran qué proporción de señales disparó en cada categoría. Una barra llena indica alta participación factorial. Tarjetas dimmed = 0 señales activas en esa categoría.",
+    },
+];
+
+// ── Signal Map Analyst Depth ───────────────────────────────────────────
+
+function SignalMapAnalystDepth() {
+    const [expanded, setExpanded] = useState(false);
+
+    return (
+        <div className="mt-4 pt-3 border-t border-[#30363d]/50">
+            <button
+                className="w-full flex items-center justify-between text-left group cursor-pointer"
+                onClick={() => setExpanded(!expanded)}
+                aria-expanded={expanded}
+            >
+                <span className="text-[9px] text-[#8b949e] font-bold uppercase tracking-widest group-hover:text-indigo-400 transition-colors flex items-center gap-1.5">
+                    <Activity size={10} /> Analyst Depth
+                </span>
+                <div className="flex items-center justify-center group-hover:bg-[#161b22] rounded p-0.5 transition-colors">
+                    {expanded ? <ChevronUp size={12} className="text-indigo-400" /> : <ChevronDown size={12} className="text-[#8b949e] group-hover:text-indigo-400" />}
+                </div>
+            </button>
+
+            {expanded && (
+                <div className="mt-3 space-y-3 pt-3 border-t border-[#30363d]/30" style={{ animation: "fadeSlideIn 0.2s ease" }}>
+                    <div className="bg-[#161b22] p-3 rounded-lg border border-[#30363d]/50">
+                        <p className="text-[10px] text-[#c9d1d9] leading-relaxed font-serif italic border-l-2 border-indigo-500/40 pl-2">
+                            "Signal Map es la vista de auditoría granular. Muestra cada señal individual con su valor exacto, threshold, y fuerza. Permite verificar la trazabilidad de cada decisión del motor Alpha."
+                        </p>
+                    </div>
+
+                    <div>
+                        <p className="text-[8px] text-indigo-400 font-bold uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                            <Zap size={10} /> Conceptos Explicados
+                        </p>
+                        <div className="flex flex-col gap-2">
+                            {SIGNAL_MAP_DEFS.map((d, idx) => (
+                                <div key={idx} className="bg-[#0d1117] p-3 rounded border border-[#30363d]">
+                                    <p className="text-[10px] font-black text-[#c9d1d9] mb-1 font-mono">{d.metric}</p>
+                                    <p className="text-[9px] text-[#8b949e] leading-relaxed">{d.definition}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 }
 
 export default function UnifiedSignalMapDashboard({ profile, ticker }: UnifiedSignalMapDashboardProps) {
@@ -99,35 +175,42 @@ export default function UnifiedSignalMapDashboard({ profile, ticker }: UnifiedSi
         <div className="space-y-4" style={{ animation: "fadeSlideIn 0.4s ease both" }}>
             
             {/* 1. TOP ROW: Logic Flow Summary */}
-            <div className="glass-card p-5 border border-[#30363d] flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden">
+            <div className="glass-card border border-[#30363d] relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-32 h-32 bg-purple-500/5 blur-2xl rounded-full" />
-                <div className="flex flex-col gap-1 z-10 w-full sm:w-auto">
-                    <h3 className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-2">Alpha Signal Origin Log</h3>
-                    <div className="flex items-end gap-2">
-                        <span className="text-3xl font-black font-mono text-white leading-none">{firedSignals.length}</span>
-                        <span className="text-[10px] text-gray-600 font-bold uppercase tracking-widest pb-1">/ {signals.length} Fired</span>
+                <div className="p-5 flex flex-col sm:flex-row items-center justify-between gap-6">
+                    <div className="flex flex-col gap-1 z-10 w-full sm:w-auto">
+                        <h3 className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-2">Alpha Signal Origin Log</h3>
+                        <div className="flex items-end gap-2">
+                            <span className="text-3xl font-black font-mono text-white leading-none">{firedSignals.length}</span>
+                            <span className="text-[10px] text-gray-600 font-bold uppercase tracking-widest pb-1">/ {signals.length} Fired</span>
+                        </div>
                     </div>
-                </div>
 
-                <div className="hidden sm:block w-px h-12 bg-[#30363d]" />
+                    <div className="hidden sm:block w-px h-12 bg-[#30363d]" />
 
-                <div className="flex flex-col gap-1 z-10 w-full sm:w-auto">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-2">Dominant Origin</span>
-                    <div className="flex items-center gap-2">
-                        {composite.dominant_category && CATEGORY_ICONS[composite.dominant_category.toLowerCase()]}
-                        <span className={`text-[11px] font-black uppercase tracking-widest ${composite.dominant_category ? "text-gray-300" : "text-gray-600"}`}>
-                            {composite.dominant_category || "N/A"}
+                    <div className="flex flex-col gap-1 z-10 w-full sm:w-auto">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-2">Dominant Origin</span>
+                        <div className="flex items-center gap-2">
+                            {composite.dominant_category && CATEGORY_ICONS[composite.dominant_category.toLowerCase()]}
+                            <span className={`text-[11px] font-black uppercase tracking-widest ${composite.dominant_category ? "text-gray-300" : "text-gray-600"}`}>
+                                {composite.dominant_category || "N/A"}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="hidden sm:block w-px h-12 bg-[#30363d]" />
+
+                    <div className="flex flex-col gap-1 z-10 w-full sm:w-auto">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-2">Coverage Breadth</span>
+                        <span className="text-lg font-mono font-black text-gray-300 leading-none">
+                            {(signals.length > 0 ? (firedSignals.length / signals.length) * 100 : 0).toFixed(0)}%
                         </span>
                     </div>
                 </div>
 
-                <div className="hidden sm:block w-px h-12 bg-[#30363d]" />
-
-                <div className="flex flex-col gap-1 z-10 w-full sm:w-auto">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-2">Coverage Breadth</span>
-                    <span className="text-lg font-mono font-black text-gray-300 leading-none">
-                        {(signals.length > 0 ? (firedSignals.length / signals.length) * 100 : 0).toFixed(0)}%
-                    </span>
+                {/* Analyst Depth — full width below the flow row */}
+                <div className="px-5 pb-5">
+                    <SignalMapAnalystDepth />
                 </div>
             </div>
 
