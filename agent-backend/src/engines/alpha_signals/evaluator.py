@@ -175,6 +175,19 @@ class SignalEvaluator:
         confidence = self._compute_confidence(signal_def, value) if fired else 0.0
         description = self._build_description(signal_def, value, fired)
 
+        # #3: Signal TTL / Data Age Decay (P1.4)
+        # Penalize confidence when underlying data is stale.
+        # Linear decay from 1.0 (fresh) to 0.3 (floor) over 72 hours.
+        data_age_hours = 0.0
+        if fundamental is not None:
+            data_age_hours = getattr(fundamental, "data_age_hours", 0.0)
+        elif technical is not None:
+            data_age_hours = getattr(technical, "data_age_hours", 0.0)
+
+        if data_age_hours > 0 and confidence > 0:
+            decay = max(0.3, 1.0 - data_age_hours / 72.0)
+            confidence *= decay
+
         return EvaluatedSignal(
             signal_id=signal_def.id,
             signal_name=signal_def.name,

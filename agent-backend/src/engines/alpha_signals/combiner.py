@@ -47,7 +47,7 @@ _IC_WEIGHTS_TECH: dict[str, float] = {
     "pricecycle.oversold_z": 0.08,       # IC=+0.08
     "value.shareholder_yield": 0.06,     # IC=+0.06
     "momentum.volume_surge": 0.05,       # IC=+0.05
-    "flow.unusual_volume": 0.05,         # IC=+0.05
+    "flow.unusual_volume": 0.00,          # #2: downweighted — IC flips with 5% noise (-72.5%)
     "flow.volume_price_divergence": 0.05,# IC=+0.05
     "momentum.rsi_bullish": 0.03,        # IC=+0.03
 
@@ -68,7 +68,7 @@ _IC_WEIGHTS_TECH: dict[str, float] = {
     "value.fcf_yield_high": -0.05,
     "pricecycle.near_52w_high_risk": -0.05,
     "fundmom.margin_expanding": -0.05,
-    "flow.mfi_oversold": -0.05,
+    "flow.mfi_oversold": 0.00,            # #2: downweighted — IC flips with noise (-19.3%)
     "quality.asset_turnover_improving": -0.06,
     "volatility.realized_vol_regime": -0.06,
     "growth.capex_intensity": -0.06,
@@ -114,11 +114,11 @@ _IC_WEIGHTS_NON_TECH: dict[str, float] = {
     "value.pb_low": 0.04,               # non-tech only
     "pricecycle.deep_pullback": 0.04,
     "quality.high_roe": 0.04,
-    "flow.unusual_volume": 0.03,
-    "pricecycle.oversold_z": 0.03,
+    "flow.unusual_volume": 0.00,          # #2: downweighted — IC flips with noise
+    "pricecycle.oversold_z": 0.00,        # #2: downweighted — IC flips with noise (-12.3%)
     "quality.low_leverage": 0.03,
     "flow.volume_price_divergence": 0.02,
-    "flow.mfi_oversold": 0.02,
+    "flow.mfi_oversold": 0.00,            # #2: downweighted — IC flips with noise
 
     # ── Near-zero / neutral ──────────────────────────────────────────
     "quality.piotroski_f_score": 0.01,
@@ -173,6 +173,10 @@ _REDUNDANCY_CLUSTERS: list[set[str]] = [
     {"quality.accruals_quality", "risk.high_accruals"},
     # Bonus 7.1: credit spread pair
     {"macro.credit_spread_tightening", "macro.credit_spread_widening"},
+    # #1 Audit-detected redundancies
+    {"event.high_beta_sector", "risk.high_beta"},                          # ρ=1.000
+    {"quality.interest_coverage_fortress", "growth.capex_intensity"},       # ρ=0.925
+    {"risk.pe_expensive", "risk.ev_ebitda_expensive"},                      # ρ=0.854
 ]
 
 _DEFAULT_IC_WEIGHT = 0.0

@@ -367,6 +367,29 @@ class FundamentalProvider:
         if fcf is not None:
             snap["_fcf_q"] = fcf
 
+        # ── Bonus 7.1: High-value signal fields ──────────────────────────
+        # Short Interest Ratio (days to cover) — static from yfinance .info
+        short_ratio = info.get("shortRatio")
+        if short_ratio is not None:
+            try:
+                snap["short_ratio"] = float(short_ratio)
+            except (TypeError, ValueError):
+                pass
+
+        # Analyst Recommendation Mean (1=Strong Buy, 5=Sell)
+        rec_mean = info.get("recommendationMean")
+        if rec_mean is not None:
+            try:
+                snap["analyst_recommendation"] = float(rec_mean)
+            except (TypeError, ValueError):
+                pass
+
+        # Accruals Quality (Sloan Ratio) = (NI - CFO) / Total Assets
+        if net_income is not None and total_assets and total_assets > 0:
+            ocf_val = snap.get("_ocf")
+            if ocf_val is not None:
+                snap["accruals_quality"] = (net_income - ocf_val) / total_assets
+
         return snap
 
     def _enrich_with_price(
