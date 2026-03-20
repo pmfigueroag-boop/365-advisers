@@ -449,6 +449,31 @@ def extract_fundamental_features(financials: FinancialStatements) -> Fundamental
     # NCAV ratio — typically 0 for large caps (only for deep value)
     ncav_ratio = None  # Requires balance sheet data not in basic yfinance
 
+    # ── Bonus 7.1: High-value signal features ─────────────────────────────
+    # 7.1a: Short Interest Ratio (days to cover) from yfinance .info
+    short_ratio = _to_float(financials.info.get("shortRatio"))
+
+    # 7.1b: Analyst recommendation mean (1=Strong Buy, 5=Sell)
+    analyst_recommendation = _to_float(financials.info.get("recommendationMean"))
+
+    # 7.1c: Accruals Quality (Sloan Ratio) = (NI - CFO) / Total Assets
+    # Proxy: use invested_capital from ROIC as denominator
+    accruals_quality = None
+    if series and len(series) >= 1:
+        latest_entry = series[-1]
+        ni = latest_entry.net_income
+        cfo = latest_entry.operating_cashflow
+        if ni and cfo:
+            # Approximate total assets from invested capital
+            # invested_cap = EBIT / ROIC; total_assets ≈ invested_cap * 1.5
+            if roic_val and roic_val > 0 and latest_entry.ebit and latest_entry.ebit > 0:
+                total_assets_proxy = (latest_entry.ebit / roic_val) * 1.5
+                if total_assets_proxy > 0:
+                    accruals_quality = round((ni - cfo) / total_assets_proxy, 4)
+            elif latest_entry.revenue and latest_entry.revenue > 0:
+                # Fallback: use revenue as denominator
+                accruals_quality = round((ni - cfo) / latest_entry.revenue, 4)
+
     # Collect all feature values for completeness computation
     features = {
         "roic": _to_float(p.roic),
@@ -541,6 +566,11 @@ def extract_fundamental_features(financials: FinancialStatements) -> Fundamental
 
         # C6: Fundamental momentum
         revenue_acceleration=revenue_accel,
+
+        # Bonus 7.1: High-value signals
+        short_ratio=short_ratio,
+        analyst_recommendation=analyst_recommendation,
+        accruals_quality=accruals_quality,
 
         # F2: Feature validation
         completeness_score=completeness,

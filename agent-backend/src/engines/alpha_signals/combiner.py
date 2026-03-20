@@ -83,6 +83,16 @@ _IC_WEIGHTS_TECH: dict[str, float] = {
     "event.revenue_acceleration": -0.16,
     "growth.operating_leverage": -0.18,  # ⚡ FLIPS in non-tech!
     "momentum.golden_cross": -0.23,
+
+    # ── Bonus 7.1: New high-value signals (expected IC, validated on avg) ──
+    "flow.short_interest_high": 0.04,     # short squeeze contrarian
+    "event.insider_buying": 0.05,         # strong conviction signal
+    "quality.accruals_quality": 0.03,     # low accruals = quality earnings
+    "risk.high_accruals": -0.03,          # high accruals = red flag
+    "flow.put_call_extreme": 0.02,        # contrarian options flow
+    "macro.credit_spread_tightening": 0.03, # risk-on macro
+    "macro.credit_spread_widening": -0.02,  # risk-off macro
+    "growth.analyst_upgrade": 0.03,       # consensus bullish
 }
 
 _IC_WEIGHTS_NON_TECH: dict[str, float] = {
@@ -139,6 +149,16 @@ _IC_WEIGHTS_NON_TECH: dict[str, float] = {
     "risk.pe_expensive": -0.08,
     "growth.rule_of_40": -0.10,
     "momentum.macd_bullish": -0.10,
+
+    # ── Bonus 7.1: New high-value signals ────────────────────────────
+    "flow.short_interest_high": 0.04,
+    "event.insider_buying": 0.05,
+    "quality.accruals_quality": 0.04,     # even stronger in non-tech
+    "risk.high_accruals": -0.04,
+    "flow.put_call_extreme": 0.03,
+    "macro.credit_spread_tightening": 0.03,
+    "macro.credit_spread_widening": -0.02,
+    "growth.analyst_upgrade": 0.04,
 }
 
 # Redundancy clusters (shared across sectors)
@@ -149,6 +169,10 @@ _REDUNDANCY_CLUSTERS: list[set[str]] = [
     {"momentum.volume_surge", "flow.unusual_volume", "flow.volume_price_divergence"},
     {"risk.revenue_decline", "risk.earnings_decline"},
     {"value.peg_low", "event.earnings_surprise"},
+    # Bonus 7.1: accruals quality pair
+    {"quality.accruals_quality", "risk.high_accruals"},
+    # Bonus 7.1: credit spread pair
+    {"macro.credit_spread_tightening", "macro.credit_spread_widening"},
 ]
 
 _DEFAULT_IC_WEIGHT = 0.0

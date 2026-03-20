@@ -80,6 +80,13 @@ class FundamentalFeatureSet(BaseModel):
     capex_to_depreciation: float | None = None  # capex / depreciation
     earnings_surprise_pct: float | None = None  # EPS beat vs consensus (requires external)
 
+    # Bonus 7.1: High-value signals
+    short_ratio: float | None = None            # short interest ratio (days to cover)
+    net_insider_buy_ratio: float | None = None   # buys / (buys + sells) in 90d
+    accruals_quality: float | None = None        # Sloan ratio: (NI - CFO) / Assets
+    credit_spread_change: float | None = None    # Δ HY credit spread (bps, 30d change)
+    analyst_recommendation: float | None = None  # 1=strong_buy to 5=sell
+
     # Context
     sector: str = ""
     industry: str = ""
@@ -159,6 +166,9 @@ class TechnicalFeatureSet(BaseModel):
     bb_width: float = 0.0                    # (bb_upper - bb_lower) / bb_basis
     mfi: float = 50.0                        # Money Flow Index (14-period)
     effort_result_ratio: float = 0.0         # volume / abs(pct_change) (Wyckoff)
+
+    # Bonus 7.1: Options flow signal
+    put_call_ratio: float | None = None      # equity put/call volume ratio
 
     @property
     def _compute_sma_spread(self) -> float:
