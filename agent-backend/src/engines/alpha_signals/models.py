@@ -26,6 +26,7 @@ class SignalCategory(str, Enum):
     FLOW = "flow"
     EVENT = "event"
     MACRO = "macro"
+    RISK = "risk"
 
 
 class SignalDirection(str, Enum):
