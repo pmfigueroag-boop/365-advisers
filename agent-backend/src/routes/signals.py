@@ -116,7 +116,8 @@ async def evaluate_signals(ticker: str, force_refresh: bool = False):
 
     # Evaluate signals
     profile = _evaluator.evaluate(symbol, fundamental_features, technical_features)
-    composite = _combiner.combine(profile)
+    _sector = getattr(fundamental_features, "sector", "") if fundamental_features else ""
+    composite = _combiner.combine(profile, sector=_sector)
 
     # Compute Composite Alpha Score (with decay)
     case_result = _composite_alpha_engine.compute(

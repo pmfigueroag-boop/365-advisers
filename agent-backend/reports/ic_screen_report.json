@@ -9,8 +9,8 @@
   ],
   "eval_period": "~2Y",
   "total_signals": 65,
-  "signals_with_ic_gt_002": 12,
-  "signals_with_negative_ic": 12,
+  "signals_with_ic_gt_002": 14,
+  "signals_with_negative_ic": 25,
   "results": [
     {
       "signal_id": "risk.death_cross",
@@ -54,6 +54,28 @@
         "GOOGL": 0.0852,
         "AMZN": 0.2572,
         "TSLA": 0.2899
+      }
+    },
+    {
+      "signal_id": "value.ev_revenue_low",
+      "signal_name": "Low EV/Revenue",
+      "category": "value",
+      "n_observations": 546,
+      "ic_5d": 0.0635,
+      "ic_20d": 0.1597,
+      "hit_rate_5d": 0.72,
+      "hit_rate_20d": 0.88,
+      "fire_rate": 0.0458,
+      "avg_return_20d_fired": 0.081,
+      "avg_return_20d_unfired": 0.0223,
+      "ic_stable": false,
+      "per_ticker_ic_20d": {
+        "AAPL": 0.0,
+        "NVDA": 0.0,
+        "MSFT": 0.0,
+        "GOOGL": 0.3464,
+        "AMZN": 0.0,
+        "TSLA": 0.0
       }
     },
     {
@@ -167,6 +189,28 @@
       }
     },
     {
+      "signal_id": "quality.piotroski_f_score",
+      "signal_name": "Piotroski F-Score",
+      "category": "quality",
+      "n_observations": 546,
+      "ic_5d": 0.0302,
+      "ic_20d": 0.0618,
+      "hit_rate_5d": 0.5714,
+      "hit_rate_20d": 0.6429,
+      "fire_rate": 0.2821,
+      "avg_return_20d_fired": 0.0311,
+      "avg_return_20d_unfired": 0.0226,
+      "ic_stable": false,
+      "per_ticker_ic_20d": {
+        "AAPL": -0.1182,
+        "NVDA": -0.1273,
+        "MSFT": 0.3222,
+        "GOOGL": 0.2349,
+        "AMZN": -0.1011,
+        "TSLA": 0.1651
+      }
+    },
+    {
       "signal_id": "value.shareholder_yield",
       "signal_name": "High Shareholder Yield",
       "category": "value",
@@ -277,25 +321,47 @@
       }
     },
     {
-      "signal_id": "value.ev_revenue_low",
-      "signal_name": "Low EV/Revenue",
-      "category": "value",
+      "signal_id": "event.high_beta_sector",
+      "signal_name": "High Beta Sector Exposure",
+      "category": "event",
       "n_observations": 546,
-      "ic_5d": 0.0086,
-      "ic_20d": 0.0159,
-      "hit_rate_5d": 0.5682,
-      "hit_rate_20d": 0.5909,
-      "fire_rate": 0.0806,
-      "avg_return_20d_fired": 0.0174,
-      "avg_return_20d_unfired": 0.0256,
+      "ic_5d": -0.0136,
+      "ic_20d": 0.0072,
+      "hit_rate_5d": 0.5111,
+      "hit_rate_20d": 0.5704,
+      "fire_rate": 0.2473,
+      "avg_return_20d_fired": 0.0374,
+      "avg_return_20d_unfired": 0.0209,
       "ic_stable": false,
       "per_ticker_ic_20d": {
         "AAPL": 0.0,
-        "NVDA": 0.0,
+        "NVDA": -0.0042,
         "MSFT": 0.0,
-        "GOOGL": 0.1301,
-        "AMZN": -0.1758,
-        "TSLA": 0.0
+        "GOOGL": 0.0,
+        "AMZN": 0.0,
+        "TSLA": -0.1485
+      }
+    },
+    {
+      "signal_id": "risk.high_beta",
+      "signal_name": "High Beta (Excess Volatility)",
+      "category": "volatility",
+      "n_observations": 546,
+      "ic_5d": -0.0136,
+      "ic_20d": 0.0072,
+      "hit_rate_5d": 0.4889,
+      "hit_rate_20d": 0.4296,
+      "fire_rate": 0.2473,
+      "avg_return_20d_fired": 0.0374,
+      "avg_return_20d_unfired": 0.0209,
+      "ic_stable": false,
+      "per_ticker_ic_20d": {
+        "AAPL": 0.0,
+        "NVDA": -0.0042,
+        "MSFT": 0.0,
+        "GOOGL": 0.0,
+        "AMZN": 0.0,
+        "TSLA": -0.1485
       }
     },
     {
@@ -318,6 +384,28 @@
         "GOOGL": 0.0848,
         "AMZN": -0.2151,
         "TSLA": -0.0472
+      }
+    },
+    {
+      "signal_id": "risk.ev_ebitda_expensive",
+      "signal_name": "EV/EBITDA Expensive",
+      "category": "value",
+      "n_observations": 546,
+      "ic_5d": 0.001,
+      "ic_20d": 0.0017,
+      "hit_rate_5d": 0.4414,
+      "hit_rate_20d": 0.4,
+      "fire_rate": 0.2656,
+      "avg_return_20d_fired": 0.025,
+      "avg_return_20d_unfired": 0.025,
+      "ic_stable": false,
+      "per_ticker_ic_20d": {
+        "AAPL": 0.0427,
+        "NVDA": 0.0252,
+        "MSFT": 0.0,
+        "GOOGL": 0.0,
+        "AMZN": 0.0,
+        "TSLA": -0.2127
       }
     },
     {
@@ -387,28 +475,6 @@
       }
     },
     {
-      "signal_id": "value.peg_low",
-      "signal_name": "Low PEG Ratio",
-      "category": "value",
-      "n_observations": 546,
-      "ic_5d": 0.0,
-      "ic_20d": 0.0,
-      "hit_rate_5d": 0.0,
-      "hit_rate_20d": 0.0,
-      "fire_rate": 0.0,
-      "avg_return_20d_fired": 0.0,
-      "avg_return_20d_unfired": 0.025,
-      "ic_stable": false,
-      "per_ticker_ic_20d": {
-        "AAPL": 0.0,
-        "NVDA": 0.0,
-        "MSFT": 0.0,
-        "GOOGL": 0.0,
-        "AMZN": 0.0,
-        "TSLA": 0.0
-      }
-    },
-    {
       "signal_id": "value.ncav_deep",
       "signal_name": "Net Current Asset Value Deep Value",
       "category": "value",
@@ -431,74 +497,8 @@
       }
     },
     {
-      "signal_id": "quality.stable_margins",
-      "signal_name": "Stable Margins",
-      "category": "quality",
-      "n_observations": 546,
-      "ic_5d": 0.0,
-      "ic_20d": 0.0,
-      "hit_rate_5d": 0.0,
-      "hit_rate_20d": 0.0,
-      "fire_rate": 0.0,
-      "avg_return_20d_fired": 0.0,
-      "avg_return_20d_unfired": 0.025,
-      "ic_stable": false,
-      "per_ticker_ic_20d": {
-        "AAPL": 0.0,
-        "NVDA": 0.0,
-        "MSFT": 0.0,
-        "GOOGL": 0.0,
-        "AMZN": 0.0,
-        "TSLA": 0.0
-      }
-    },
-    {
       "signal_id": "quality.strong_earnings_quality",
       "signal_name": "Strong Earnings Quality",
-      "category": "quality",
-      "n_observations": 546,
-      "ic_5d": 0.0,
-      "ic_20d": 0.0,
-      "hit_rate_5d": 0.0,
-      "hit_rate_20d": 0.0,
-      "fire_rate": 0.0,
-      "avg_return_20d_fired": 0.0,
-      "avg_return_20d_unfired": 0.025,
-      "ic_stable": false,
-      "per_ticker_ic_20d": {
-        "AAPL": 0.0,
-        "NVDA": 0.0,
-        "MSFT": 0.0,
-        "GOOGL": 0.0,
-        "AMZN": 0.0,
-        "TSLA": 0.0
-      }
-    },
-    {
-      "signal_id": "quality.interest_coverage_fortress",
-      "signal_name": "Interest Coverage Fortress",
-      "category": "quality",
-      "n_observations": 546,
-      "ic_5d": 0.0,
-      "ic_20d": 0.0,
-      "hit_rate_5d": 0.0,
-      "hit_rate_20d": 0.0,
-      "fire_rate": 0.0,
-      "avg_return_20d_fired": 0.0,
-      "avg_return_20d_unfired": 0.025,
-      "ic_stable": false,
-      "per_ticker_ic_20d": {
-        "AAPL": 0.0,
-        "NVDA": 0.0,
-        "MSFT": 0.0,
-        "GOOGL": 0.0,
-        "AMZN": 0.0,
-        "TSLA": 0.0
-      }
-    },
-    {
-      "signal_id": "quality.piotroski_f_score",
-      "signal_name": "Piotroski F-Score",
       "category": "quality",
       "n_observations": 546,
       "ic_5d": 0.0,
@@ -565,72 +565,6 @@
     {
       "signal_id": "growth.estimate_revision_breadth",
       "signal_name": "Estimate Revision Breadth",
-      "category": "growth",
-      "n_observations": 546,
-      "ic_5d": 0.0,
-      "ic_20d": 0.0,
-      "hit_rate_5d": 0.0,
-      "hit_rate_20d": 0.0,
-      "fire_rate": 0.0,
-      "avg_return_20d_fired": 0.0,
-      "avg_return_20d_unfired": 0.025,
-      "ic_stable": false,
-      "per_ticker_ic_20d": {
-        "AAPL": 0.0,
-        "NVDA": 0.0,
-        "MSFT": 0.0,
-        "GOOGL": 0.0,
-        "AMZN": 0.0,
-        "TSLA": 0.0
-      }
-    },
-    {
-      "signal_id": "growth.operating_leverage",
-      "signal_name": "Operating Leverage Ratio",
-      "category": "growth",
-      "n_observations": 546,
-      "ic_5d": 0.0,
-      "ic_20d": 0.0,
-      "hit_rate_5d": 0.0,
-      "hit_rate_20d": 0.0,
-      "fire_rate": 0.0,
-      "avg_return_20d_fired": 0.0,
-      "avg_return_20d_unfired": 0.025,
-      "ic_stable": false,
-      "per_ticker_ic_20d": {
-        "AAPL": 0.0,
-        "NVDA": 0.0,
-        "MSFT": 0.0,
-        "GOOGL": 0.0,
-        "AMZN": 0.0,
-        "TSLA": 0.0
-      }
-    },
-    {
-      "signal_id": "growth.rule_of_40",
-      "signal_name": "Rule of 40 (SaaS/Tech)",
-      "category": "growth",
-      "n_observations": 546,
-      "ic_5d": 0.0,
-      "ic_20d": 0.0,
-      "hit_rate_5d": 0.0,
-      "hit_rate_20d": 0.0,
-      "fire_rate": 0.0,
-      "avg_return_20d_fired": 0.0,
-      "avg_return_20d_unfired": 0.025,
-      "ic_stable": false,
-      "per_ticker_ic_20d": {
-        "AAPL": 0.0,
-        "NVDA": 0.0,
-        "MSFT": 0.0,
-        "GOOGL": 0.0,
-        "AMZN": 0.0,
-        "TSLA": 0.0
-      }
-    },
-    {
-      "signal_id": "growth.capex_intensity",
-      "signal_name": "Growth Investment (CapEx/D&A)",
       "category": "growth",
       "n_observations": 546,
       "ic_5d": 0.0,
@@ -761,140 +695,8 @@
       }
     },
     {
-      "signal_id": "volatility.realized_vol_regime",
-      "signal_name": "Realized Volatility Regime",
-      "category": "volatility",
-      "n_observations": 546,
-      "ic_5d": 0.0,
-      "ic_20d": 0.0,
-      "hit_rate_5d": 0.0,
-      "hit_rate_20d": 0.0,
-      "fire_rate": 0.0,
-      "avg_return_20d_fired": 0.0,
-      "avg_return_20d_unfired": 0.025,
-      "ic_stable": false,
-      "per_ticker_ic_20d": {
-        "AAPL": 0.0,
-        "NVDA": 0.0,
-        "MSFT": 0.0,
-        "GOOGL": 0.0,
-        "AMZN": 0.0,
-        "TSLA": 0.0
-      }
-    },
-    {
-      "signal_id": "flow.mfi_oversold",
-      "signal_name": "MFI Capitulation Signal",
-      "category": "flow",
-      "n_observations": 546,
-      "ic_5d": 0.0,
-      "ic_20d": 0.0,
-      "hit_rate_5d": 0.0,
-      "hit_rate_20d": 0.0,
-      "fire_rate": 0.0,
-      "avg_return_20d_fired": 0.0,
-      "avg_return_20d_unfired": 0.025,
-      "ic_stable": false,
-      "per_ticker_ic_20d": {
-        "AAPL": 0.0,
-        "NVDA": 0.0,
-        "MSFT": 0.0,
-        "GOOGL": 0.0,
-        "AMZN": 0.0,
-        "TSLA": 0.0
-      }
-    },
-    {
-      "signal_id": "flow.dark_pool_absorption",
-      "signal_name": "Dark Pool Absorption",
-      "category": "flow",
-      "n_observations": 546,
-      "ic_5d": 0.0,
-      "ic_20d": 0.0,
-      "hit_rate_5d": 0.0,
-      "hit_rate_20d": 0.0,
-      "fire_rate": 0.0,
-      "avg_return_20d_fired": 0.0,
-      "avg_return_20d_unfired": 0.025,
-      "ic_stable": false,
-      "per_ticker_ic_20d": {
-        "AAPL": 0.0,
-        "NVDA": 0.0,
-        "MSFT": 0.0,
-        "GOOGL": 0.0,
-        "AMZN": 0.0,
-        "TSLA": 0.0
-      }
-    },
-    {
-      "signal_id": "event.earnings_surprise",
-      "signal_name": "Earnings Surprise",
-      "category": "event",
-      "n_observations": 546,
-      "ic_5d": 0.0,
-      "ic_20d": 0.0,
-      "hit_rate_5d": 0.0,
-      "hit_rate_20d": 0.0,
-      "fire_rate": 0.0,
-      "avg_return_20d_fired": 0.0,
-      "avg_return_20d_unfired": 0.025,
-      "ic_stable": false,
-      "per_ticker_ic_20d": {
-        "AAPL": 0.0,
-        "NVDA": 0.0,
-        "MSFT": 0.0,
-        "GOOGL": 0.0,
-        "AMZN": 0.0,
-        "TSLA": 0.0
-      }
-    },
-    {
-      "signal_id": "event.revenue_acceleration",
-      "signal_name": "Revenue Acceleration",
-      "category": "event",
-      "n_observations": 546,
-      "ic_5d": 0.0,
-      "ic_20d": 0.0,
-      "hit_rate_5d": 0.0,
-      "hit_rate_20d": 0.0,
-      "fire_rate": 0.0,
-      "avg_return_20d_fired": 0.0,
-      "avg_return_20d_unfired": 0.025,
-      "ic_stable": false,
-      "per_ticker_ic_20d": {
-        "AAPL": 0.0,
-        "NVDA": 0.0,
-        "MSFT": 0.0,
-        "GOOGL": 0.0,
-        "AMZN": 0.0,
-        "TSLA": 0.0
-      }
-    },
-    {
       "signal_id": "event.volatility_squeeze",
       "signal_name": "Volatility Squeeze (Event Setup)",
-      "category": "event",
-      "n_observations": 546,
-      "ic_5d": 0.0,
-      "ic_20d": 0.0,
-      "hit_rate_5d": 0.0,
-      "hit_rate_20d": 0.0,
-      "fire_rate": 0.0,
-      "avg_return_20d_fired": 0.0,
-      "avg_return_20d_unfired": 0.025,
-      "ic_stable": false,
-      "per_ticker_ic_20d": {
-        "AAPL": 0.0,
-        "NVDA": 0.0,
-        "MSFT": 0.0,
-        "GOOGL": 0.0,
-        "AMZN": 0.0,
-        "TSLA": 0.0
-      }
-    },
-    {
-      "signal_id": "event.high_beta_sector",
-      "signal_name": "High Beta Sector Exposure",
       "category": "event",
       "n_observations": 546,
       "ic_5d": 0.0,
@@ -1025,97 +827,9 @@
       }
     },
     {
-      "signal_id": "risk.revenue_decline",
-      "signal_name": "Revenue Decline",
-      "category": "growth",
-      "n_observations": 546,
-      "ic_5d": 0.0,
-      "ic_20d": 0.0,
-      "hit_rate_5d": 0.0,
-      "hit_rate_20d": 0.0,
-      "fire_rate": 0.0,
-      "avg_return_20d_fired": 0.0,
-      "avg_return_20d_unfired": 0.025,
-      "ic_stable": false,
-      "per_ticker_ic_20d": {
-        "AAPL": 0.0,
-        "NVDA": 0.0,
-        "MSFT": 0.0,
-        "GOOGL": 0.0,
-        "AMZN": 0.0,
-        "TSLA": 0.0
-      }
-    },
-    {
-      "signal_id": "risk.earnings_decline",
-      "signal_name": "Earnings Decline",
-      "category": "growth",
-      "n_observations": 546,
-      "ic_5d": 0.0,
-      "ic_20d": 0.0,
-      "hit_rate_5d": 0.0,
-      "hit_rate_20d": 0.0,
-      "fire_rate": 0.0,
-      "avg_return_20d_fired": 0.0,
-      "avg_return_20d_unfired": 0.025,
-      "ic_stable": false,
-      "per_ticker_ic_20d": {
-        "AAPL": 0.0,
-        "NVDA": 0.0,
-        "MSFT": 0.0,
-        "GOOGL": 0.0,
-        "AMZN": 0.0,
-        "TSLA": 0.0
-      }
-    },
-    {
-      "signal_id": "risk.high_beta",
-      "signal_name": "High Beta (Excess Volatility)",
-      "category": "volatility",
-      "n_observations": 546,
-      "ic_5d": 0.0,
-      "ic_20d": 0.0,
-      "hit_rate_5d": 0.0,
-      "hit_rate_20d": 0.0,
-      "fire_rate": 0.0,
-      "avg_return_20d_fired": 0.0,
-      "avg_return_20d_unfired": 0.025,
-      "ic_stable": false,
-      "per_ticker_ic_20d": {
-        "AAPL": 0.0,
-        "NVDA": 0.0,
-        "MSFT": 0.0,
-        "GOOGL": 0.0,
-        "AMZN": 0.0,
-        "TSLA": 0.0
-      }
-    },
-    {
       "signal_id": "fundmom.revenue_accelerating",
       "signal_name": "Revenue Growth Accelerating",
       "category": "growth",
-      "n_observations": 546,
-      "ic_5d": 0.0,
-      "ic_20d": 0.0,
-      "hit_rate_5d": 0.0,
-      "hit_rate_20d": 0.0,
-      "fire_rate": 0.0,
-      "avg_return_20d_fired": 0.0,
-      "avg_return_20d_unfired": 0.025,
-      "ic_stable": false,
-      "per_ticker_ic_20d": {
-        "AAPL": 0.0,
-        "NVDA": 0.0,
-        "MSFT": 0.0,
-        "GOOGL": 0.0,
-        "AMZN": 0.0,
-        "TSLA": 0.0
-      }
-    },
-    {
-      "signal_id": "fundmom.margin_expanding",
-      "signal_name": "Margin Expansion",
-      "category": "quality",
       "n_observations": 546,
       "ic_5d": 0.0,
       "ic_20d": 0.0,
@@ -1245,6 +959,28 @@
       }
     },
     {
+      "signal_id": "flow.dark_pool_absorption",
+      "signal_name": "Dark Pool Absorption",
+      "category": "flow",
+      "n_observations": 546,
+      "ic_5d": -0.0493,
+      "ic_20d": -0.0219,
+      "hit_rate_5d": 0.5414,
+      "hit_rate_20d": 0.5838,
+      "fire_rate": 0.9945,
+      "avg_return_20d_fired": 0.0249,
+      "avg_return_20d_unfired": 0.0372,
+      "ic_stable": false,
+      "per_ticker_ic_20d": {
+        "AAPL": 0.0161,
+        "NVDA": 0.0,
+        "MSFT": -0.1341,
+        "GOOGL": 0.0,
+        "AMZN": 0.0,
+        "TSLA": 0.0
+      }
+    },
+    {
       "signal_id": "quality.low_leverage",
       "signal_name": "Low Leverage",
       "category": "quality",
@@ -1289,25 +1025,25 @@
       }
     },
     {
-      "signal_id": "risk.ev_ebitda_expensive",
-      "signal_name": "EV/EBITDA Expensive",
-      "category": "value",
+      "signal_id": "growth.rule_of_40",
+      "signal_name": "Rule of 40 (SaaS/Tech)",
+      "category": "growth",
       "n_observations": 546,
-      "ic_5d": -0.0069,
-      "ic_20d": -0.0235,
-      "hit_rate_5d": 0.4586,
-      "hit_rate_20d": 0.4286,
-      "fire_rate": 0.2436,
-      "avg_return_20d_fired": 0.0213,
-      "avg_return_20d_unfired": 0.0262,
+      "ic_5d": 0.0006,
+      "ic_20d": -0.0441,
+      "hit_rate_5d": 0.5,
+      "hit_rate_20d": 0.3,
+      "fire_rate": 0.0183,
+      "avg_return_20d_fired": -0.0027,
+      "avg_return_20d_unfired": 0.0255,
       "ic_stable": false,
       "per_ticker_ic_20d": {
-        "AAPL": -0.09,
-        "NVDA": 0.0252,
+        "AAPL": -0.0612,
+        "NVDA": -0.1289,
         "MSFT": 0.0,
         "GOOGL": 0.0,
         "AMZN": 0.0,
-        "TSLA": -0.2127
+        "TSLA": 0.0
       }
     },
     {
@@ -1355,6 +1091,94 @@
       }
     },
     {
+      "signal_id": "fundmom.margin_expanding",
+      "signal_name": "Margin Expansion",
+      "category": "quality",
+      "n_observations": 546,
+      "ic_5d": 0.0188,
+      "ic_20d": -0.051,
+      "hit_rate_5d": 0.6667,
+      "hit_rate_20d": 0.0,
+      "fire_rate": 0.0055,
+      "avg_return_20d_fired": -0.0247,
+      "avg_return_20d_unfired": 0.0253,
+      "ic_stable": false,
+      "per_ticker_ic_20d": {
+        "AAPL": 0.0,
+        "NVDA": -0.1289,
+        "MSFT": 0.0,
+        "GOOGL": 0.0,
+        "AMZN": 0.0,
+        "TSLA": 0.0
+      }
+    },
+    {
+      "signal_id": "flow.mfi_oversold",
+      "signal_name": "MFI Capitulation Signal",
+      "category": "flow",
+      "n_observations": 546,
+      "ic_5d": 0.0078,
+      "ic_20d": -0.0511,
+      "hit_rate_5d": 0.5,
+      "hit_rate_20d": 0.4286,
+      "fire_rate": 0.0256,
+      "avg_return_20d_fired": 0.0255,
+      "avg_return_20d_unfired": 0.025,
+      "ic_stable": true,
+      "per_ticker_ic_20d": {
+        "AAPL": 0.0843,
+        "NVDA": -0.0006,
+        "MSFT": 0.0341,
+        "GOOGL": -0.1284,
+        "AMZN": -0.1559,
+        "TSLA": -0.0032
+      }
+    },
+    {
+      "signal_id": "volatility.realized_vol_regime",
+      "signal_name": "Realized Volatility Regime",
+      "category": "volatility",
+      "n_observations": 546,
+      "ic_5d": 0.015,
+      "ic_20d": -0.0551,
+      "hit_rate_5d": 0.5888,
+      "hit_rate_20d": 0.5327,
+      "fire_rate": 0.196,
+      "avg_return_20d_fired": 0.0087,
+      "avg_return_20d_unfired": 0.0289,
+      "ic_stable": false,
+      "per_ticker_ic_20d": {
+        "AAPL": 0.0181,
+        "NVDA": 0.0,
+        "MSFT": -0.1253,
+        "GOOGL": -0.0123,
+        "AMZN": 0.1737,
+        "TSLA": 0.0
+      }
+    },
+    {
+      "signal_id": "growth.capex_intensity",
+      "signal_name": "Growth Investment (CapEx/D&A)",
+      "category": "growth",
+      "n_observations": 546,
+      "ic_5d": -0.015,
+      "ic_20d": -0.0559,
+      "hit_rate_5d": 0.556,
+      "hit_rate_20d": 0.541,
+      "fire_rate": 0.4908,
+      "avg_return_20d_fired": 0.0126,
+      "avg_return_20d_unfired": 0.0369,
+      "ic_stable": false,
+      "per_ticker_ic_20d": {
+        "AAPL": 0.0,
+        "NVDA": 0.0074,
+        "MSFT": -0.1603,
+        "GOOGL": 0.1263,
+        "AMZN": -0.2363,
+        "TSLA": -0.2945
+      }
+    },
+    {
       "signal_id": "quality.asset_turnover_improving",
       "signal_name": "Asset Turnover Efficiency",
       "category": "quality",
@@ -1374,6 +1198,94 @@
         "GOOGL": -0.0772,
         "AMZN": -0.3412,
         "TSLA": -0.372
+      }
+    },
+    {
+      "signal_id": "quality.interest_coverage_fortress",
+      "signal_name": "Interest Coverage Fortress",
+      "category": "quality",
+      "n_observations": 546,
+      "ic_5d": -0.0232,
+      "ic_20d": -0.0795,
+      "hit_rate_5d": 0.5552,
+      "hit_rate_20d": 0.548,
+      "fire_rate": 0.5147,
+      "avg_return_20d_fired": 0.016,
+      "avg_return_20d_unfired": 0.0345,
+      "ic_stable": true,
+      "per_ticker_ic_20d": {
+        "AAPL": 0.0,
+        "NVDA": -0.0042,
+        "MSFT": -0.102,
+        "GOOGL": 0.1263,
+        "AMZN": -0.1539,
+        "TSLA": -0.2937
+      }
+    },
+    {
+      "signal_id": "quality.stable_margins",
+      "signal_name": "Stable Margins",
+      "category": "quality",
+      "n_observations": 546,
+      "ic_5d": -0.0493,
+      "ic_20d": -0.1165,
+      "hit_rate_5d": 0.5135,
+      "hit_rate_20d": 0.4054,
+      "fire_rate": 0.1355,
+      "avg_return_20d_fired": -0.0004,
+      "avg_return_20d_unfired": 0.029,
+      "ic_stable": true,
+      "per_ticker_ic_20d": {
+        "AAPL": -0.0612,
+        "NVDA": -0.1601,
+        "MSFT": -0.3799,
+        "GOOGL": 0.3017,
+        "AMZN": 0.0,
+        "TSLA": -0.2212
+      }
+    },
+    {
+      "signal_id": "risk.revenue_decline",
+      "signal_name": "Revenue Decline",
+      "category": "growth",
+      "n_observations": 546,
+      "ic_5d": -0.051,
+      "ic_20d": -0.1168,
+      "hit_rate_5d": 0.8571,
+      "hit_rate_20d": 1.0,
+      "fire_rate": 0.0128,
+      "avg_return_20d_fired": -0.0515,
+      "avg_return_20d_unfired": 0.026,
+      "ic_stable": false,
+      "per_ticker_ic_20d": {
+        "AAPL": 0.0,
+        "NVDA": 0.0,
+        "MSFT": 0.0,
+        "GOOGL": 0.0,
+        "AMZN": 0.0,
+        "TSLA": -0.2386
+      }
+    },
+    {
+      "signal_id": "risk.earnings_decline",
+      "signal_name": "Earnings Decline",
+      "category": "growth",
+      "n_observations": 546,
+      "ic_5d": -0.051,
+      "ic_20d": -0.1168,
+      "hit_rate_5d": 0.8571,
+      "hit_rate_20d": 1.0,
+      "fire_rate": 0.0128,
+      "avg_return_20d_fired": -0.0515,
+      "avg_return_20d_unfired": 0.026,
+      "ic_stable": false,
+      "per_ticker_ic_20d": {
+        "AAPL": 0.0,
+        "NVDA": 0.0,
+        "MSFT": 0.0,
+        "GOOGL": 0.0,
+        "AMZN": 0.0,
+        "TSLA": -0.2386
       }
     },
     {
@@ -1418,6 +1330,94 @@
         "GOOGL": 0.0444,
         "AMZN": -0.3994,
         "TSLA": -0.4101
+      }
+    },
+    {
+      "signal_id": "value.peg_low",
+      "signal_name": "Low PEG Ratio",
+      "category": "value",
+      "n_observations": 546,
+      "ic_5d": -0.0437,
+      "ic_20d": -0.1498,
+      "hit_rate_5d": 0.5294,
+      "hit_rate_20d": 0.1765,
+      "fire_rate": 0.0311,
+      "avg_return_20d_fired": -0.0523,
+      "avg_return_20d_unfired": 0.0275,
+      "ic_stable": false,
+      "per_ticker_ic_20d": {
+        "AAPL": 0.0,
+        "NVDA": -0.1289,
+        "MSFT": -0.3156,
+        "GOOGL": -0.2025,
+        "AMZN": 0.0,
+        "TSLA": 0.0
+      }
+    },
+    {
+      "signal_id": "event.earnings_surprise",
+      "signal_name": "Earnings Surprise",
+      "category": "event",
+      "n_observations": 546,
+      "ic_5d": -0.0437,
+      "ic_20d": -0.1498,
+      "hit_rate_5d": 0.5294,
+      "hit_rate_20d": 0.1765,
+      "fire_rate": 0.0311,
+      "avg_return_20d_fired": -0.0523,
+      "avg_return_20d_unfired": 0.0275,
+      "ic_stable": false,
+      "per_ticker_ic_20d": {
+        "AAPL": 0.0,
+        "NVDA": -0.1289,
+        "MSFT": -0.3156,
+        "GOOGL": -0.2025,
+        "AMZN": 0.0,
+        "TSLA": 0.0
+      }
+    },
+    {
+      "signal_id": "event.revenue_acceleration",
+      "signal_name": "Revenue Acceleration",
+      "category": "event",
+      "n_observations": 546,
+      "ic_5d": -0.0479,
+      "ic_20d": -0.1579,
+      "hit_rate_5d": 0.4839,
+      "hit_rate_20d": 0.2903,
+      "fire_rate": 0.0568,
+      "avg_return_20d_fired": -0.0404,
+      "avg_return_20d_unfired": 0.0289,
+      "ic_stable": true,
+      "per_ticker_ic_20d": {
+        "AAPL": -0.0612,
+        "NVDA": -0.1289,
+        "MSFT": -0.3156,
+        "GOOGL": -0.2025,
+        "AMZN": -0.1758,
+        "TSLA": 0.0
+      }
+    },
+    {
+      "signal_id": "growth.operating_leverage",
+      "signal_name": "Operating Leverage Ratio",
+      "category": "growth",
+      "n_observations": 546,
+      "ic_5d": -0.0771,
+      "ic_20d": -0.1843,
+      "hit_rate_5d": 0.381,
+      "hit_rate_20d": 0.1429,
+      "fire_rate": 0.0385,
+      "avg_return_20d_fired": -0.056,
+      "avg_return_20d_unfired": 0.0282,
+      "ic_stable": false,
+      "per_ticker_ic_20d": {
+        "AAPL": 0.0,
+        "NVDA": 0.0,
+        "MSFT": -0.3156,
+        "GOOGL": -0.2025,
+        "AMZN": 0.0,
+        "TSLA": -0.2386
       }
     },
     {

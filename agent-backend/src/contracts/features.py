@@ -73,6 +73,12 @@ class FundamentalFeatureSet(BaseModel):
     # C6: Fundamental momentum / acceleration
     revenue_acceleration: float | None = None   # slope(growth_rate_series)
 
+    # Tier 1: Growth signals
+    operating_leverage: float | None = None     # earnings_growth / revenue_growth
+    rule_of_40: float | None = None             # revenue_growth_pct + fcf_margin_pct
+    capex_to_depreciation: float | None = None  # capex / depreciation
+    earnings_surprise_pct: float | None = None  # EPS beat vs consensus (requires external)
+
     # Context
     sector: str = ""
     industry: str = ""
@@ -146,6 +152,12 @@ class TechnicalFeatureSet(BaseModel):
     # C7: Price cycle positioning
     pct_from_52w_high: float | None = None   # negative = below high
     mean_reversion_z: float | None = None     # z-score of log(price) vs 1yr rolling mean
+
+    # Tier 2 indicators (AVS)
+    realized_vol_20d: float = 0.0            # 20d annualized realized volatility
+    bb_width: float = 0.0                    # (bb_upper - bb_lower) / bb_basis
+    mfi: float = 50.0                        # Money Flow Index (14-period)
+    effort_result_ratio: float = 0.0         # volume / abs(pct_change) (Wyckoff)
 
     @property
     def _compute_sma_spread(self) -> float:

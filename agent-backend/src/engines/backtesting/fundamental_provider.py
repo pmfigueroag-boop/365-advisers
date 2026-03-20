@@ -50,6 +50,15 @@ _CF_CAPITAL_EXPENDITURE = "Capital Expenditure"
 _CF_DIVIDENDS_PAID = "Cash Dividends Paid"
 _CF_BUYBACKS = "Repurchase Of Capital Stock"
 _CF_DEBT_REPAYMENT = "Repayment Of Debt"
+_CF_DEPRECIATION = "Depreciation And Amortization"
+
+# Additional Income Statement fields (Tier 1)
+_IS_INTEREST_EXPENSE = "Interest Expense"
+_IS_DILUTED_EPS = "Diluted EPS"
+
+# Additional Balance Sheet fields (Tier 1)
+_BS_TOTAL_LIABILITIES = "Total Liabilities Net Minority Interest"
+_BS_CASH_AND_EQUIVALENTS = "Cash And Cash Equivalents"
 
 
 def _safe_div(numerator: float | None, denominator: float | None) -> float | None:
@@ -170,6 +179,12 @@ class FundamentalProvider:
         # Sort by date
         quarterly_snapshots.sort(key=lambda x: x[0])
 
+        # ── Tier 1: Multi-quarter lookback features ──────────────────────
+        self._compute_multi_quarter_features(quarterly_snapshots)
+
+        # ── Tier 1: Beta from OHLCV vs SPY ───────────────────────────────
+        beta = self._compute_beta(ticker, ohlcv) if ohlcv is not None else None
+
         # Forward-fill to daily
         daily_snapshots: dict[str, dict[str, float]] = {}
         current_snap: dict[str, float] = {}
@@ -190,8 +205,11 @@ class FundamentalProvider:
 
                 # Compute price-dependent metrics if we have OHLCV
                 if ohlcv is not None and not ohlcv.empty:
-                    day_str_for_price = day_d.isoformat()
                     self._enrich_with_price(current_snap, ohlcv, day_d, shares_outstanding)
+
+                # Inject beta (constant across quarters — computed from price)
+                if beta is not None:
+                    current_snap["beta"] = beta
 
                 q_idx += 1
 
@@ -224,6 +242,8 @@ class FundamentalProvider:
         ebit = _get_field(income_stmt, _IS_EBIT, q_date)
         ebitda = _get_field(income_stmt, _IS_EBITDA, q_date)
         net_income = _get_field(income_stmt, _IS_NET_INCOME, q_date)
+        interest_expense = _get_field(income_stmt, _IS_INTEREST_EXPENSE, q_date)
+        diluted_eps = _get_field(income_stmt, _IS_DILUTED_EPS, q_date)
 
         # Margins (quarterly, annualized later if needed)
         if revenue and revenue > 0:
@@ -234,8 +254,17 @@ class FundamentalProvider:
             if net_income is not None:
                 snap["net_margin"] = net_income / revenue
 
+        # Interest Coverage = EBIT / Interest Expense (Tier 1)
+        if ebit is not None and interest_expense is not None and abs(interest_expense) > 0:
+            snap["interest_coverage"] = abs(ebit / interest_expense)
+
         # --- Balance Sheet ---
         bs = balance_sheet
+        total_assets = None
+        total_liab = None
+        equity = None
+        current_assets = None
+
         if bs is not None and not bs.empty:
             total_assets = _get_field(bs, _BS_TOTAL_ASSETS, q_date)
             total_debt = _get_field(bs, _BS_TOTAL_DEBT, q_date)
@@ -243,6 +272,8 @@ class FundamentalProvider:
             invested_capital = _get_field(bs, _BS_INVESTED_CAPITAL, q_date)
             current_assets = _get_field(bs, _BS_CURRENT_ASSETS, q_date)
             current_liab = _get_field(bs, _BS_CURRENT_LIABILITIES, q_date)
+            total_liab = _get_field(bs, _BS_TOTAL_LIABILITIES, q_date)
+            cash = _get_field(bs, _BS_CASH_AND_EQUIVALENTS, q_date)
 
             # Leverage
             dte = _safe_div(total_debt, equity)
@@ -273,7 +304,21 @@ class FundamentalProvider:
             if at is not None:
                 snap["asset_turnover"] = at * 4  # annualise
 
+            # Store equity and total_liabilities for price-based calcs
+            if equity is not None:
+                snap["_equity"] = equity
+            if total_liab is not None:
+                snap["_total_liabilities"] = total_liab
+            if current_assets is not None:
+                snap["_current_assets"] = current_assets
+            if cash is not None:
+                snap["_cash"] = cash
+
         # --- Cash Flow ---
+        depreciation = None
+        capex = None
+        fcf = None
+
         if cashflow is not None and not cashflow.empty:
             fcf = _get_field(cashflow, _CF_FREE_CASH_FLOW, q_date)
             ocf = _get_field(cashflow, _CF_OPERATING_CASH_FLOW, q_date)
@@ -281,13 +326,13 @@ class FundamentalProvider:
             dividends_paid = _get_field(cashflow, _CF_DIVIDENDS_PAID, q_date)
             buybacks = _get_field(cashflow, _CF_BUYBACKS, q_date)
             debt_repayment = _get_field(cashflow, _CF_DEBT_REPAYMENT, q_date)
+            depreciation = _get_field(cashflow, _CF_DEPRECIATION, q_date)
 
             # Store annualised FCF for yield calculation later
             if fcf is not None:
                 snap["_fcf_annual"] = fcf * 4  # annualise quarterly
 
             # Shareholder yield components (annualised)
-            # dividends_paid and buybacks are typically negative in yfinance
             div_yield_abs = abs(dividends_paid) if dividends_paid else 0
             buyback_abs = abs(buybacks) if buybacks else 0
             debt_repay_abs = abs(debt_repayment) if debt_repayment else 0
@@ -295,15 +340,32 @@ class FundamentalProvider:
                 div_yield_abs + buyback_abs + debt_repay_abs
             ) * 4  # annualise
 
-        # Store raw fields for price-based calcs
+            # Capex / Depreciation (Tier 1 — growth.capex_intensity)
+            capex_abs = abs(capex) if capex else None
+            if capex_abs and depreciation and abs(depreciation) > 0:
+                snap["capex_to_depreciation"] = capex_abs / abs(depreciation)
+
+            # Store OCF for F-score
+            if ocf is not None:
+                snap["_ocf"] = ocf
+
+        # Store raw fields for price-based calcs AND multi-quarter lookback
         if net_income is not None:
             snap["_net_income_annual"] = net_income * 4
+            snap["_net_income_q"] = net_income
         if ebit is not None:
             snap["_ebit_annual"] = ebit * 4
         if ebitda is not None:
             snap["_ebitda_annual"] = ebitda * 4
         if revenue is not None:
             snap["_revenue_annual"] = revenue * 4
+            snap["_revenue_q"] = revenue
+        if diluted_eps is not None:
+            snap["_eps_q"] = diluted_eps
+        if total_assets is not None:
+            snap["_total_assets"] = total_assets
+        if fcf is not None:
+            snap["_fcf_q"] = fcf
 
         return snap
 
@@ -342,52 +404,270 @@ class FundamentalProvider:
 
             # PE Ratio
             net_inc = snap.get("_net_income_annual")
+            eps = None
             if net_inc and net_inc > 0:
                 eps = net_inc / shares_outstanding
                 snap["pe_ratio"] = price / eps
 
-            # PB Ratio (requires equity from balance sheet)
-            # We can approximate: PB = Market Cap / Equity
-            # but equity is not directly in snap — we'd need it from _extract
-            # For now, skip PB if not computable
+            # PB Ratio = Market Cap / Equity (Tier 1)
+            equity = snap.get("_equity")
+            if equity and equity > 0:
+                snap["pb_ratio"] = market_cap / equity
 
             # FCF Yield = FCF / Market Cap
             fcf_annual = snap.get("_fcf_annual")
             if fcf_annual is not None:
                 snap["fcf_yield"] = fcf_annual / market_cap
 
-            # EV = Market Cap + Total Debt - Cash
-            # Simplified: use market cap as proxy
+            # EV = Market Cap + Total Debt - Cash (improved from proxy)
+            cash = snap.get("_cash", 0) or 0
             ebitda_annual = snap.get("_ebitda_annual")
+            ev = market_cap  # base
+            total_liab = snap.get("_total_liabilities")
+            if total_liab:
+                ev = market_cap + total_liab - cash
+
             if ebitda_annual and ebitda_annual > 0:
-                ev = market_cap  # simplified, no debt/cash adjustment
                 snap["ev_ebitda"] = ev / ebitda_annual
 
             # EV/Revenue
             revenue_annual = snap.get("_revenue_annual")
             if revenue_annual and revenue_annual > 0:
-                snap["ev_revenue"] = market_cap / revenue_annual
+                snap["ev_revenue"] = ev / revenue_annual
 
             # EBIT/EV (Greenblatt earnings yield)
             ebit_annual = snap.get("_ebit_annual")
-            if ebit_annual and market_cap > 0:
-                snap["ebit_ev"] = ebit_annual / market_cap
+            if ebit_annual and ev > 0:
+                snap["ebit_ev"] = ebit_annual / ev
 
             # Dividend Yield
             shareholder_return = snap.get("_shareholder_return_annual", 0)
             if shareholder_return > 0:
                 snap["shareholder_yield"] = shareholder_return / market_cap
 
-            # Dividend yield alone (rough: from total dividends paid)
-            # We use the component if available
+            # Dividend yield alone
             if "_shareholder_return_annual" in snap:
-                # Very rough approximation
                 snap["dividend_yield"] = snap.get("shareholder_yield", 0) * 0.5
+
+            # NCAV / Market Cap (Tier 1 — value.ncav_deep)
+            ca = snap.get("_current_assets")
+            tl = snap.get("_total_liabilities")
+            if ca is not None and tl is not None and market_cap > 0:
+                ncav = ca - tl
+                snap["ncav_ratio"] = ncav / market_cap
+
+            # PEG Ratio = PE / earnings_growth (Tier 1 — value.peg_low)
+            eg = snap.get("earnings_growth_yoy")
+            pe = snap.get("pe_ratio")
+            if pe and eg and eg > 0.01:
+                snap["peg_ratio"] = pe / (eg * 100)  # growth as %
+
+            # Rule of 40 (Tier 1 — growth.rule_of_40)
+            rev_growth = snap.get("revenue_growth_yoy")
+            fcf_q = snap.get("_fcf_q")
+            rev_q = snap.get("_revenue_q")
+            if rev_growth is not None and fcf_q is not None and rev_q and rev_q > 0:
+                fcf_margin = fcf_q / rev_q
+                snap["rule_of_40"] = (rev_growth * 100) + (fcf_margin * 100)
 
         # Clean up internal fields
         for key in list(snap.keys()):
             if key.startswith("_"):
                 del snap[key]
+
+    # ── Tier 1: Multi-quarter lookback ───────────────────────────────────
+
+    @staticmethod
+    def _compute_multi_quarter_features(
+        quarterly_snapshots: list[tuple[date, dict[str, float]]],
+    ) -> None:
+        """
+        Compute features that require looking back across multiple quarters.
+        Mutates the snapshots in-place.
+        """
+        for i, (q_date, snap) in enumerate(quarterly_snapshots):
+            # ── YoY Growth (compare Q vs Q-4) ────────────────────────────
+            if i >= 4:
+                prev_snap = quarterly_snapshots[i - 4][1]
+                # Revenue growth YoY
+                rev_q = snap.get("_revenue_q")
+                prev_rev = prev_snap.get("_revenue_q")
+                if rev_q and prev_rev and prev_rev > 0:
+                    snap["revenue_growth_yoy"] = (rev_q - prev_rev) / abs(prev_rev)
+
+                # Earnings growth YoY
+                eps_q = snap.get("_eps_q")
+                prev_eps = prev_snap.get("_eps_q")
+                if eps_q is not None and prev_eps is not None and abs(prev_eps) > 0.01:
+                    snap["earnings_growth_yoy"] = (eps_q - prev_eps) / abs(prev_eps)
+
+            # ── Revenue growth acceleration (slope of growth rates) ──────
+            if i >= 5:
+                growth_rates: list[float] = []
+                for j in range(max(0, i - 3), i + 1):
+                    g = quarterly_snapshots[j][1].get("revenue_growth_yoy")
+                    if g is not None:
+                        growth_rates.append(g)
+                if len(growth_rates) >= 3:
+                    # Simple slope: last - first / n
+                    snap["revenue_acceleration"] = (
+                        growth_rates[-1] - growth_rates[0]
+                    ) / len(growth_rates)
+
+            # ── Operating Leverage (Tier 1) ──────────────────────────────
+            rev_g = snap.get("revenue_growth_yoy")
+            earn_g = snap.get("earnings_growth_yoy")
+            if rev_g and abs(rev_g) > 0.01 and earn_g is not None:
+                snap["operating_leverage"] = earn_g / rev_g
+
+            # ── Margin Trend (slope over 4 quarters) ─────────────────────
+            if i >= 3:
+                margins: list[float] = []
+                for j in range(i - 3, i + 1):
+                    m = quarterly_snapshots[j][1].get("ebit_margin")
+                    if m is not None:
+                        margins.append(m)
+                if len(margins) >= 3:
+                    snap["margin_trend"] = margins[-1] - margins[0]
+
+            # ── Earnings Stability (1 - CV of EPS over 4Q) ──────────────
+            if i >= 3:
+                eps_vals: list[float] = []
+                for j in range(i - 3, i + 1):
+                    e = quarterly_snapshots[j][1].get("_eps_q")
+                    if e is not None:
+                        eps_vals.append(e)
+                if len(eps_vals) >= 3:
+                    mean_eps = sum(eps_vals) / len(eps_vals)
+                    if abs(mean_eps) > 0.01:
+                        std_eps = (
+                            sum((x - mean_eps) ** 2 for x in eps_vals) / len(eps_vals)
+                        ) ** 0.5
+                        cv = std_eps / abs(mean_eps)
+                        snap["earnings_stability"] = max(0.0, 1.0 - cv)
+
+            # ── Piotroski F-Score ────────────────────────────────────────
+            if i >= 1:
+                snap["f_score"] = FundamentalProvider._compute_f_score(
+                    snap, quarterly_snapshots[i - 1][1] if i >= 1 else None,
+                )
+
+    @staticmethod
+    def _compute_f_score(
+        current: dict[str, float],
+        previous: dict[str, float] | None,
+    ) -> float:
+        """
+        Piotroski F-Score (0-9 points).
+        Tests: profitability (4), leverage (3), efficiency (2).
+        """
+        score = 0
+
+        # 1. ROA > 0
+        ni = current.get("_net_income_q", 0)
+        ta = current.get("_total_assets")
+        if ta and ta > 0 and ni > 0:
+            score += 1
+
+        # 2. OCF > 0
+        ocf = current.get("_ocf", 0)
+        if ocf and ocf > 0:
+            score += 1
+
+        # 3. Change in ROA > 0 (vs prior quarter)
+        if previous and ta and ta > 0:
+            curr_roa = ni / ta if ta else 0
+            prev_ni = previous.get("_net_income_q", 0) or 0
+            prev_ta = previous.get("_total_assets", 0) or 1
+            prev_roa = prev_ni / prev_ta if prev_ta else 0
+            if curr_roa > prev_roa:
+                score += 1
+
+        # 4. Accruals: OCF > Net Income (quality of earnings)
+        if ocf and ni and ocf > ni:
+            score += 1
+
+        # 5. Change in leverage: debt_to_equity decreased
+        if previous:
+            curr_dte = current.get("debt_to_equity")
+            prev_dte = previous.get("debt_to_equity")
+            if curr_dte is not None and prev_dte is not None and curr_dte < prev_dte:
+                score += 1
+
+        # 6. Change in current ratio: increased
+        if previous:
+            curr_cr = current.get("current_ratio")
+            prev_cr = previous.get("current_ratio")
+            if curr_cr is not None and prev_cr is not None and curr_cr > prev_cr:
+                score += 1
+
+        # 7. No new shares issued (approximate: constant shares)
+        # Skip — not easily available from quarterly data
+        score += 1  # assume no dilution (generous)
+
+        # 8. Change in gross margin: increased
+        if previous:
+            curr_gm = current.get("gross_margin")
+            prev_gm = previous.get("gross_margin")
+            if curr_gm is not None and prev_gm is not None and curr_gm > prev_gm:
+                score += 1
+
+        # 9. Change in asset turnover: increased
+        if previous:
+            curr_at = current.get("asset_turnover")
+            prev_at = previous.get("asset_turnover")
+            if curr_at is not None and prev_at is not None and curr_at > prev_at:
+                score += 1
+
+        return float(score)
+
+    # ── Tier 1: Beta ─────────────────────────────────────────────────────
+
+    @staticmethod
+    @lru_cache(maxsize=1)
+    def _get_spy_returns() -> pd.Series | None:
+        """Fetch SPY daily returns (cached globally per session)."""
+        try:
+            spy = yf.download("SPY", period="3y", progress=False)
+            if spy is None or spy.empty:
+                return None
+            close = spy["Close"]
+            if isinstance(close, pd.DataFrame):
+                close = close.iloc[:, 0]
+            return close.pct_change().dropna()
+        except Exception:
+            return None
+
+    @staticmethod
+    def _compute_beta(
+        ticker: str,
+        ohlcv: pd.DataFrame,
+        window: int = 252,
+    ) -> float | None:
+        """Compute beta vs SPY over trailing window days."""
+        spy_ret = FundamentalProvider._get_spy_returns()
+        if spy_ret is None or ohlcv is None or ohlcv.empty:
+            return None
+
+        close = ohlcv["Close"]
+        if isinstance(close, pd.DataFrame):
+            close = close.iloc[:, 0]
+        stock_ret = close.pct_change().dropna()
+
+        # Align dates
+        common = stock_ret.index.intersection(spy_ret.index)
+        if len(common) < max(60, window // 2):
+            return None
+
+        common = sorted(common)[-window:]  # trailing
+        sr = stock_ret.loc[common]
+        mr = spy_ret.loc[common]
+
+        cov = ((sr - sr.mean()) * (mr - mr.mean())).mean()
+        var = ((mr - mr.mean()) ** 2).mean()
+        if var == 0:
+            return None
+        return round(float(cov / var), 4)
 
     def clear_cache(self) -> None:
         """Clear the internal cache."""

@@ -452,7 +452,10 @@ class AnalysisPipeline:
                 profile = await asyncio.to_thread(
                     _evaluator.evaluate, symbol, fundamental_features, technical_features,
                 )
-                composite = _combiner.combine(profile)
+                composite = _combiner.combine(
+                    profile,
+                    sector=getattr(fundamental_features, "sector", "") if fundamental_features else "",
+                )
                 case_result = _composite_engine.compute(
                     profile, decay_engine=_decay_engine, data_age_hours=_max_age,
                 )

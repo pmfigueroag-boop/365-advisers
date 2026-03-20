@@ -29,7 +29,7 @@ def main():
         tickers=tickers,
         years=2,
         eval_frequency_days=5,
-        buy_threshold=0.35,
+        buy_threshold=0.20,
         oos_months=3,
     )
 

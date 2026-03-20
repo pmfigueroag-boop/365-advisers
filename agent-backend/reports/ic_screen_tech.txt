@@ -5,7 +5,7 @@ Universe:  AAPL, NVDA, MSFT, GOOGL, AMZN, TSLA
 Period:    ~2Y
 Signals:   65
 IC > 0.02: 14
-IC < 0:    25
+IC < 0:    26
 
 Signal ID                                     Cat            N   IC_5d  IC_20d  Fire% HitR_5d HitR_20d AvgR_20d_F AvgR_20d_U Stable
 -----------------------------------------------------------------------------------------------------------------------------------
@@ -16,8 +16,8 @@ Signal ID                                     Cat            N   IC_5d  IC_20d  
 🟢 value.div_yield_vs_hist                     value        546 +0.0409 +0.1066  9.2%  62.0%   68.0%     4.78%     2.27%      ✗
 🟢 value.pe_low                                value        546 +0.0393 +0.0843 10.4%  63.2%   63.2%     3.82%     2.34%      ✗
 🟢 value.ebit_ev_high                          value        546 +0.0393 +0.0843 10.4%  63.2%   63.2%     3.82%     2.34%      ✗
+🟢 quality.piotroski_f_score                   quality      546 +0.0359 +0.0816 24.5%  57.5%   65.7%     3.46%     2.18%      ✗
 🟢 pricecycle.oversold_z                       value        546 +0.0557 +0.0767  2.2%  66.7%   75.0%     7.49%     2.39%      ✗
-🟢 quality.piotroski_f_score                   quality      546 +0.0302 +0.0618 28.2%  57.1%   64.3%     3.11%     2.26%      ✗
 🟢 value.shareholder_yield                     value        546 +0.0201 +0.0567 18.5%  58.4%   60.4%     2.66%     2.46%      ✗
 🟢 momentum.volume_surge                       momentum     546 +0.0396 +0.0492  8.8%  56.2%   66.7%     2.80%     2.47%      ✗
 🟢 flow.unusual_volume                         flow         546 +0.0408 +0.0488  8.6%  53.2%   68.1%     2.57%     2.49%      ✓
@@ -26,7 +26,6 @@ Signal ID                                     Cat            N   IC_5d  IC_20d  
 ⚪ event.high_beta_sector                      event        546 -0.0136 +0.0072 24.7%  51.1%   57.0%     3.74%     2.09%      ✗
 ⚪ risk.high_beta                              volatility   546 -0.0136 +0.0072 24.7%  48.9%   43.0%     3.74%     2.09%      ✗
 ⚪ pricecycle.stretched_above_mean             momentum     546 +0.0299 +0.0055 15.0%  58.5%   62.2%     2.47%     2.50%      ✓
-⚪ risk.ev_ebitda_expensive                    value        546 +0.0010 +0.0017 26.6%  44.1%   40.0%     2.50%     2.50%      ✗
 ⚪ risk.pe_expensive                           value        546 -0.0019 +0.0011 17.4%  47.4%   40.0%     2.67%     2.46%      ✗
 ⚪ risk.macd_bearish                           momentum     546 +0.0413 +0.0001 48.9%  45.3%   40.5%     2.17%     2.81%      ✗
 ⚪ value.pb_low                                value        546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
@@ -50,19 +49,20 @@ Signal ID                                     Cat            N   IC_5d  IC_20d  
 ⚪ fundmom.revenue_decelerating                growth       546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
 ⚪ fundmom.margin_compressing                  quality      546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
 🔴 momentum.macd_bullish                       momentum     546 -0.0413 -0.0001 51.1%  54.1%   57.7%     2.81%     2.17%      ✗
+🔴 quality.high_roic                           quality      546 +0.0080 -0.0021 41.0%  57.6%   55.4%     1.72%     3.04%      ✗
 🔴 risk.rsi_overbought                         momentum     546 +0.0002 -0.0042 12.1%  37.9%   40.9%     1.93%     2.58%      ✗
-🔴 quality.high_roic                           quality      546 -0.0028 -0.0191 51.5%  56.9%   55.9%     1.58%     3.47%      ✓
+🔴 quality.high_roe                            quality      546 +0.0051 -0.0108 41.0%  57.6%   55.4%     1.72%     3.04%      ✗
 🔴 flow.dark_pool_absorption                   flow         546 -0.0493 -0.0219 99.5%  54.1%   58.4%     2.49%     3.72%      ✗
 🔴 quality.low_leverage                        quality      546 -0.0003 -0.0221 51.5%  55.5%   54.8%     1.60%     3.45%      ✗
-🔴 quality.high_roe                            quality      546 -0.0041 -0.0221 51.5%  56.9%   55.9%     1.58%     3.47%      ✓
+🔴 risk.ev_ebitda_expensive                    value        546 -0.0069 -0.0235 24.4%  45.9%   42.9%     2.13%     2.62%      ✗
 🔴 growth.rule_of_40                           growth       546 +0.0006 -0.0441  1.8%  50.0%   30.0%    -0.27%     2.55%      ✗
 🔴 value.fcf_yield_high                        value        546 -0.0362 -0.0453  4.6%  44.0%   52.0%    -0.23%     2.63%      ✗
 🔴 pricecycle.near_52w_high_risk               volatility   546 +0.0091 -0.0485 20.0%  58.7%   55.0%     1.51%     2.74%      ✓
 🔴 fundmom.margin_expanding                    quality      546 +0.0188 -0.0510  0.5%  66.7%    0.0%    -2.47%     2.53%      ✗
 🔴 flow.mfi_oversold                           flow         546 +0.0078 -0.0511  2.6%  50.0%   42.9%     2.55%     2.50%      ✓
 🔴 volatility.realized_vol_regime              volatility   546 +0.0150 -0.0551 19.6%  58.9%   53.3%     0.87%     2.89%      ✗
+🔴 quality.asset_turnover_improving            quality      546 -0.0059 -0.0554 43.2%  55.1%   54.7%     1.72%     3.09%      ✓
 🔴 growth.capex_intensity                      growth       546 -0.0150 -0.0559 49.1%  55.6%   54.1%     1.26%     3.69%      ✗
-🔴 quality.asset_turnover_improving            quality      546 -0.0206 -0.0782 53.7%  54.9%   55.3%     1.59%     3.55%      ✓
 🔴 quality.interest_coverage_fortress          quality      546 -0.0232 -0.0795 51.5%  55.5%   54.8%     1.60%     3.45%      ✓
 🔴 quality.stable_margins                      quality      546 -0.0493 -0.1165 13.6%  51.3%   40.5%    -0.04%     2.90%      ✓
 🔴 risk.revenue_decline                        growth       546 -0.0510 -0.1168  1.3%  85.7%  100.0%    -5.15%     2.60%      ✗

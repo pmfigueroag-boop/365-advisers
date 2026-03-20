@@ -415,6 +415,11 @@ class ICScreen:
             sma_50_200_spread=indicators.get("sma_50_200_spread", 0.0),
             pct_from_52w_high=indicators.get("pct_from_52w_high"),
             mean_reversion_z=indicators.get("mean_reversion_z"),
+            # Tier 2
+            realized_vol_20d=indicators.get("realized_vol_20d", 0.0),
+            bb_width=indicators.get("bb_width", 0.0),
+            mfi=indicators.get("mfi", 50.0),
+            effort_result_ratio=indicators.get("effort_result_ratio", 0.0),
         )
 
     @staticmethod
@@ -431,26 +436,14 @@ class ICScreen:
             else:
                 return None
 
-        return FundamentalFeatureSet(
-            ticker=ticker,
-            pe_ratio=snap.get("pe_ratio"),
-            pb_ratio=snap.get("pb_ratio"),
-            ev_ebitda=snap.get("ev_ebitda"),
-            fcf_yield=snap.get("fcf_yield"),
-            roic=snap.get("roic"),
-            roe=snap.get("roe"),
-            gross_margin=snap.get("gross_margin"),
-            ebit_margin=snap.get("ebit_margin"),
-            net_margin=snap.get("net_margin"),
-            debt_to_equity=snap.get("debt_to_equity"),
-            current_ratio=snap.get("current_ratio"),
-            asset_turnover=snap.get("asset_turnover"),
-            ev_revenue=snap.get("ev_revenue"),
-            ebit_ev=snap.get("ebit_ev"),
-            shareholder_yield=snap.get("shareholder_yield"),
-            dividend_yield=snap.get("dividend_yield", 0.0),
-            market_cap=snap.get("market_cap"),
-        )
+        # Dynamically pass all fields that match FundamentalFeatureSet attrs
+        valid_fields = FundamentalFeatureSet.model_fields.keys()
+        kwargs: dict = {"ticker": ticker}
+        for key, val in snap.items():
+            if key in valid_fields and not key.startswith("_"):
+                kwargs[key] = val
+
+        return FundamentalFeatureSet(**kwargs)
 
     # ── Reporting ────────────────────────────────────────────────────────────
 

@@ -47,6 +47,13 @@ class ConfidenceLevel(str, Enum):
     LOW = "low"
 
 
+class SignalLevel(str, Enum):
+    """2-tier buy system based on composite score thresholds."""
+    STRONG_BUY = "strong_buy"   # composite_score > 0.35
+    BUY = "buy"                 # composite_score > 0.20
+    HOLD = "hold"               # composite_score <= 0.20
+
+
 # ─── Signal Definition ────────────────────────────────────────────────────────
 
 class AlphaSignalDefinition(BaseModel):
@@ -125,6 +132,7 @@ class CompositeScore(BaseModel):
     """Cross-category composite score for an asset."""
     overall_strength: float = Field(0.0, ge=0.0, le=1.0)
     overall_confidence: ConfidenceLevel = ConfidenceLevel.LOW
+    signal_level: SignalLevel = SignalLevel.HOLD
     category_scores: dict[str, CategoryScore] = Field(default_factory=dict)
     multi_category_bonus: bool = False
     dominant_category: SignalCategory | None = None

@@ -35,6 +35,7 @@ class TradeRecord:
     ticker: str
     entry_date: str
     composite_score: float
+    signal_level: str = "hold"  # strong_buy / buy / hold
     dominant_category: str = ""
     active_categories: int = 0
     fwd_return_5d: float | None = None
@@ -51,8 +52,10 @@ class CompositeBacktestReport:
 
     # Portfolio-level metrics
     total_signals: int = 0
-    buy_signals: int = 0  # composite_score > threshold
-    buy_threshold: float = 0.35
+    strong_buy_signals: int = 0      # composite_score > 0.35
+    buy_signals: int = 0             # composite_score > 0.20 (includes strong_buy)
+    buy_threshold: float = 0.20
+    strong_buy_threshold: float = 0.35
 
     # IS metrics
     is_metrics_5d: PerformanceMetrics = field(default_factory=PerformanceMetrics)
@@ -62,12 +65,20 @@ class CompositeBacktestReport:
     is_avg_return_5d: float = 0.0
     is_avg_return_20d: float = 0.0
 
-    # OOS metrics
+    # OOS metrics (all BUY-level trades)
     oos_hit_rate_5d: float = 0.0
     oos_hit_rate_20d: float = 0.0
     oos_avg_return_5d: float = 0.0
     oos_avg_return_20d: float = 0.0
     oos_trade_count: int = 0
+
+    # Per-level metrics
+    strong_buy_avg_20d: float = 0.0
+    strong_buy_hit_20d: float = 0.0
+    strong_buy_count: int = 0
+    buy_only_avg_20d: float = 0.0    # BUY but not STRONG_BUY
+    buy_only_hit_20d: float = 0.0
+    buy_only_count: int = 0
 
     # Benchmark
     benchmark_return_20d: float = 0.0  # Average 20d return for ALL observations (buy or not)
@@ -133,6 +144,7 @@ class CompositeBacktest:
         oos_cutoff_str = oos_cutoff.isoformat()
 
         all_trades: list[TradeRecord] = []
+        sector_cache: dict[str, str] = {}  # ticker → sector string
 
         for ticker in tickers:
             logger.info(f"AVS-BT: Processing {ticker}...")
@@ -163,9 +175,21 @@ class CompositeBacktest:
                     ticker, eval_date, fundamentals,
                 )
 
-                # Full pipeline: evaluate → combine
+                # Full pipeline: evaluate → combine (sector-adaptive v3)
                 profile = self._evaluator.evaluate(ticker, funda_fs, tech_fs)
-                composite = self._combiner.combine(profile)
+
+                # Resolve sector for combiner v3
+                if ticker not in sector_cache:
+                    try:
+                        import yfinance as yf
+                        info = yf.Ticker(ticker).info
+                        sector_cache[ticker] = info.get("sector", "")
+                    except Exception:
+                        sector_cache[ticker] = ""
+
+                composite = self._combiner.combine(
+                    profile, sector=sector_cache[ticker],
+                )
 
                 # Forward returns
                 fwd_5 = self._forward_return(eval_date, 5, close_map, sorted_close_dates)
@@ -175,6 +199,7 @@ class CompositeBacktest:
                     ticker=ticker,
                     entry_date=eval_date,
                     composite_score=round(composite.overall_strength, 4),
+                    signal_level=composite.signal_level.value,
                     dominant_category=composite.dominant_category.value if composite.dominant_category else "",
                     active_categories=composite.active_categories,
                     fwd_return_5d=round(fwd_5, 6) if fwd_5 is not None else None,
@@ -199,10 +224,16 @@ class CompositeBacktest:
         is_trades = [t for t in trades if not t.is_oos]
         oos_trades = [t for t in trades if t.is_oos]
 
-        # BUY signals (composite_score > threshold)
+        # BUY signals: score > 0.20 (includes strong buy)
         is_buys = [t for t in is_trades if t.composite_score > buy_threshold and t.fwd_return_20d is not None]
         oos_buys = [t for t in oos_trades if t.composite_score > buy_threshold and t.fwd_return_20d is not None]
         all_buys = [t for t in trades if t.composite_score > buy_threshold]
+
+        # STRONG BUY signals: score > 0.35
+        strong_buy_threshold = 0.35
+        all_strong = [t for t in trades if t.composite_score > strong_buy_threshold and t.fwd_return_20d is not None]
+        # BUY-only: 0.20 < score <= 0.35
+        all_buy_only = [t for t in trades if buy_threshold < t.composite_score <= strong_buy_threshold and t.fwd_return_20d is not None]
 
         # Overall benchmark (all observations)
         all_valid = [t for t in trades if t.fwd_return_20d is not None]
@@ -232,13 +263,19 @@ class CompositeBacktest:
         # Score distribution buckets
         score_buckets = self._compute_score_buckets(trades)
 
+        # Per-level metrics
+        sb_rets = [t.fwd_return_20d for t in all_strong if t.fwd_return_20d is not None]
+        bo_rets = [t.fwd_return_20d for t in all_buy_only if t.fwd_return_20d is not None]
+
         return CompositeBacktestReport(
             universe=tickers,
             eval_period=f"~{years}Y",
             oos_cutoff=oos_cutoff,
             total_signals=len(trades),
+            strong_buy_signals=len(all_strong),
             buy_signals=len(all_buys),
             buy_threshold=buy_threshold,
+            strong_buy_threshold=strong_buy_threshold,
             is_metrics_5d=is_metrics_5d,
             is_metrics_20d=is_metrics_20d,
             is_hit_rate_5d=round(is_hit_5, 4),
@@ -253,6 +290,13 @@ class CompositeBacktest:
             benchmark_return_20d=round(benchmark_20d, 6),
             trades=trades,
             score_buckets=score_buckets,
+            # Per-level
+            strong_buy_avg_20d=round(sum(sb_rets)/len(sb_rets), 6) if sb_rets else 0.0,
+            strong_buy_hit_20d=round(sum(1 for r in sb_rets if r > 0)/len(sb_rets), 4) if sb_rets else 0.0,
+            strong_buy_count=len(all_strong),
+            buy_only_avg_20d=round(sum(bo_rets)/len(bo_rets), 6) if bo_rets else 0.0,
+            buy_only_hit_20d=round(sum(1 for r in bo_rets if r > 0)/len(bo_rets), 4) if bo_rets else 0.0,
+            buy_only_count=len(all_buy_only),
         )
 
     @staticmethod
@@ -306,14 +350,41 @@ class CompositeBacktest:
         lines.append(f"Universe:       {', '.join(report.universe)}")
         lines.append(f"Period:         {report.eval_period}")
         lines.append(f"OOS cutoff:     {report.oos_cutoff}")
-        lines.append(f"Buy threshold:  composite_score > {report.buy_threshold}")
         lines.append(f"Total evals:    {report.total_signals}")
-        lines.append(f"BUY signals:    {report.buy_signals} ({report.buy_signals/report.total_signals:.1%} of evals)")
         lines.append(f"Benchmark:      avg 20d return for ALL observations = {report.benchmark_return_20d:.2%}")
         lines.append("")
 
-        # IS vs OOS comparison
-        lines.append("─── IN-SAMPLE Performance ─────────────────────────────────────────")
+        # 2-Level Buy System
+        lines.append("─── 2-LEVEL BUY SYSTEM ────────────────────────────────────────────")
+        lines.append(f"  {'Level':<14} {'Threshold':<12} {'Trades':<8} {'Avg T+20d':<12} {'Hit Rate':<10}")
+        lines.append("  " + "-" * 56)
+        lines.append(
+            f"  {'STRONG BUY':<14} {'> 0.35':<12} {report.strong_buy_count:<8} "
+            f"{report.strong_buy_avg_20d:>+9.2%}   {report.strong_buy_hit_20d:>7.1%}"
+        )
+        lines.append(
+            f"  {'BUY':<14} {'0.20-0.35':<12} {report.buy_only_count:<8} "
+            f"{report.buy_only_avg_20d:>+9.2%}   {report.buy_only_hit_20d:>7.1%}"
+        )
+        combined_count = report.strong_buy_count + report.buy_only_count
+        if combined_count > 0:
+            combined_rets = (
+                report.strong_buy_avg_20d * report.strong_buy_count +
+                report.buy_only_avg_20d * report.buy_only_count
+            ) / combined_count
+            combined_hit = (
+                report.strong_buy_hit_20d * report.strong_buy_count +
+                report.buy_only_hit_20d * report.buy_only_count
+            ) / combined_count
+            lines.append("  " + "-" * 56)
+            lines.append(
+                f"  {'ALL BUY':<14} {'> 0.20':<12} {combined_count:<8} "
+                f"{combined_rets:>+9.2%}   {combined_hit:>7.1%}"
+            )
+        lines.append("")
+
+        # IS Performance (all BUY-level trades)
+        lines.append("─── IN-SAMPLE Performance (all BUY-level trades) ────────────────")
         lines.append(f"  Avg return T+5d:   {report.is_avg_return_5d:+.2%}")
         lines.append(f"  Avg return T+20d:  {report.is_avg_return_20d:+.2%}")
         lines.append(f"  Hit rate T+5d:     {report.is_hit_rate_5d:.1%}")
@@ -456,6 +527,11 @@ class CompositeBacktest:
             sma_50_200_spread=indicators.get("sma_50_200_spread", 0.0),
             pct_from_52w_high=indicators.get("pct_from_52w_high"),
             mean_reversion_z=indicators.get("mean_reversion_z"),
+            # Tier 2
+            realized_vol_20d=indicators.get("realized_vol_20d", 0.0),
+            bb_width=indicators.get("bb_width", 0.0),
+            mfi=indicators.get("mfi", 50.0),
+            effort_result_ratio=indicators.get("effort_result_ratio", 0.0),
         )
 
     @staticmethod
@@ -467,23 +543,11 @@ class CompositeBacktest:
                 snap = fundamentals[avail_dates[-1]]
             else:
                 return None
-        return FundamentalFeatureSet(
-            ticker=ticker,
-            pe_ratio=snap.get("pe_ratio"),
-            pb_ratio=snap.get("pb_ratio"),
-            ev_ebitda=snap.get("ev_ebitda"),
-            fcf_yield=snap.get("fcf_yield"),
-            roic=snap.get("roic"),
-            roe=snap.get("roe"),
-            gross_margin=snap.get("gross_margin"),
-            ebit_margin=snap.get("ebit_margin"),
-            net_margin=snap.get("net_margin"),
-            debt_to_equity=snap.get("debt_to_equity"),
-            current_ratio=snap.get("current_ratio"),
-            asset_turnover=snap.get("asset_turnover"),
-            ev_revenue=snap.get("ev_revenue"),
-            ebit_ev=snap.get("ebit_ev"),
-            shareholder_yield=snap.get("shareholder_yield"),
-            dividend_yield=snap.get("dividend_yield", 0.0),
-            market_cap=snap.get("market_cap"),
-        )
+
+        valid_fields = FundamentalFeatureSet.model_fields.keys()
+        kwargs: dict = {"ticker": ticker}
+        for key, val in snap.items():
+            if key in valid_fields and not key.startswith("_"):
+                kwargs[key] = val
+
+        return FundamentalFeatureSet(**kwargs)

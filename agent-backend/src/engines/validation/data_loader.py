@@ -217,6 +217,48 @@ class ValidationDataLoader:
                     "volume": volumes[j],
                 })
 
+            # ── Tier 2: Realized Volatility 20d (annualized) ─────────────
+            realized_vol_20d = 0.0
+            if i >= 20:
+                log_rets = [
+                    math.log(closes[j] / closes[j-1])
+                    for j in range(i - 19, i + 1)
+                    if closes[j-1] > 0 and closes[j] > 0
+                ]
+                if len(log_rets) >= 10:
+                    mean_lr = sum(log_rets) / len(log_rets)
+                    var_lr = sum((r - mean_lr)**2 for r in log_rets) / len(log_rets)
+                    realized_vol_20d = (var_lr ** 0.5) * (252 ** 0.5)
+
+            # ── Tier 2: Bollinger Band Width ─────────────────────────────
+            bb_width = 0.0
+            if bb_basis > 0:
+                bb_width = (bb_upper - bb_lower) / bb_basis
+
+            # ── Tier 2: Money Flow Index (14-period) ─────────────────────
+            mfi = 50.0
+            if i >= 14:
+                pos_flow = 0.0
+                neg_flow = 0.0
+                for j in range(i - 13, i + 1):
+                    tp_curr = (highs[j] + lows[j] + closes[j]) / 3
+                    tp_prev = (highs[j-1] + lows[j-1] + closes[j-1]) / 3
+                    mf = tp_curr * volumes[j]
+                    if tp_curr > tp_prev:
+                        pos_flow += mf
+                    else:
+                        neg_flow += mf
+                if neg_flow > 0:
+                    mf_ratio = pos_flow / neg_flow
+                    mfi = 100 - (100 / (1 + mf_ratio))
+
+            # ── Tier 2: Effort-Result Ratio (volume / abs(pct change)) ───
+            effort_result = 0.0
+            if i >= 1 and closes[i-1] > 0 and vol_current > 0:
+                pct_change = abs(closes[i] - closes[i-1]) / closes[i-1]
+                if pct_change > 0.0001:
+                    effort_result = vol_current / (pct_change * 100)
+
             result[day.isoformat()] = {
                 "current_price": price,
                 "sma_50": round(sma_50, 4),
@@ -245,6 +287,11 @@ class ValidationDataLoader:
                 "minus_di": 15.0 if sma_spread > 0 else 25.0,
                 "tv_recommendation": "UNKNOWN",
                 "ohlcv_bars": ohlcv_bars,
+                # Tier 2
+                "realized_vol_20d": round(realized_vol_20d, 6),
+                "bb_width": round(bb_width, 6),
+                "mfi": round(mfi, 2),
+                "effort_result_ratio": round(effort_result, 2),
             }
 
         logger.info(f"AVS: Computed indicators for {len(result)} days")
