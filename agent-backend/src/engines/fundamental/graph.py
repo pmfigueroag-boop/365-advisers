@@ -28,13 +28,13 @@ from typing import Annotated, Any, TypedDict
 
 from dotenv import load_dotenv
 from langchain_community.tools.tavily_search import TavilySearchResults
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import END, StateGraph
 
 import logging
 
 from src.data.market_data import fetch_fundamental_data
 from src.utils.helpers import extract_json, sanitize_data
+from src.llm import get_llm, LLMTaskType
 
 load_dotenv()
 
@@ -42,14 +42,8 @@ logger = logging.getLogger("365advisers.engines.fundamental")
 
 # ─── LLM Configuration ────────────────────────────────────────────────────────
 
-_llm_agent = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
-    google_api_key=os.getenv("GOOGLE_API_KEY"),
-)
-_llm_supervisor = ChatGoogleGenerativeAI(
-    model="gemini-2.5-pro",
-    google_api_key=os.getenv("GOOGLE_API_KEY"),
-)
+_llm_agent = get_llm(LLMTaskType.FAST)          # Flash for parallel agents
+_llm_supervisor = get_llm(LLMTaskType.REASONING) # Pro for committee synthesis
 _tavily = TavilySearchResults(max_results=3)
 
 # ─── State Schema ─────────────────────────────────────────────────────────────
@@ -106,7 +100,7 @@ FINANCIAL DATA:
 {data}
 {f"ADDITIONAL CONTEXT:{extra_context}" if extra_context else ""}
 
-IMPORTANT: Write ALL text fields (memo, catalysts, risks) in SPANISH. Do not use English.
+IMPORTANT: Write ALL text fields (memo, catalysts, risks) in ENGLISH.
 
 Respond ONLY with valid JSON (no markdown, no prose outside JSON):
 {{
@@ -114,17 +108,17 @@ Respond ONLY with valid JSON (no markdown, no prose outside JSON):
   "framework": "{framework}",
   "signal": "BUY|SELL|HOLD|AVOID",
   "conviction": <float 0.0-1.0>,
-  "memo": "<memo de 2-3 oraciones en español>",
-  "key_metrics_used": ["<metrica1>", "<metrica2>"],
+  "memo": "<2-3 sentence memo in English>",
+  "key_metrics_used": ["<metric1>", "<metric2>"],
   "metric_insights": [
     {{
-      "metric": "<nombre de la métrica clave>",
-      "definition": "<explicación breve y didáctica de qué mide la métrica en la realidad>",
-      "interpretation": "<tu interpretación de este valor numérico para esta empresa>"
+      "metric": "<name of key metric>",
+      "definition": "<brief, clear explanation of what the metric measures>",
+      "interpretation": "<your interpretation of this value for this company>"
     }}
   ],
-  "catalysts": ["<catalizador1>"],
-  "risks": ["<riesgo1>"]
+  "catalysts": ["<catalyst1>"],
+  "risks": ["<risk1>"]
 }}"""
 
 
@@ -313,7 +307,7 @@ ANALYST MEMOS:
 {memo_summary}
 
 TASK: Synthesise these 4 memos into a final Investment Committee verdict.
-IMPORTANT: Write ALL text fields (consensus_narrative, key_catalysts, key_risks, allocation_recommendation) in SPANISH.
+IMPORTANT: Write ALL text fields (consensus_narrative, key_catalysts, key_risks, allocation_recommendation) in ENGLISH.
 
 Respond ONLY with valid JSON:
 {{
@@ -321,10 +315,10 @@ Respond ONLY with valid JSON:
   "score": <float 0-10, where 10 is exceptionally attractive>,
   "confidence": <float 0.0-1.0>,
   "risk_adjusted_score": <float 0-10, discounted for risks>,
-  "consensus_narrative": "<narrativa institucional de 3-4 oraciones en español>",
-  "key_catalysts": ["<catalizador1>", "<catalizador2>"],
-  "key_risks": ["<riesgo1>", "<riesgo2>"],
-  "allocation_recommendation": "Sobreponderar|Ponderar en línea|Subponderar|Evitar"
+  "consensus_narrative": "<3-4 sentence institutional narrative in English>",
+  "key_catalysts": ["<catalyst1>", "<catalyst2>"],
+  "key_risks": ["<risk1>", "<risk2>"],
+  "allocation_recommendation": "Overweight|Equal Weight|Underweight|Avoid"
 }}"""
 
     fallback: CommitteeOutput = {
@@ -375,7 +369,7 @@ def node_formatter(state: FundamentalState) -> dict:
 
     agent_section = "\n".join(
         f"**{m['agent']}** ({m['framework'].split('—')[0].strip()})\n"
-        f"Señal: **{m['signal']}** | Convicción: **{m['conviction']:.0%}**\n"
+        f"Signal: **{m['signal']}** | Conviction: **{m['conviction']:.0%}**\n"
         f"{m['memo']}\n"
         for m in memos
     )
@@ -392,53 +386,53 @@ def node_formatter(state: FundamentalState) -> dict:
             return f"{v:.2f}"
         return str(v)
 
-    memo = f"""# {fund.get('name', ticker)} ({ticker}) — Memo de Investigación
-**Fecha:** {datetime.now(tz=timezone.utc).strftime('%d de %B de %Y')} | **Sector:** {fund.get('sector', 'N/D')} | **Industria:** {fund.get('industry', 'N/D')}
+    memo = f"""# {fund.get('name', ticker)} ({ticker}) — Research Memo
+**Date:** {datetime.now(tz=timezone.utc).strftime('%B %d, %Y')} | **Sector:** {fund.get('sector', 'N/A')} | **Industry:** {fund.get('industry', 'N/A')}
 
 ---
 
-## Veredicto del Comité {signal_emoji}
+## Committee Verdict {signal_emoji}
 
-| Métrica | Valor |
+| Metric | Value |
 |---------|-------|
-| **Señal** | {committee['signal']} |
-| **Puntaje** | {committee['score']}/10 |
-| **Puntaje Ajustado por Riesgo** | {committee['risk_adjusted_score']}/10 |
-| **Confianza** | {committee['confidence']:.0%} |
-| **Asignación Recomendada** | {committee['allocation_recommendation']} |
+| **Signal** | {committee['signal']} |
+| **Score** | {committee['score']}/10 |
+| **Risk-Adjusted Score** | {committee['risk_adjusted_score']}/10 |
+| **Confidence** | {committee['confidence']:.0%} |
+| **Recommended Allocation** | {committee['allocation_recommendation']} |
 
 {committee['consensus_narrative']}
 
 ---
 
-## Métricas de Valoración Clave
+## Key Valuation Metrics
 
-| Métrica | Valor |
+| Metric | Value |
 |---------|-------|
-| Ratio P/E | {fmt(val.get('pe_ratio', 'N/D'))} |
-| Ratio P/B | {fmt(val.get('pb_ratio', 'N/D'))} |
-| EV/EBITDA | {fmt(val.get('ev_ebitda', 'N/D'))} |
-| Rendimiento FCF | {fmt(val.get('fcf_yield', 'N/D'))} |
-| Margen Bruto | {fmt(prof.get('gross_margin', 'N/D'))} |
-| Margen Neto | {fmt(prof.get('net_margin', 'N/D'))} |
-| ROIC | {fmt(prof.get('roic', 'N/D'))} |
+| P/E Ratio | {fmt(val.get('pe_ratio', 'N/A'))} |
+| P/B Ratio | {fmt(val.get('pb_ratio', 'N/A'))} |
+| EV/EBITDA | {fmt(val.get('ev_ebitda', 'N/A'))} |
+| FCF Yield | {fmt(val.get('fcf_yield', 'N/A'))} |
+| Gross Margin | {fmt(prof.get('gross_margin', 'N/A'))} |
+| Net Margin | {fmt(prof.get('net_margin', 'N/A'))} |
+| ROIC | {fmt(prof.get('roic', 'N/A'))} |
 
 ---
 
-## Memos de Analistas
+## Analyst Memos
 
 {agent_section}
 
 ---
 
-## Catalizadores
+## Catalysts
 {catalysts}
 
-## Riesgos Clave
+## Key Risks
 {risks}
 
 ---
-*Generado por 365 Advisers Fundamental Engine · {datetime.now(tz=timezone.utc).isoformat()}*
+*Generated by 365 Advisers Fundamental Engine · {datetime.now(tz=timezone.utc).isoformat()}*
 """
     return {"research_memo": memo}
 

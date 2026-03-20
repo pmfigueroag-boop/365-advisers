@@ -12,17 +12,14 @@ from __future__ import annotations
 import logging
 from typing import TypedDict
 
-from langchain_google_genai import ChatGoogleGenerativeAI
 from src.utils.helpers import extract_json
 from src.config import get_settings
+from src.llm import get_llm, LLMTaskType
 
 logger = logging.getLogger("365advisers.engines.alpha.memo_agent")
 _settings = get_settings()
 
-_llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
-    google_api_key=_settings.GOOGLE_API_KEY,
-)
+_llm = get_llm(LLMTaskType.FAST)
 
 
 class AlphaMemoOutput(TypedDict):
@@ -78,25 +75,25 @@ def synthesize_alpha_memo(
                   "BEARISH" if composite.get("overall_strength", 0) <= 0.3 else "NEUTRAL",
         "conviction": "HIGH" if composite.get("overall_strength", 0) >= 0.75 else
                       "MEDIUM" if composite.get("overall_strength", 0) >= 0.45 else "LOW",
-        "narrative": f"{ticker}: {fired}/{total} señales Alpha activas. "
-                     f"Fuerza compuesta: {composite.get('overall_strength', 0) * 100:.0f}%.",
-        "key_data": [f"Señales activas: {fired}/{total}",
-                     f"Fuerza: {composite.get('overall_strength', 0) * 100:.0f}%"],
-        "risk_factors": ["Análisis LLM no disponible — usando fallback determinístico."],
+        "narrative": f"{ticker}: {fired}/{total} Alpha signals active. "
+                     f"Composite strength: {composite.get('overall_strength', 0) * 100:.0f}%.",
+        "key_data": [f"Active signals: {fired}/{total}",
+                     f"Strength: {composite.get('overall_strength', 0) * 100:.0f}%"],
+        "risk_factors": ["LLM analysis not available — using deterministic fallback."],
     }
 
-    prompt = f"""Eres un analista cuantitativo institucional especializado en señales Alpha.
-Se te proporcionan datos REALES y CALCULADOS del perfil de señales de {ticker}.
+    prompt = f"""You are an institutional quantitative analyst specialized in Alpha signals.
+You are provided with REAL, COMPUTED signal profile data for {ticker}.
 
-DATOS DE SEÑALES ALPHA DE {ticker}:
+ALPHA SIGNAL DATA FOR {ticker}:
 
-[RESUMEN]
-- Señales activas: {fired} de {total}
-- Fuerza compuesta: {composite.get('overall_strength', 0) * 100:.1f}%
-- Confianza: {composite.get('overall_confidence', 'N/A')}
-- Categoría dominante: {composite.get('dominant_category', 'N/A')}
-- Categorías activas: {composite.get('active_categories', 0)}
-- Bonus multi-categoría: {composite.get('multi_category_bonus', False)}
+[SUMMARY]
+- Active signals: {fired} of {total}
+- Composite strength: {composite.get('overall_strength', 0) * 100:.1f}%
+- Confidence: {composite.get('overall_confidence', 'N/A')}
+- Dominant category: {composite.get('dominant_category', 'N/A')}
+- Active categories: {composite.get('active_categories', 0)}
+- Multi-category bonus: {composite.get('multi_category_bonus', False)}
 
 [CASE COMPOSITE]
 - Score: {case_score}/100
@@ -104,10 +101,10 @@ DATOS DE SEÑALES ALPHA DE {ticker}:
 - Convergence Bonus: {composite_alpha.get('convergence_bonus', 0)}
 - Conflicts: {composite_alpha.get('cross_category_conflicts', [])}
 
-[SEÑALES ACTIVAS (Top 8)]
+[ACTIVE SIGNALS (Top 8)]
 {signal_block}
 
-[CATEGORÍAS CON SEÑALES]
+[CATEGORIES WITH SIGNALS]
 {cat_block}
 
 [DECAY/FRESHNESS]
@@ -115,16 +112,16 @@ DATOS DE SEÑALES ALPHA DE {ticker}:
 - Freshness Level: {decay.get('freshness_level', 'N/A')}
 - Average Freshness: {decay.get('average_freshness', 'N/A')}
 
-INSTRUCCIONES:
-Responde SOLO con JSON válido (sin markdown, sin code blocks). TODO en ESPAÑOL.
-Analiza el perfil de señales Alpha y emite una opinión fundamentada.
+INSTRUCTIONS:
+Respond ONLY with valid JSON (no markdown, no code blocks). ALL text in ENGLISH.
+Analyze the Alpha signal profile and provide a well-founded opinion.
 
 {{
   "signal": "BULLISH|BEARISH|NEUTRAL",
   "conviction": "HIGH|MEDIUM|LOW",
-  "narrative": "<Síntesis ejecutiva de 3-4 oraciones que interprete el patrón de señales: qué categorías dominan, si hay convergencia o divergencia, y qué implica para la tesis de inversión. Cita datos específicos.>",
-  "key_data": ["<dato clave 1>", "<dato clave 2>", "<dato clave 3>"],
-  "risk_factors": ["<riesgo 1 con datos>", "<riesgo 2>"]
+  "narrative": "<Executive synthesis of 3-4 sentences interpreting the signal pattern: which categories dominate, whether there is convergence or divergence, and what it implies for the investment thesis. Cite specific data.>",
+  "key_data": ["<key data 1>", "<key data 2>", "<key data 3>"],
+  "risk_factors": ["<risk 1 with data>", "<risk 2>"]
 }}"""
 
     try:

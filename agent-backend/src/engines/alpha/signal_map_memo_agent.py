@@ -12,17 +12,14 @@ from __future__ import annotations
 import logging
 from typing import TypedDict
 
-from langchain_google_genai import ChatGoogleGenerativeAI
 from src.utils.helpers import extract_json
 from src.config import get_settings
+from src.llm import get_llm, LLMTaskType
 
 logger = logging.getLogger("365advisers.engines.alpha.signal_map_memo")
 _settings = get_settings()
 
-_llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
-    google_api_key=_settings.GOOGLE_API_KEY,
-)
+_llm = get_llm(LLMTaskType.FAST)
 
 
 class SignalMapMemoOutput(TypedDict):
@@ -68,41 +65,41 @@ def synthesize_signal_map_memo(
     fallback: SignalMapMemoOutput = {
         "signal": "BULLISH" if fired_pct >= 55 else "BEARISH" if fired_pct <= 25 else "NEUTRAL",
         "conviction": "HIGH" if fired_pct >= 70 else "MEDIUM" if fired_pct >= 40 else "LOW",
-        "narrative": f"{ticker}: {len(fired)}/{total} señales activas ({fired_pct:.0f}%).",
-        "key_data": [f"Activas: {len(fired)}/{total}", f"Categorías: {len(cats_with_fired)}"],
-        "risk_factors": ["Análisis LLM no disponible — usando fallback determinístico."],
+        "narrative": f"{ticker}: {len(fired)}/{total} signals active ({fired_pct:.0f}%).",
+        "key_data": [f"Active: {len(fired)}/{total}", f"Categories: {len(cats_with_fired)}"],
+        "risk_factors": ["LLM analysis not available — using deterministic fallback."],
     }
 
-    prompt = f"""Eres un analista cuantitativo institucional que interpreta el MAPA DE SEÑALES de una acción.
-Se te proporcionan datos REALES de las señales individuales de {ticker}.
+    prompt = f"""You are an institutional quantitative analyst interpreting the SIGNAL MAP of a stock.
+You are provided with REAL signal data for {ticker}.
 
-MAPA DE SEÑALES DE {ticker}:
+SIGNAL MAP FOR {ticker}:
 
-[RESUMEN]
-- Total señales: {total}
-- Señales activas: {len(fired)} ({fired_pct:.0f}%)
-- Categorías con señales activas: {len(cats_with_fired)}/8
+[SUMMARY]
+- Total signals: {total}
+- Active signals: {len(fired)} ({fired_pct:.0f}%)
+- Categories with active signals: {len(cats_with_fired)}/8
 
-[SEÑALES ACTIVAS (Top 12)]
+[ACTIVE SIGNALS (Top 12)]
 {signal_table}
 
-[DISTRIBUCIÓN POR CATEGORÍA]
+[DISTRIBUTION BY CATEGORY]
 {cat_table}
 
-[SEÑALES INACTIVAS]
-- {total - len(fired)} señales no disparadas
+[INACTIVE SIGNALS]
+- {total - len(fired)} signals not fired
 
-INSTRUCCIONES:
-Responde SOLO con JSON válido (sin markdown, sin code blocks). TODO en ESPAÑOL.
-Analiza el patrón del mapa de señales: ¿hay convergencia entre categorías? ¿Las señales
-fuertes dominan o son principalmente weak? ¿Qué categorías están ausentes y qué implica?
+INSTRUCTIONS:
+Respond ONLY with valid JSON (no markdown, no code blocks). ALL text in ENGLISH.
+Analyze the signal map pattern: is there convergence across categories? Do strong signals
+dominate or are they mostly weak? Which categories are absent and what does it imply?
 
 {{
   "signal": "BULLISH|BEARISH|NEUTRAL",
   "conviction": "HIGH|MEDIUM|LOW",
-  "narrative": "<3-4 oraciones analizando el patrón de convergencia/divergencia de señales, distribución de fuerza, y cobertura factorial. Cita señales y datos específicos.>",
-  "key_data": ["<dato 1>", "<dato 2>", "<dato 3>"],
-  "risk_factors": ["<riesgo 1>", "<riesgo 2>"]
+  "narrative": "<3-4 sentences analyzing the convergence/divergence pattern of signals, strength distribution, and factorial coverage. Cite specific signals and data.>",
+  "key_data": ["<data 1>", "<data 2>", "<data 3>"],
+  "risk_factors": ["<risk 1>", "<risk 2>"]
 }}"""
 
     try:

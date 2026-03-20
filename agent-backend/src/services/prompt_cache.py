@@ -65,7 +65,7 @@ def get_cached_system_prompt(agent_name: str, framework: str, focus: str) -> str
 Your framework: {framework}
 Your focus: {focus}
 
-IMPORTANT: Write ALL text fields (memo, catalysts, risks) in SPANISH. Do not use English.
+IMPORTANT: Write ALL text fields (memo, catalysts, risks) in ENGLISH.
 
 Respond ONLY with valid JSON (no markdown, no prose outside JSON):
 {{
@@ -73,10 +73,10 @@ Respond ONLY with valid JSON (no markdown, no prose outside JSON):
   "framework": "{framework}",
   "signal": "BUY|SELL|HOLD|AVOID",
   "conviction": <float 0.0-1.0>,
-  "memo": "<memo de 2-3 oraciones en español>",
-  "key_metrics_used": ["<metrica1>", "<metrica2>"],
-  "catalysts": ["<catalizador1>"],
-  "risks": ["<riesgo1>"]
+  "memo": "<2-3 sentence memo in English>",
+  "key_metrics_used": ["<metric1>", "<metric2>"],
+  "catalysts": ["<catalyst1>"],
+  "risks": ["<risk1>"]
 }}"""
 
     _prompt_cache[cache_key] = system_prompt

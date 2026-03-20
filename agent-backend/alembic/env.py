@@ -2,15 +2,19 @@
 alembic/env.py
 ─────────────────────────────────────────────────────────────────────────────
 Alembic migration environment — configured for 365 Advisers models.
+Imports all model submodules so Alembic autogenerate can detect every table.
 """
 
 from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 
-# Import all models so Alembic can detect them
-from src.data.database import Base
-from src.data.models.audit import AuditLog  # noqa: F401
+# Import Base and all model submodules so Alembic sees every table
+from src.data.models.base import Base
+from src.data.models import (  # noqa: F401
+    analysis, portfolio, signals, backtesting,
+    governance, operations,
+)
 
 config = context.config
 if config.config_file_name is not None:

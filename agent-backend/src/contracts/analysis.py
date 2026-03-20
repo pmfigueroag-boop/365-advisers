@@ -17,7 +17,7 @@ class AgentMemo(BaseModel):
     framework: str = Field(description="Investment framework used")
     signal: str = Field(description="BUY | SELL | HOLD | AVOID")
     conviction: float = Field(ge=0.0, le=1.0, description="0.0–1.0 confidence")
-    memo: str = Field(description="Short analysis memo in Spanish")
+    memo: str = Field(description="Short analysis memo")
     key_metrics_used: list[str] = Field(default_factory=list)
     catalysts: list[str] = Field(default_factory=list)
     risks: list[str] = Field(default_factory=list)

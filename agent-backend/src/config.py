@@ -19,7 +19,12 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
 
     # ── LLM
-    LLM_MODEL: str = "gemini-2.5-pro"
+    LLM_MODEL: str = "gemini-2.5-pro"              # Legacy alias (= REASONING)
+    LLM_REASONING_MODEL: str = "gemini-2.5-pro"    # Deep analysis, CIO memos
+    LLM_FAST_MODEL: str = "gemini-2.5-flash"       # Agent memos, extraction
+    LLM_FALLBACK_ENABLED: bool = True              # Auto-fallback to secondary LLM
+    LLM_FALLBACK_MODEL: str = "gpt-4o-mini"        # OpenAI fallback model
+    OPENAI_API_KEY: str = ""                        # Empty = fallback disabled
 
     # ── External API resilience (legacy)
     YFINANCE_TIMEOUT: int = 15          # seconds
@@ -106,9 +111,9 @@ class Settings(BaseSettings):
     JWT_SECRET_KEY: str = "365-advisers-dev-secret-CHANGE-IN-PRODUCTION"
     JWT_EXPIRATION_MINUTES: int = 480              # 8 hours
     ADMIN_USERNAME: str = "admin"
-    ADMIN_PASSWORD_HASH: str = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918"  # sha256("admin")
-    ANALYST_PASSWORD_HASH: str = "d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65c4e16e7807340fa"  # sha256("analyst")
-    VIEWER_PASSWORD_HASH: str = "7ef92d2a918b0388dab463e6fd0b3e0a7a1e07bc593c1ca5a524ad391e22e5c3"  # sha256("viewer")
+    ADMIN_PASSWORD_HASH: str = "$2b$12$oWydfZyOI4zn0SdQxebEVe9KCgbOR/R3EV4S1mHfohysI3nXqb3qC"  # bcrypt("admin")
+    ANALYST_PASSWORD_HASH: str = "$2b$12$mUkSDn7.ngJypoLYm0VNveW.Z/XmfUao1DK3DJlOZyYhRKM/eVhR."  # bcrypt("analyst")
+    VIEWER_PASSWORD_HASH: str = "$2b$12$MEy8jtiPKy3xiaH7HP3qVePlMtlUwp9lHbGWwW5jIj/l.c2j3pGYi"  # bcrypt("viewer")
 
     # ── Observability ─────────────────────────────────────────────────────
     OTEL_ENABLED: bool = True
@@ -124,9 +129,30 @@ class Settings(BaseSettings):
     # ── Database
     DATABASE_URL: str = "sqlite:///advisers.db"  # Override with postgresql+psycopg://... in .env
 
+    # ── Performance
+    UVICORN_WORKERS: int = 1                       # Override to 4+ in docker/production
+
     model_config = {"env_file": ".env", "extra": "ignore"}
+
+
+_DEFAULT_JWT_SECRET = "365-advisers-dev-secret-CHANGE-IN-PRODUCTION"
 
 
 @lru_cache
 def get_settings() -> Settings:
-    return Settings()  # type: ignore[call-arg]
+    settings = Settings()  # type: ignore[call-arg]
+    # ── JWT Secret Guard ──────────────────────────────────────────────────
+    if settings.JWT_SECRET_KEY == _DEFAULT_JWT_SECRET:
+        if settings.AUTH_ENABLED:
+            raise RuntimeError(
+                "SECURITY ERROR: JWT_SECRET_KEY is set to the default value "
+                "while AUTH_ENABLED=True. Set a strong, unique secret in .env "
+                "or environment before enabling authentication."
+            )
+        else:
+            import logging
+            logging.getLogger("365advisers.config").warning(
+                "JWT_SECRET_KEY is using the default dev value. "
+                "Set a strong secret before enabling AUTH_ENABLED=True."
+            )
+    return settings

@@ -9,7 +9,6 @@ GET  /auth/me     — Current user info (protected)
 
 from __future__ import annotations
 
-import hashlib
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -20,6 +19,7 @@ from src.auth.dependencies import get_current_user
 from src.auth.jwt import create_access_token
 from src.auth.models import Role, User
 from src.config import get_settings
+from src.security.password import verify_password
 
 logger = logging.getLogger("365advisers.routes.auth")
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -30,11 +30,6 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
     role: str
     username: str
-
-
-def _hash_password(password: str) -> str:
-    """Simple SHA-256 hash for dev/pilot. Replace with bcrypt in production."""
-    return hashlib.sha256(password.encode()).hexdigest()
 
 
 @router.post("/token", response_model=TokenResponse)
@@ -50,17 +45,17 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     # Validate credentials against configured admin user
     if (
         form_data.username == settings.ADMIN_USERNAME
-        and _hash_password(form_data.password) == settings.ADMIN_PASSWORD_HASH
+        and verify_password(form_data.password, settings.ADMIN_PASSWORD_HASH)
     ):
         role = Role.ADMIN
     elif (
         form_data.username == "analyst"
-        and _hash_password(form_data.password) == settings.ANALYST_PASSWORD_HASH
+        and verify_password(form_data.password, settings.ANALYST_PASSWORD_HASH)
     ):
         role = Role.ANALYST
     elif (
         form_data.username == "viewer"
-        and _hash_password(form_data.password) == settings.VIEWER_PASSWORD_HASH
+        and verify_password(form_data.password, settings.VIEWER_PASSWORD_HASH)
     ):
         role = Role.VIEWER
     else:

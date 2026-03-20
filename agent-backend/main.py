@@ -228,8 +228,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[o.strip() for o in settings.CORS_ORIGINS.split(",")],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept", "X-Request-ID"],
     expose_headers=["*"],
 )
 
@@ -243,127 +243,117 @@ from src.middleware.audit import AuditMiddleware
 app.add_middleware(AuditMiddleware)
 
 
-# ── Router Mounts ────────────────────────────────────────────────────────────
+# ── Router Mounts (Lazy — isolated import failures) ──────────────────────────
 
-from src.routes.health import router as health_router
-from src.routes.analysis import router as analysis_router
-from src.routes.cache import router as cache_router
-from src.routes.portfolio import router as portfolio_router
-from src.routes.ideas import router as ideas_router
-from src.routes.signals import router as signals_router
-from src.routes.backtest import router as backtest_router
-from src.routes.ranking import router as ranking_router
-from src.routes.monitoring import router as monitoring_router
-from src.routes.crowding import router as crowding_router
-from src.routes.validation import router as validation_router
-from src.routes.governance import router as governance_router
-from src.routes.scorecard import router as scorecard_router
-from src.routes.shadow import router as shadow_router
-from src.routes.strategy import router as strategy_router
-from src.routes.liquidity import router as liquidity_router
-from src.routes.providers import router as providers_router
-from src.routes.research import router as research_router
-from src.routes.signal_lab import router as signal_lab_router
-from src.routes.strategy_lab import router as strategy_lab_router
-from src.routes.pilot import router as pilot_router
-from src.routes.long_short import router as long_short_router
-from src.routes.stat_arb import router as stat_arb_router
-from src.routes.event_intelligence import router as event_intelligence_router
-from src.routes.ml_signals import router as ml_signals_router
-from src.routes.valuation import router as valuation_router
-from src.routes.options import router as options_router
-from src.routes.oms import router as oms_router
-from src.routes.multi_asset import router as multi_asset_router
-from src.routes.capital_allocation import router as capital_allocation_router
-from src.routes.risk import router as risk_router
-from src.routes.market_feed import router as market_feed_router
-from src.routes.portfolio_optimisation import router as optimisation_router
-from src.routes.factor_risk import router as factor_risk_router
-from src.routes.attribution import router as attribution_router
-from src.routes.event_backtester import router as event_backtester_router
-from src.routes.compliance import router as compliance_router
-from src.routes.dl_signals import router as dl_signals_router
-from src.routes.nlp_signals import router as nlp_signals_router
-from src.routes.alt_data import router as alt_data_router
-from src.routes.rl_optimisation import router as rl_optimisation_router
-from src.routes.market_data_api import router as market_data_api_router
-from src.routes.alpha_intelligence import router as alpha_intelligence_router
-from src.routes.super_alpha import router as super_alpha_router
-from src.routes.investment_brain import router as investment_brain_router
-from src.routes.autonomous_pm import router as autonomous_pm_router
-from src.routes.ideas_backtest import router as ideas_backtest_router
-from src.routes.screener import router as screener_router
-from src.routes.auth import router as auth_router
-from src.routes.agents import router as agents_router
-from src.routes.audit import router as audit_router
-from src.routes.portfolio_risk import router as portfolio_risk_router
-from src.routes.options_pricing import router as options_pricing_router
-from src.agents.mcp_server import router as mcp_router
-from src.routes.costs import router as costs_router
-from src.routes.alpha_research import router as alpha_research_router
+_ROUTER_REGISTRY: list[tuple[str, str]] = [
+    ("src.routes.health",              "health"),
+    ("src.routes.auth",                "auth"),
+    ("src.routes.analysis",            "analysis"),
+    ("src.routes.cache",               "cache"),
+    ("src.routes.portfolio_risk",      "portfolio_risk"),
+    ("src.routes.options_pricing",     "options_pricing"),
+    ("src.routes.portfolio",           "portfolio"),
+    ("src.routes.ideas",               "ideas"),
+    ("src.routes.signals",             "signals"),
+    ("src.routes.backtest",            "backtest"),
+    ("src.routes.ranking",             "ranking"),
+    ("src.routes.monitoring",          "monitoring"),
+    ("src.routes.crowding",            "crowding"),
+    ("src.routes.validation",          "validation"),
+    ("src.routes.governance",          "governance"),
+    ("src.routes.scorecard",           "scorecard"),
+    ("src.routes.shadow",              "shadow"),
+    ("src.routes.strategy",            "strategy"),
+    ("src.routes.liquidity",           "liquidity"),
+    ("src.routes.providers",           "providers"),
+    ("src.routes.research",            "research"),
+    ("src.routes.signal_lab",          "signal_lab"),
+    ("src.routes.strategy_lab",        "strategy_lab"),
+    ("src.routes.pilot",               "pilot"),
+    ("src.routes.long_short",          "long_short"),
+    ("src.routes.stat_arb",            "stat_arb"),
+    ("src.routes.event_intelligence",  "event_intelligence"),
+    ("src.routes.ml_signals",          "ml_signals"),
+    ("src.routes.valuation",           "valuation"),
+    ("src.routes.options",             "options"),
+    ("src.routes.oms",                 "oms"),
+    ("src.routes.multi_asset",         "multi_asset"),
+    ("src.routes.capital_allocation",  "capital_allocation"),
+    ("src.routes.risk",                "risk"),
+    ("src.routes.market_feed",         "market_feed"),
+    ("src.routes.portfolio_optimisation", "optimisation"),
+    ("src.routes.factor_risk",         "factor_risk"),
+    ("src.routes.attribution",         "attribution"),
+    ("src.routes.event_backtester",    "event_backtester"),
+    ("src.routes.compliance",          "compliance"),
+    ("src.routes.dl_signals",          "dl_signals"),
+    ("src.routes.nlp_signals",         "nlp_signals"),
+    ("src.routes.alt_data",            "alt_data"),
+    ("src.routes.rl_optimisation",     "rl_optimisation"),
+    ("src.routes.market_data_api",     "market_data_api"),
+    ("src.routes.alpha_intelligence",  "alpha_intelligence"),
+    ("src.routes.super_alpha",         "super_alpha"),
+    ("src.routes.investment_brain",    "investment_brain"),
+    ("src.routes.autonomous_pm",       "autonomous_pm"),
+    ("src.routes.ideas_backtest",      "ideas_backtest"),
+    ("src.routes.screener",            "screener"),
+    ("src.routes.agents",              "agents"),
+    ("src.routes.audit",               "audit"),
+    ("src.agents.mcp_server",          "mcp"),
+    ("src.routes.costs",               "costs"),
+    ("src.routes.alpha_research",      "alpha_research"),
+    ("src.routes.ab_testing",          "ab_testing"),
+    ("src.routes.prompt_versions",     "prompt_versions"),
+    ("src.routes.ws_analysis",         "ws_analysis"),
+]
 
-app.include_router(health_router)
-app.include_router(auth_router)
-app.include_router(analysis_router)
-app.include_router(cache_router)
-app.include_router(portfolio_risk_router)
-app.include_router(options_pricing_router)
-app.include_router(portfolio_router)
-app.include_router(ideas_router)
-app.include_router(signals_router)
-app.include_router(backtest_router)
-app.include_router(ranking_router)
-app.include_router(monitoring_router)
-app.include_router(crowding_router)
-app.include_router(validation_router)
-app.include_router(governance_router)
-app.include_router(scorecard_router)
-app.include_router(shadow_router)
-app.include_router(strategy_router)
-app.include_router(liquidity_router)
-app.include_router(providers_router)
-app.include_router(research_router)
-app.include_router(signal_lab_router)
-app.include_router(strategy_lab_router)
-app.include_router(pilot_router)
-app.include_router(long_short_router)
-app.include_router(stat_arb_router)
-app.include_router(event_intelligence_router)
-app.include_router(ml_signals_router)
-app.include_router(valuation_router)
-app.include_router(options_router)
-app.include_router(oms_router)
-app.include_router(multi_asset_router)
-app.include_router(capital_allocation_router)
-app.include_router(risk_router)
-app.include_router(market_feed_router)
-app.include_router(optimisation_router)
-app.include_router(factor_risk_router)
-app.include_router(attribution_router)
-app.include_router(event_backtester_router)
-app.include_router(compliance_router)
-app.include_router(dl_signals_router)
-app.include_router(nlp_signals_router)
-app.include_router(alt_data_router)
-app.include_router(rl_optimisation_router)
-app.include_router(market_data_api_router)
-app.include_router(alpha_intelligence_router)
-app.include_router(super_alpha_router)
-app.include_router(investment_brain_router)
-app.include_router(autonomous_pm_router)
-app.include_router(ideas_backtest_router)
-app.include_router(screener_router)
-app.include_router(agents_router)
-app.include_router(audit_router)
-app.include_router(mcp_router)
-app.include_router(costs_router)
-app.include_router(alpha_research_router)
+import importlib
 
-logger.info(f"Mounted {len(app.routes)} routes across 55 routers (v3.6 — MCP + costs + memory)")
+_loaded_routers = []
+_failed_routers = []
+
+for _module_path, _name in _ROUTER_REGISTRY:
+    try:
+        _mod = importlib.import_module(_module_path)
+        _router = getattr(_mod, "router")
+        app.include_router(_router)
+        _loaded_routers.append(_name)
+    except Exception as _exc:
+        _failed_routers.append(_name)
+        logger.error("Failed to mount router '%s' from %s: %s", _name, _module_path, _exc)
+
+if _failed_routers:
+    logger.warning("⚠ %d routers failed to load: %s", len(_failed_routers), _failed_routers)
+
+
+# ── API v1 Versioned Routes ──────────────────────────────────────────────────
+# All successfully loaded routes re-mounted under /v1/* prefix.
+
+v1 = APIRouter(prefix="/v1")
+
+for _module_path, _name in _ROUTER_REGISTRY:
+    if _name not in _failed_routers:
+        try:
+            _mod = importlib.import_module(_module_path)
+            v1.include_router(getattr(_mod, "router"))
+        except Exception:
+            pass  # Already logged above
+
+app.include_router(v1)
+
+logger.info(
+    "Mounted %d/%d routers + /v1/ versioned group (v3.7)",
+    len(_loaded_routers), len(_ROUTER_REGISTRY),
+)
 
 
 # ── Dev Server ───────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        workers=settings.UVICORN_WORKERS,
+    )

@@ -1,11 +1,28 @@
 import logging
 from typing import TypedDict
-from langchain_google_genai import ChatGoogleGenerativeAI
+
+from pydantic import BaseModel, Field
+
 from src.utils.helpers import extract_json
 from src.config import get_settings
+from src.llm import get_llm, LLMTaskType
 
 logger = logging.getLogger("365advisers.cio_agent")
 _settings = get_settings()
+
+
+class CIOMemoLLMOutput(BaseModel):
+    """Pydantic validation schema for CIO memo LLM responses."""
+    thesis_summary: str = ""
+    valuation_view: str = ""
+    technical_context: str = ""
+    key_catalysts: list[str] = Field(default_factory=list)
+    key_risks: list[str] = Field(default_factory=list)
+    filing_context: str = ""
+    geopolitical_context: str = ""
+    macro_environment: str = ""
+    sentiment_context: str = ""
+
 
 class CIOMemoOutput(TypedDict):
     thesis_summary: str
@@ -19,10 +36,7 @@ class CIOMemoOutput(TypedDict):
     macro_environment: str
     sentiment_context: str
 
-_llm_cio = ChatGoogleGenerativeAI(
-    model=_settings.LLM_MODEL,
-    google_api_key=_settings.GOOGLE_API_KEY,
-)
+_llm_cio = get_llm(LLMTaskType.REASONING)
 
 
 def _build_enrichment_blocks(
@@ -43,10 +57,10 @@ def _build_enrichment_blocks(
 
         blocks.append(f"""
 [CORPORATE FILINGS CONTEXT — SEC EDGAR]
-- Material 8-K in last 7 days: {"SI — EVENTO MATERIAL DETECTADO" if has_material else "No"}
-- Último 10-K: {latest_10k}
-- Último 10-Q: {latest_10q}
-- Filings en últimos 90 días: {filing_count}
+- Material 8-K in last 7 days: {"YES — MATERIAL EVENT DETECTED" if has_material else "No"}
+- Latest 10-K: {latest_10k}
+- Latest 10-Q: {latest_10q}
+- Filings in last 90 days: {filing_count}
 - Ownership filings: {len(filing_context.get('ownership_filings', []))}
 NOTE: If there is a material event, you MUST mention it in your thesis and key_risks.""")
 
@@ -59,10 +73,10 @@ NOTE: If there is a material event, you MUST mention it in your thesis and key_r
 
         blocks.append(f"""
 [GEOPOLITICAL CONTEXT — GDELT]
-- Índice de Riesgo Geopolítico: {risk}/100
-- Tono Promedio 24h: {tone}
-- Spike de Eventos Detectado: {"SI — VOLATILIDAD ELEVADA" if spike else "No"}
-- Tema Dominante: {top_theme}
+- Geopolitical Risk Index: {risk}/100
+- Average Tone 24h: {tone}
+- Event Spike Detected: {"YES — ELEVATED VOLATILITY" if spike else "No"}
+- Dominant Theme: {top_theme}
 NOTE: If risk > 60 or spike detected, mention geopolitical risk in key_risks.""")
 
     if macro_extended and macro_extended.get("sources_used"):
@@ -284,7 +298,7 @@ CONTEXT DATA:
 {enrichment_str}
 
 OUTPUT REQUIREMENTS:
-Respond ONLY with valid JSON (NO markdown code blocks, strict JSON) containing these fields in SPANISH:
+Respond ONLY with valid JSON (NO markdown code blocks, strict JSON) containing these fields in ENGLISH:
 {{
   "thesis_summary": "<One very strong, executive paragraph explaining the primary reason for the {investment_position} posture and the allocation % size. Cite the Opportunity Score and Conviction.>",
   "valuation_view": "<Short analysis on the intrinsic valuation and business quality.>",
@@ -295,9 +309,9 @@ Respond ONLY with valid JSON (NO markdown code blocks, strict JSON) containing t
 """
 
     fallback: CIOMemoOutput = {
-        "thesis_summary": f"Postura asignada: {investment_position}. Resumen ejecutivo no disponible.",
-        "valuation_view": "Análisis fundamental no disponible.",
-        "technical_context": "Análisis técnico no disponible.",
+        "thesis_summary": f"Assigned posture: {investment_position}. Executive summary not available.",
+        "valuation_view": "Fundamental analysis not available.",
+        "technical_context": "Technical analysis not available.",
         "key_catalysts": fund_catalysts,
         "key_risks": fund_risks,
         "filing_context": "",
@@ -314,17 +328,19 @@ Respond ONLY with valid JSON (NO markdown code blocks, strict JSON) containing t
         
         if not parsed:
             return fallback
-            
+
+        # Validate LLM output with Pydantic schema
+        validated = CIOMemoLLMOutput.model_validate(parsed)
         return {
-            "thesis_summary": str(parsed.get("thesis_summary", fallback["thesis_summary"])),
-            "valuation_view": str(parsed.get("valuation_view", fallback["valuation_view"])),
-            "technical_context": str(parsed.get("technical_context", fallback["technical_context"])),
-            "key_catalysts": list(parsed.get("key_catalysts", fund_catalysts)),
-            "key_risks": list(parsed.get("key_risks", fund_risks)),
-            "filing_context": str(parsed.get("filing_context", "")),
-            "geopolitical_context": str(parsed.get("geopolitical_context", "")),
-            "macro_environment": str(parsed.get("macro_environment", "")),
-            "sentiment_context": str(parsed.get("sentiment_context", "")),
+            "thesis_summary": validated.thesis_summary or fallback["thesis_summary"],
+            "valuation_view": validated.valuation_view or fallback["valuation_view"],
+            "technical_context": validated.technical_context or fallback["technical_context"],
+            "key_catalysts": validated.key_catalysts or fund_catalysts,
+            "key_risks": validated.key_risks or fund_risks,
+            "filing_context": validated.filing_context,
+            "geopolitical_context": validated.geopolitical_context,
+            "macro_environment": validated.macro_environment,
+            "sentiment_context": validated.sentiment_context,
         }
     except Exception as exc:
         logger.error(f"CIO Agent error for {ticker}: {exc}")

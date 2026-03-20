@@ -13,17 +13,14 @@ from __future__ import annotations
 import logging
 from typing import TypedDict
 
-from langchain_google_genai import ChatGoogleGenerativeAI
 from src.utils.helpers import extract_json
 from src.config import get_settings
+from src.llm import get_llm, LLMTaskType
 
 logger = logging.getLogger("365advisers.engines.technical.analyst")
 _settings = get_settings()
 
-_llm_analyst = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
-    google_api_key=_settings.GOOGLE_API_KEY,
-)
+_llm_analyst = get_llm(LLMTaskType.FAST)
 
 
 class SpecialtyOpinion(TypedDict):
@@ -133,10 +130,10 @@ Timeframe Breakdown:
         if isinstance(info, dict) and info.get("strong")
     ]
 
-    prompt = f"""Eres un analista técnico institucional de primer nivel.
-Se te proporcionan datos técnicos REALES y CALCULADOS de {ticker}. Tu trabajo es emitir 5 opiniones especializadas (una por cada módulo del análisis técnico) y luego un CONSENSO que sintetice las 5 opiniones.
+    prompt = f"""You are a top-tier institutional technical analyst.
+You are provided with REAL, COMPUTED technical data for {ticker}. Your task is to produce 5 specialist opinions (one for each module of the technical analysis) and then a CONSENSUS that synthesizes all 5 opinions.
 
-REGLA FUNDAMENTAL: Cada opinión DEBE citar datos numéricos específicos. No escribas generalidades. Cada afirmación requiere evidencia del análisis.
+FUNDAMENTAL RULE: Each opinion MUST cite specific numerical data. Do not write generalities. Every assertion requires evidence from the analysis.
 
 DATOS TÉCNICOS DE {ticker} (PRECIO ACTUAL: ${price}):
 
@@ -192,65 +189,65 @@ DATOS TÉCNICOS DE {ticker} (PRECIO ACTUAL: ${price}):
 - Weakest Module: {weakest_mod}
 - Evidence Trail:{evidence_block if evidence_block else ' None available'}
 
-INSTRUCCIONES DE OUTPUT:
-Responde SOLO con JSON válido (sin markdown, sin code blocks). TODO en ESPAÑOL.
-Cada especialidad emite: signal (BULLISH/BEARISH/NEUTRAL), conviction (HIGH/MEDIUM/LOW), narrative (2-3 oraciones con datos), key_data (2-3 datos clave citados).
-El consensus sintetiza las 5 opiniones en una tesis unificada.
+OUTPUT INSTRUCTIONS:
+Respond ONLY with valid JSON (no markdown, no code blocks). ALL text in ENGLISH.
+Each specialty outputs: signal (BULLISH/BEARISH/NEUTRAL), conviction (HIGH/MEDIUM/LOW), narrative (2-3 sentences with data), key_data (2-3 key data points cited).
+The consensus synthesizes all 5 opinions into a unified thesis.
 
-REGLA CRÍTICA DE CONSISTENCIA:
-El motor determinista ha producido la señal: {summary.get('signal', 'N/A')} con score {summary.get('technical_score', 'N/A')}/10.
-Tu consensus_signal NO PUEDE contradecir esta señal determinista:
-- Si el motor dice STRONG_BUY o BUY, tu consensus_signal DEBE ser BULLISH.
-- Si el motor dice STRONG_SELL o SELL, tu consensus_signal DEBE ser BEARISH.
-- Si el motor dice NEUTRAL, puedes emitir BULLISH, BEARISH o NEUTRAL según la evidencia.
-Si no estás de acuerdo con el motor, explica en el consensus POR QUÉ hay matices, pero MANTÉN la dirección del motor.
-tradingview_comparison: Compara tu veredicto con TradingView. Si concuerdan, menciona la validación cruzada. Si difieren, explica QUÉ ve nuestro motor (régimen, MTF, structure V2) que TradingView no captura.
+CRITICAL CONSISTENCY RULE:
+The deterministic engine produced the signal: {summary.get('signal', 'N/A')} with score {summary.get('technical_score', 'N/A')}/10.
+Your consensus_signal CANNOT contradict this deterministic signal:
+- If the engine says STRONG_BUY or BUY, your consensus_signal MUST be BULLISH.
+- If the engine says STRONG_SELL or SELL, your consensus_signal MUST be BEARISH.
+- If the engine says NEUTRAL, you can output BULLISH, BEARISH or NEUTRAL based on evidence.
+If you disagree with the engine, explain WHY there are nuances in the consensus, but MAINTAIN the engine's direction.
+tradingview_comparison: Compare your verdict with TradingView. If they agree, mention the cross-validation. If they differ, explain WHAT our engine (regime, MTF, structure V2) captures that TradingView does not.
 
 {{
   "trend": {{
     "signal": "BULLISH|BEARISH|NEUTRAL",
     "conviction": "HIGH|MEDIUM|LOW",
-    "narrative": "<Opinión del especialista de Tendencia citando SMA50, SMA200, MACD, cruces. 2-3 oraciones.>",
-    "key_data": ["<dato clave 1>", "<dato clave 2>"]
+    "narrative": "<Trend specialist opinion citing SMA50, SMA200, MACD, crossovers. 2-3 sentences.>",
+    "key_data": ["<key data 1>", "<key data 2>"]
   }},
   "momentum": {{
     "signal": "BULLISH|BEARISH|NEUTRAL",
     "conviction": "HIGH|MEDIUM|LOW",
-    "narrative": "<Opinión del especialista de Momentum citando RSI, Stochastic, zonas. 2-3 oraciones.>",
-    "key_data": ["<dato clave 1>", "<dato clave 2>"]
+    "narrative": "<Momentum specialist opinion citing RSI, Stochastic, zones. 2-3 sentences.>",
+    "key_data": ["<key data 1>", "<key data 2>"]
   }},
   "volatility": {{
     "signal": "BULLISH|BEARISH|NEUTRAL",
     "conviction": "HIGH|MEDIUM|LOW",
-    "narrative": "<Opinión del especialista de Volatilidad citando BB, ATR%, régimen. 2-3 oraciones.>",
-    "key_data": ["<dato clave 1>", "<dato clave 2>"]
+    "narrative": "<Volatility specialist opinion citing BB, ATR%, regime. 2-3 sentences.>",
+    "key_data": ["<key data 1>", "<key data 2>"]
   }},
   "volume": {{
     "signal": "BULLISH|BEARISH|NEUTRAL",
     "conviction": "HIGH|MEDIUM|LOW",
-    "narrative": "<Opinión del especialista de Volumen citando Vol/Avg, OBV trend. 2-3 oraciones.>",
-    "key_data": ["<dato clave 1>", "<dato clave 2>"]
+    "narrative": "<Volume specialist opinion citing Vol/Avg, OBV trend. 2-3 sentences.>",
+    "key_data": ["<key data 1>", "<key data 2>"]
   }},
   "structure": {{
     "signal": "BULLISH|BEARISH|NEUTRAL",
     "conviction": "HIGH|MEDIUM|LOW",
-    "narrative": "<Opinión del especialista de Estructura citando S/R, breakout prob, patrones. 2-3 oraciones.>",
-    "key_data": ["<dato clave 1>", "<dato clave 2>"]
+    "narrative": "<Structure specialist opinion citing S/R, breakout prob, patterns. 2-3 sentences.>",
+    "key_data": ["<key data 1>", "<key data 2>"]
   }},
-  "consensus": "<Síntesis ejecutiva de 3-4 oraciones que reconcilie las 5 opiniones. Debe indicar si hay unanimidad o divergencia entre especialistas, y la conclusión técnica principal con datos.>",
+  "consensus": "<Executive synthesis of 3-4 sentences reconciling all 5 opinions. Must indicate unanimity or divergence among specialists, and the main technical conclusion with data.>",
   "consensus_signal": "BULLISH|BEARISH|NEUTRAL",
   "consensus_conviction": "HIGH|MEDIUM|LOW",
-  "tradingview_comparison": "<Comparación con TradingView: si concuerdan menciónalo como validación; si difieren, explica qué detecta nuestro motor (régimen, MTF, structure V2, patterns) que TV no captura. 2-3 oraciones.>",
-  "key_levels": "<Niveles clave: soporte más cercano, resistencia más cercana, niveles fuertes con contexto.>",
-  "timing": "<Recomendación de timing: cuándo entrar, stop-loss basado en soporte, target basado en resistencia.>",
-  "risk_factors": ["<riesgo técnico 1 con dato>", "<riesgo técnico 2 con dato>", "<riesgo técnico 3>"]
+  "tradingview_comparison": "<Comparison with TradingView: if they agree, mention it as validation; if they differ, explain what our engine (regime, MTF, structure V2, patterns) captures that TV does not. 2-3 sentences.>",
+  "key_levels": "<Key levels: nearest support, nearest resistance, strong levels with context.>",
+  "timing": "<Timing recommendation: when to enter, stop-loss based on support, target based on resistance.>",
+  "risk_factors": ["<technical risk 1 with data>", "<technical risk 2 with data>", "<technical risk 3>"]
 }}"""
 
     def _parse_opinion(raw: dict, name: str) -> SpecialtyOpinion:
         return {
             "signal": str(raw.get("signal", "NEUTRAL")).upper(),
             "conviction": str(raw.get("conviction", "LOW")).upper(),
-            "narrative": str(raw.get("narrative", f"Análisis de {name} no disponible.")),
+            "narrative": str(raw.get("narrative", f"{name} analysis not available.")),
             "key_data": list(raw.get("key_data", [])),
         }
 
@@ -258,7 +255,7 @@ tradingview_comparison: Compara tu veredicto con TradingView. Si concuerdan, men
         return {
             "signal": "BULLISH" if score >= 6 else "BEARISH" if score < 4 else "NEUTRAL",
             "conviction": "LOW",
-            "narrative": f"{name}: Score {score}/10, status {status}. Memo detallado no disponible.",
+            "narrative": f"{name}: Score {score}/10, status {status}. Detailed memo not available.",
             "key_data": [f"Score: {score}/10", f"Status: {status}"],
         }
 
@@ -268,13 +265,13 @@ tradingview_comparison: Compara tu veredicto con TradingView. Si concuerdan, men
         "volatility": _fallback_opinion("Volatility", subscores.get("volatility", 0), summary.get("volatility_condition", "N/A")),
         "volume": _fallback_opinion("Volume", subscores.get("volume", 0), summary.get("volume_strength", "N/A")),
         "structure": _fallback_opinion("Structure", subscores.get("structure", 0), summary.get("breakout_direction", "N/A")),
-        "consensus": f"Análisis técnico de {ticker}: Score {summary.get('technical_score', 'N/A')}/10, señal {summary.get('signal', 'N/A')}.",
+        "consensus": f"Technical analysis of {ticker}: Score {summary.get('technical_score', 'N/A')}/10, signal {summary.get('signal', 'N/A')}.",
         "consensus_signal": summary.get("signal", "NEUTRAL").replace("STRONG_BUY", "BULLISH").replace("BUY", "BULLISH").replace("STRONG_SELL", "BEARISH").replace("SELL", "BEARISH"),
         "consensus_conviction": "LOW",
-        "tradingview_comparison": f"TradingView: {tv_overall_rec} ({tv_buy}B/{tv_neutral}N/{tv_sell}S)." if tv_overall_rec != "N/A" else "Datos de TradingView no disponibles.",
-        "key_levels": f"Resistencia: ${structure.get('nearest_resistance', 'N/A')}, Soporte: ${structure.get('nearest_support', 'N/A')}.",
-        "timing": "Análisis de timing no disponible.",
-        "risk_factors": ["Análisis de riesgos técnicos no disponible."],
+        "tradingview_comparison": f"TradingView: {tv_overall_rec} ({tv_buy}B/{tv_neutral}N/{tv_sell}S)." if tv_overall_rec != "N/A" else "TradingView data not available.",
+        "key_levels": f"Resistance: ${structure.get('nearest_resistance', 'N/A')}, Support: ${structure.get('nearest_support', 'N/A')}.",
+        "timing": "Timing analysis not available.",
+        "risk_factors": ["Technical risk analysis not available."],
     }
 
     def _validate_signal_consistency(

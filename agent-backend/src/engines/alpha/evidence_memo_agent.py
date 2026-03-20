@@ -12,17 +12,14 @@ from __future__ import annotations
 import logging
 from typing import TypedDict
 
-from langchain_google_genai import ChatGoogleGenerativeAI
 from src.utils.helpers import extract_json
 from src.config import get_settings
+from src.llm import get_llm, LLMTaskType
 
 logger = logging.getLogger("365advisers.engines.alpha.evidence_memo")
 _settings = get_settings()
 
-_llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
-    google_api_key=_settings.GOOGLE_API_KEY,
-)
+_llm = get_llm(LLMTaskType.FAST)
 
 
 class EvidenceMemoOutput(TypedDict):
@@ -58,24 +55,24 @@ def synthesize_evidence_memo(
     fallback: EvidenceMemoOutput = {
         "signal": "BULLISH" if score >= 65 else "BEARISH" if score <= 35 else "NEUTRAL",
         "conviction": "HIGH" if score >= 75 else "MEDIUM" if score >= 45 else "LOW",
-        "narrative": f"CASE Composite: {score:.0f}/100 ({env}). {active_cats} categorías activas.",
+        "narrative": f"CASE Composite: {score:.0f}/100 ({env}). {active_cats} active categories.",
         "key_data": [f"CASE: {score:.0f}/100", f"Environment: {env}"],
-        "risk_factors": ["Análisis LLM no disponible — usando fallback determinístico."],
+        "risk_factors": ["LLM analysis not available — using deterministic fallback."],
     }
 
-    prompt = f"""Eres un analista cuantitativo institucional que evalúa la EVIDENCIA factorial de una acción.
-Se te proporcionan datos del sistema CASE (Composite Alpha Score Engine) de {ticker}.
+    prompt = f"""You are an institutional quantitative analyst evaluating the FACTORIAL EVIDENCE of a stock.
+You are provided with CASE (Composite Alpha Score Engine) data for {ticker}.
 
-DATOS CASE DE {ticker}:
+CASE DATA FOR {ticker}:
 
 [COMPOSITE]
 - CASE Score: {score:.1f}/100
 - Environment: {env}
-- Categorías activas: {active_cats}/8
+- Active categories: {active_cats}/8
 - Convergence Bonus: +{convergence:.1f}
-- Cross-Category Conflicts: {conflicts if conflicts else 'Ninguno'}
+- Cross-Category Conflicts: {conflicts if conflicts else 'None'}
 
-[SUBSCORES POR CATEGORÍA]
+[SUBSCORES BY CATEGORY]
 {sub_block}
 
 [DECAY/FRESHNESS]
@@ -84,17 +81,17 @@ DATOS CASE DE {ticker}:
 - Average Freshness: {decay.get('average_freshness', 'N/A')}
 - Expired Signals: {decay.get('expired_signals', 0)}
 
-INSTRUCCIONES:
-Responde SOLO con JSON válido (sin markdown, sin code blocks). TODO en ESPAÑOL.
-Interpreta la evidencia CASE: ¿hay convergencia factorial? ¿Qué categorías son más fuertes/débiles?
-¿El score justifica una posición? ¿Hay conflictos que reducen la confianza?
+INSTRUCTIONS:
+Respond ONLY with valid JSON (no markdown, no code blocks). ALL text in ENGLISH.
+Interpret the CASE evidence: is there factorial convergence? Which categories are strongest/weakest?
+Does the score justify a position? Are there conflicts that reduce confidence?
 
 {{
   "signal": "BULLISH|BEARISH|NEUTRAL",
   "conviction": "HIGH|MEDIUM|LOW",
-  "narrative": "<Síntesis de 3-4 oraciones interpretando el CASE score, la distribución por categorías, y si la evidencia factorial soporta o contradice la tesis. Cita scores específicos.>",
-  "key_data": ["<dato 1>", "<dato 2>", "<dato 3>"],
-  "risk_factors": ["<riesgo 1>", "<riesgo 2>"]
+  "narrative": "<3-4 sentence synthesis interpreting the CASE score, category distribution, and whether the factorial evidence supports or contradicts the thesis. Cite specific scores.>",
+  "key_data": ["<data 1>", "<data 2>", "<data 3>"],
+  "risk_factors": ["<risk 1>", "<risk 2>"]
 }}"""
 
     try:

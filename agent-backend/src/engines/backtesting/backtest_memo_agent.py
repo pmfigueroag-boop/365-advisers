@@ -12,17 +12,14 @@ from __future__ import annotations
 import logging
 from typing import TypedDict
 
-from langchain_google_genai import ChatGoogleGenerativeAI
 from src.utils.helpers import extract_json
 from src.config import get_settings
+from src.llm import get_llm, LLMTaskType
 
 logger = logging.getLogger("365advisers.engines.backtesting.memo_agent")
 _settings = get_settings()
 
-_llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
-    google_api_key=_settings.GOOGLE_API_KEY,
-)
+_llm = get_llm(LLMTaskType.FAST)
 
 
 class BacktestMemoOutput(TypedDict):
@@ -46,9 +43,9 @@ def synthesize_backtest_memo(
         return {
             "signal": "NEUTRAL",
             "conviction": "LOW",
-            "narrative": f"No hay resultados de backtest disponibles para {ticker}.",
+            "narrative": f"No backtest results available for {ticker}.",
             "key_data": [],
-            "risk_factors": ["Sin datos de backtest — no es posible evaluar edge estadístico."],
+            "risk_factors": ["No backtest data — cannot evaluate statistical edge."],
         }
 
     count = len(backtest_results)
@@ -91,46 +88,46 @@ def synthesize_backtest_memo(
                   "BEARISH" if avg_wr < 40 or avg_ret < -1 else "NEUTRAL",
         "conviction": "HIGH" if total_signals >= 10 and avg_wr >= 65 else
                       "MEDIUM" if total_signals >= 5 else "LOW",
-        "narrative": f"Backtest de {count} estrategias. WR: {avg_wr:.1f}%, "
+        "narrative": f"Backtest of {count} strategies. WR: {avg_wr:.1f}%, "
                      f"Ret: {avg_ret:.2f}%, Excess vs SPY: {avg_excess:+.2f}%, "
                      f"Sharpe: {avg_sharpe:.2f}, PF: {avg_pf:.2f}.",
         "key_data": [
             f"Win Rate: {avg_wr:.1f}%",
-            f"Retorno T+20: {avg_ret:+.2f}%",
+            f"Return T+20: {avg_ret:+.2f}%",
             f"Excess vs SPY: {avg_excess:+.2f}%",
             f"Profit Factor: {avg_pf:.2f}",
         ],
-        "risk_factors": ["Análisis LLM no disponible — usando fallback determinístico."],
+        "risk_factors": ["LLM analysis not available — using deterministic fallback."],
     }
 
-    prompt = f"""Eres un analista cuantitativo institucional que evalúa la EVIDENCIA DE BACKTEST.
-Se te proporcionan resultados REALES de backtesting de señales Alpha para {ticker}.
+    prompt = f"""You are an institutional quantitative analyst evaluating BACKTEST EVIDENCE.
+You are provided with REAL backtesting results of Alpha signals for {ticker}.
 
-RESULTADOS DE BACKTEST DE {ticker}:
+BACKTEST RESULTS FOR {ticker}:
 
-[AGREGADOS — ventana T+20 días]
-- Estrategias evaluadas: {count}
-- Total observaciones: {total_signals:.0f}
-- Win Rate promedio: {avg_wr:.1f}%
-- Retorno promedio T+20: {avg_ret:+.2f}%
-- Excess Return vs SPY: {avg_excess:+.2f}%  ← MÉTRICA CLAVE DE ALPHA
-- Sharpe promedio: {avg_sharpe:.2f}
+[AGGREGATES — T+20 day window]
+- Strategies evaluated: {count}
+- Total observations: {total_signals:.0f}
+- Average Win Rate: {avg_wr:.1f}%
+- Average Return T+20: {avg_ret:+.2f}%
+- Excess Return vs SPY: {avg_excess:+.2f}%  ← KEY ALPHA METRIC
+- Average Sharpe: {avg_sharpe:.2f}
 - Profit Factor: {avg_pf:.2f}
 
-[RESULTADOS POR SEÑAL]
+[RESULTS PER SIGNAL]
 {results_block}
 
-INSTRUCCIONES:
-Responde SOLO con JSON válido (sin markdown, sin code blocks). TODO en ESPAÑOL.
-Evalúa si las señales tienen edge estadístico real. ¿El win rate y el retorno son
-significativos? ¿El sharpe justifica riesgo? ¿Hay suficientes observaciones?
+INSTRUCTIONS:
+Respond ONLY with valid JSON (no markdown, no code blocks). ALL text in ENGLISH.
+Evaluate whether the signals have real statistical edge. Are the win rate and return
+significant? Does the Sharpe justify the risk? Are there enough observations?
 
 {{
   "signal": "BULLISH|BEARISH|NEUTRAL",
   "conviction": "HIGH|MEDIUM|LOW",
-  "narrative": "<3-4 oraciones evaluando el edge estadístico: ¿las señales predicen correctamente? ¿El retorno justifica el riesgo? ¿Hay suficiente muestra? Cita métricas específicas.>",
-  "key_data": ["<dato 1>", "<dato 2>", "<dato 3>"],
-  "risk_factors": ["<riesgo 1>", "<riesgo 2>"]
+  "narrative": "<3-4 sentences evaluating statistical edge: do the signals predict correctly? Does the return justify risk? Is the sample sufficient? Cite specific metrics.>",
+  "key_data": ["<data 1>", "<data 2>", "<data 3>"],
+  "risk_factors": ["<risk 1>", "<risk 2>"]
 }}"""
 
     try:
