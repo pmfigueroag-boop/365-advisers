@@ -1,0 +1,84 @@
+==========================================================================================
+ALPHA VALIDATION SYSTEM — Phase 2: Signal Diagnostics Report
+==========================================================================================
+Universe: AAPL, NVDA, MSFT, GOOGL, AMZN, TSLA
+
+─── 1. SIGNAL CORRELATION (|ρ| > 0.7) ────────────────────────────
+  value.pe_low                             ↔ value.ebit_ev_high                       ρ=+1.000
+  value.ev_ebitda_low                      ↔ value.div_yield_vs_hist                  ρ=+0.999
+  quality.high_roic                        ↔ quality.high_roe                         ρ=+0.995
+  value.pe_low                             ↔ value.ev_ebitda_low                      ρ=+0.914
+  value.ev_ebitda_low                      ↔ value.ebit_ev_high                       ρ=+0.914
+  value.pe_low                             ↔ value.div_yield_vs_hist                  ρ=+0.913
+  value.div_yield_vs_hist                  ↔ value.ebit_ev_high                       ρ=+0.913
+  risk.pe_expensive                        ↔ risk.ev_ebitda_expensive                 ρ=+0.881
+  momentum.volume_surge                    ↔ flow.unusual_volume                      ρ=+0.864
+  momentum.golden_cross                    ↔ momentum.adx_trend_strength              ρ=+0.831
+  momentum.volume_surge                    ↔ flow.volume_price_divergence             ρ=+0.820
+  flow.unusual_volume                      ↔ flow.volume_price_divergence             ρ=+0.802
+  value.ev_revenue_low                     ↔ value.div_yield_vs_hist                  ρ=+0.766
+  value.pe_low                             ↔ value.shareholder_yield                  ρ=+0.757
+  value.shareholder_yield                  ↔ value.ebit_ev_high                       ρ=+0.757
+  value.ev_ebitda_low                      ↔ value.ev_revenue_low                     ρ=+0.755
+  quality.high_roic                        ↔ quality.asset_turnover_improving         ρ=+0.745
+  quality.high_roe                         ↔ quality.asset_turnover_improving         ρ=+0.744
+  value.fcf_yield_high                     ↔ value.ev_revenue_low                     ρ=+0.720
+  value.shareholder_yield                  ↔ value.div_yield_vs_hist                  ρ=+0.715
+  value.ev_ebitda_low                      ↔ value.shareholder_yield                  ρ=+0.714
+
+─── 2. IC DECAY CURVES ────────────────────────────────────────────
+  Signal                                      T+1    T+5   T+10   T+20   T+40  Peak   HL
+  -------------------------------------------------------------------------------------
+  momentum.golden_cross                    -0.051 -0.099 -0.140 -0.227 -0.355  T+40    —
+  pricecycle.deep_pullback                 +0.127 +0.096 +0.155 +0.176 +0.325  T+40    —
+  momentum.price_above_ema20               -0.146 -0.070 -0.126 -0.136 -0.271  T+40    —
+  momentum.adx_trend_strength              -0.050 -0.061 -0.068 -0.127 -0.179  T+40    —
+  value.ev_ebitda_low                      +0.023 +0.044 +0.067 +0.113 +0.153  T+40    —
+  value.div_yield_vs_hist                  +0.022 +0.043 +0.064 +0.107 +0.147  T+40    —
+  pricecycle.near_52w_high_risk            -0.144 +0.013 -0.020 -0.049 -0.142   T+1    5
+  pricecycle.oversold_z                    +0.105 +0.065 +0.078 +0.077 +0.138  T+40    —
+  value.pe_low                             +0.004 +0.039 +0.052 +0.084 +0.135  T+40    —
+  value.ebit_ev_high                       +0.004 +0.039 +0.052 +0.084 +0.135  T+40    —
+  risk.rsi_overbought                      -0.130 +0.004 -0.000 -0.004 -0.043   T+1    5
+  flow.volume_price_divergence             +0.073 +0.048 +0.100 +0.049 +0.003  T+10   20
+  momentum.volume_surge                    +0.048 +0.041 +0.093 +0.049 -0.007  T+10   40
+  pricecycle.stretched_above_mean          -0.090 +0.033 +0.021 +0.005 -0.075   T+1    5
+  flow.unusual_volume                      +0.041 +0.042 +0.090 +0.049 +0.011  T+10   40
+  value.shareholder_yield                  -0.024 +0.012 +0.024 +0.057 +0.088  T+40    —
+  risk.ev_ebitda_expensive                 +0.081 -0.007 -0.008 -0.024 +0.027   T+1    5
+  quality.asset_turnover_improving         -0.002 -0.031 -0.043 -0.078 -0.061  T+20    —
+  risk.pe_expensive                        +0.077 -0.004 +0.006 +0.001 +0.034   T+1    5
+  value.ev_revenue_low                     +0.010 +0.014 +0.012 +0.016 +0.072  T+40    —
+  quality.low_leverage                     +0.053 -0.001 -0.009 -0.022 +0.033   T+1    5
+  value.fcf_yield_high                     +0.039 -0.034 -0.043 -0.045 -0.035  T+20    —
+  quality.high_roe                         -0.033 -0.012 -0.018 -0.022 -0.011   T+1    5
+  quality.high_roic                        -0.031 -0.011 -0.017 -0.019 -0.009   T+1    5
+
+─── 3. NOISE INJECTION (5% perturbation) ──────────────────────────
+  Survival rate: 62.5%
+
+  Signal                                    IC_orig IC_noisy Retained Robust
+  ---------------------------------------------------------------------------
+  momentum.golden_cross                    -0.2271 -0.1778   78.3%      ✓
+  pricecycle.deep_pullback                 +0.1761 +0.0994   56.4%      ✓
+  momentum.price_above_ema20               -0.1355 -0.1635  120.6%      ✓
+  momentum.adx_trend_strength              -0.1271 -0.1175   92.5%      ✓
+  value.ev_ebitda_low                      +0.1125 -0.0054   -4.8%      ✗
+  value.div_yield_vs_hist                  +0.1066 +0.0084    7.9%      ✗
+  value.pe_low                             +0.0843 +0.0544   64.5%      ✓
+  value.ebit_ev_high                       +0.0843 +0.0412   48.9%      ✗
+  quality.asset_turnover_improving         -0.0782 -0.0561   71.7%      ✓
+  pricecycle.oversold_z                    +0.0767 -0.0639  -83.3%      ✗
+  value.shareholder_yield                  +0.0567 +0.0210   37.1%      ✗
+  momentum.volume_surge                    +0.0492 +0.0805  163.7%      ✓
+  flow.unusual_volume                      +0.0488 +0.0424   87.0%      ✓
+  flow.volume_price_divergence             +0.0485 +0.0083   17.1%      ✗
+  pricecycle.near_52w_high_risk            -0.0485 -0.0487  100.5%      ✓
+  value.fcf_yield_high                     -0.0453 -0.0080   17.5%      ✗
+  risk.ev_ebitda_expensive                 -0.0235 +0.0003   -1.4%      ✗
+  quality.low_leverage                     -0.0221 -0.0404  183.3%      ✓
+  quality.high_roe                         -0.0221 -0.0488  221.3%      ✓
+  quality.high_roic                        -0.0191 -0.0194  101.7%      ✓
+  value.ev_revenue_low                     +0.0159 +0.0053   33.4%      ✗
+
+==========================================================================================

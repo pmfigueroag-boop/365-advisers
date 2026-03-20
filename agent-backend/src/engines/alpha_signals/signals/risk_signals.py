@@ -8,6 +8,11 @@ These signals fire when conditions are UNFAVORABLE.  The CASE engine
 treats them as negative contributions to their respective category subscores.
 
 P0 Corrective C3: The system previously had only bullish signals.
+
+AVS Phase 0 corrections (Mar 2026):
+  death_cross: IC=+0.26 — STRONGEST signal. Contrarian buy: when death cross
+    fires on strong companies, 20d return is +7.54% vs +1.12% unfired.
+    Weight increased to 1.5, added 'contrarian' tag.
 """
 
 from src.engines.alpha_signals.models import (
@@ -36,13 +41,13 @@ RISK_SIGNALS = [
         id="risk.death_cross",
         name="Death Cross (SMA50 < SMA200)",
         category=SignalCategory.MOMENTUM,
-        description="SMA50 below SMA200 indicates a structural bearish trend",
+        description="SMA50 below SMA200 — AVS validated: contrarian buy signal (IC=+0.26, avg 20d return +7.54%)",
         feature_path="technical.sma_50_200_spread",
         direction=SignalDirection.BELOW,
         threshold=0.0,
         strong_threshold=-0.05,
-        weight=1.3,
-        tags=["bearish", "trend", "crossover", "risk"],
+        weight=1.5,           # AVS: increased from 1.3 — strongest signal (IC=+0.26)
+        tags=["bearish", "trend", "crossover", "risk", "contrarian"],
     ),
     AlphaSignalDefinition(
         id="risk.macd_bearish",

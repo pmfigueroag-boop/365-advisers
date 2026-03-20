@@ -35,6 +35,7 @@ VOLATILITY_SIGNALS = [
         threshold=0.0,
         strong_threshold=0.0,
         weight=0.9,
+        enabled=False,  # AVS: DISABLED — ATR always > 0 → fire=100%, IC=0.0
         tags=["range_expansion", "momentum_confirmation"],
     ),
     AlphaSignalDefinition(

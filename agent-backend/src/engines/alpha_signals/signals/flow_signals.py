@@ -35,6 +35,7 @@ FLOW_SIGNALS = [
         direction=SignalDirection.ABOVE,
         threshold=0.0,
         weight=1.0,
+        enabled=False,  # AVS: DISABLED — OBV always positive → fire=97%, IC=-0.11
         tags=["accumulation", "smart_money"],
     ),
     AlphaSignalDefinition(

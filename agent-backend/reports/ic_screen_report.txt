@@ -1,0 +1,84 @@
+====================================================================================================
+ALPHA VALIDATION SYSTEM — Signal IC Screen Report
+====================================================================================================
+Universe:  AAPL, NVDA, MSFT, GOOGL, AMZN, TSLA
+Period:    ~2Y
+Signals:   65
+IC > 0.02: 12
+IC < 0:    12
+
+Signal ID                                     Cat            N   IC_5d  IC_20d  Fire% HitR_5d HitR_20d AvgR_20d_F AvgR_20d_U Stable
+-----------------------------------------------------------------------------------------------------------------------------------
+🟢 risk.death_cross                            momentum     546 +0.0882 +0.2609 21.4%  37.6%   23.9%     7.54%     1.12%      ✓
+🟢 pricecycle.deep_pullback                    value        546 +0.0925 +0.1761 17.6%  59.4%   69.8%     6.54%     1.63%      ✓
+🟢 value.ev_ebitda_low                         value        546 +0.0421 +0.1125  9.2%  62.0%   68.0%     4.78%     2.27%      ✗
+🟢 value.div_yield_vs_hist                     value        546 +0.0409 +0.1066  9.2%  62.0%   68.0%     4.78%     2.27%      ✗
+🟢 value.pe_low                                value        546 +0.0393 +0.0843 10.4%  63.2%   63.2%     3.82%     2.34%      ✗
+🟢 value.ebit_ev_high                          value        546 +0.0393 +0.0843 10.4%  63.2%   63.2%     3.82%     2.34%      ✗
+🟢 pricecycle.oversold_z                       value        546 +0.0557 +0.0767  2.2%  66.7%   75.0%     7.49%     2.39%      ✗
+🟢 value.shareholder_yield                     value        546 +0.0201 +0.0567 18.5%  58.4%   60.4%     2.66%     2.46%      ✗
+🟢 momentum.volume_surge                       momentum     546 +0.0396 +0.0492  8.8%  56.2%   66.7%     2.80%     2.47%      ✗
+🟢 flow.unusual_volume                         flow         546 +0.0408 +0.0488  8.6%  53.2%   68.1%     2.57%     2.49%      ✓
+🟢 flow.volume_price_divergence                flow         546 +0.0462 +0.0485 13.7%  56.0%   62.7%     2.60%     2.48%      ✗
+🟢 momentum.rsi_bullish                        momentum     546 -0.0256 +0.0287 48.9%  53.2%   59.9%     2.91%     2.10%      ✓
+⚪ value.ev_revenue_low                        value        546 +0.0086 +0.0159  8.1%  56.8%   59.1%     1.74%     2.56%      ✗
+⚪ pricecycle.stretched_above_mean             momentum     546 +0.0299 +0.0055 15.0%  58.5%   62.2%     2.47%     2.50%      ✓
+⚪ risk.pe_expensive                           value        546 -0.0019 +0.0011 17.4%  47.4%   40.0%     2.67%     2.46%      ✗
+⚪ risk.macd_bearish                           momentum     546 +0.0413 +0.0001 48.9%  45.3%   40.5%     2.17%     2.81%      ✗
+⚪ value.pb_low                                value        546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ value.peg_low                               value        546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ value.ncav_deep                             value        546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ quality.stable_margins                      quality      546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ quality.strong_earnings_quality             quality      546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ quality.interest_coverage_fortress          quality      546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ quality.piotroski_f_score                   quality      546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ growth.revenue_acceleration                 growth       546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ growth.earnings_surprise                    growth       546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ growth.estimate_revision_breadth            growth       546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ growth.operating_leverage                   growth       546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ growth.rule_of_40                           growth       546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ growth.capex_intensity                      growth       546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ growth.rd_efficiency                        growth       546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ momentum.relative_strength_sector           momentum     546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ volatility.bb_compression                   volatility   546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ volatility.bb_lower_proximity               volatility   546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ volatility.vix_term_contango                volatility   546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ volatility.realized_vol_regime              volatility   546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ flow.mfi_oversold                           flow         546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ flow.dark_pool_absorption                   flow         546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ event.earnings_surprise                     event        546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ event.revenue_acceleration                  event        546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ event.volatility_squeeze                    event        546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ event.high_beta_sector                      event        546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ macro.yield_curve_steep                     macro        546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ macro.credit_spread_benign                  macro        546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ macro.cross_asset_risk_on                   macro        546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ risk.high_leverage                          quality      546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ risk.negative_margin                        quality      546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ risk.revenue_decline                        growth       546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ risk.earnings_decline                       growth       546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ risk.high_beta                              volatility   546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ fundmom.revenue_accelerating                growth       546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ fundmom.margin_expanding                    quality      546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ fundmom.revenue_decelerating                growth       546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+⚪ fundmom.margin_compressing                  quality      546 +0.0000 +0.0000  0.0%   0.0%    0.0%     0.00%     2.50%      ✗
+🔴 momentum.macd_bullish                       momentum     546 -0.0413 -0.0001 51.1%  54.1%   57.7%     2.81%     2.17%      ✗
+🔴 risk.rsi_overbought                         momentum     546 +0.0002 -0.0042 12.1%  37.9%   40.9%     1.93%     2.58%      ✗
+🔴 quality.high_roic                           quality      546 -0.0028 -0.0191 51.5%  56.9%   55.9%     1.58%     3.47%      ✓
+🔴 quality.low_leverage                        quality      546 -0.0003 -0.0221 51.5%  55.5%   54.8%     1.60%     3.45%      ✗
+🔴 quality.high_roe                            quality      546 -0.0041 -0.0221 51.5%  56.9%   55.9%     1.58%     3.47%      ✓
+🔴 risk.ev_ebitda_expensive                    value        546 -0.0069 -0.0235 24.4%  45.9%   42.9%     2.13%     2.62%      ✗
+🔴 value.fcf_yield_high                        value        546 -0.0362 -0.0453  4.6%  44.0%   52.0%    -0.23%     2.63%      ✗
+🔴 pricecycle.near_52w_high_risk               volatility   546 +0.0091 -0.0485 20.0%  58.7%   55.0%     1.51%     2.74%      ✓
+🔴 quality.asset_turnover_improving            quality      546 -0.0206 -0.0782 53.7%  54.9%   55.3%     1.59%     3.55%      ✓
+🔴 momentum.adx_trend_strength                 momentum     546 -0.0643 -0.1271 46.3%  49.4%   51.0%     1.63%     3.25%      ✓
+🔴 momentum.price_above_ema20                  momentum     546 -0.0693 -0.1355 73.1%  52.4%   56.9%     1.39%     5.49%      ✓
+🔴 momentum.golden_cross                       momentum     546 -0.0973 -0.2271 70.0%  51.6%   53.7%     1.07%     5.83%      ✓
+
+====================================================================================================
+LEGEND: IC = Spearman rank correlation (signal value vs forward return)
+  IC > +0.02 = 🟢 signal has predictive power
+  IC ~ 0     = ⚪ no edge
+  IC < 0     = 🔴 inverse predictor (worse than random)
+  Stable     = IC sign consistent across ≥60% of tickers
+====================================================================================================

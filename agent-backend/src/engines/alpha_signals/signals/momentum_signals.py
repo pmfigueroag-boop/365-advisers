@@ -18,24 +18,24 @@ MOMENTUM_SIGNALS = [
         id="momentum.golden_cross",
         name="Moving Average Crossover (Golden Cross)",
         category=SignalCategory.MOMENTUM,
-        description="SMA50 above SMA200 indicates a bullish structural trend",
+        description="SMA50 at least 2% above SMA200 — fresh trend confirmation only",
         feature_path="technical.sma_50_200_spread",
         direction=SignalDirection.ABOVE,
-        threshold=0.0,      # fires when SMA50/SMA200 spread is positive
+        threshold=0.02,     # AVS: was 0.0 (fire=79%, IC=-0.26) → 0.02 to reduce fire rate
         strong_threshold=0.05,  # strong when SMA50 is 5%+ above SMA200
-        weight=1.3,
+        weight=0.5,         # AVS: reduced from 1.3 (inverse predictor on tech universe)
         tags=["trend", "crossover"],
     ),
     AlphaSignalDefinition(
         id="momentum.price_above_ema20",
         name="Strong Price Trend",
         category=SignalCategory.MOMENTUM,
-        description="Price above rolling mean confirms bullish positioning",
+        description="Price meaningfully above rolling mean (z > 0.5) confirms bullish positioning",
         feature_path="technical.mean_reversion_z",
         direction=SignalDirection.ABOVE,
-        threshold=0.0,        # fires when price is above its 1yr rolling mean
+        threshold=0.5,        # AVS: was 0.0 (fire=84%, IC=-0.13) → 0.5 for selectivity
         strong_threshold=1.0, # strong when price is 1 std above mean
-        weight=1.0,
+        weight=0.5,           # AVS: reduced from 1.0 (inverse predictor on tech universe)
         tags=["price_action", "trend"],
     ),
     AlphaSignalDefinition(
@@ -85,6 +85,7 @@ MOMENTUM_SIGNALS = [
         threshold=-0.05,
         strong_threshold=-0.03,
         weight=1.0,
+        enabled=False,        # AVS: DISABLED — IC=-0.07, inverse predictor on tech universe
         tags=["proximity", "anchoring_bias"],
     ),
     AlphaSignalDefinition(
@@ -103,12 +104,12 @@ MOMENTUM_SIGNALS = [
         id="momentum.adx_trend_strength",
         name="ADX Trend Strength",
         category=SignalCategory.MOMENTUM,
-        description="ADX above 25 confirms a strong directional trend; avoids whipsaw in trendless markets (CTA filter)",
+        description="ADX above 35 confirms a very strong directional trend (stricter filter)",
         feature_path="technical.adx",
         direction=SignalDirection.ABOVE,
-        threshold=25.0,
-        strong_threshold=35.0,
-        weight=0.9,
+        threshold=35.0,       # AVS: was 25.0 (fire=71%, IC=-0.15) → 35.0 for selectivity
+        strong_threshold=45.0,
+        weight=0.5,           # AVS: reduced from 0.9 (inverse predictor)
         tags=["trend_strength", "directional"],
     ),
 ]
