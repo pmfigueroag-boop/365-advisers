@@ -52,6 +52,8 @@ def compute_metrics(
     returns: list[float],
     risk_free_rate: float = 0.045,
     trading_days: int = 252,
+    transaction_cost_bps: float = 10.0,  # P3.2: round-trip cost (5 bps each way)
+    slippage_bps: float = 5.0,           # P3.2: market impact slippage per trade
 ) -> PerformanceMetrics:
     """
     Compute all performance metrics from a series of daily % returns.
@@ -64,9 +66,17 @@ def compute_metrics(
         Annual risk-free rate (default 4.5% for 2024-era).
     trading_days : int
         Trading days per year.
+    transaction_cost_bps : float
+        Round-trip transaction cost in basis points (default 10 bps).
+    slippage_bps : float
+        Market impact slippage in basis points per trade (default 5 bps).
     """
     if not returns or len(returns) < 2:
         return PerformanceMetrics()
+
+    # P3.2: Deduct transaction costs + slippage from each return observation
+    total_cost_pct = (transaction_cost_bps + slippage_bps) / 10000.0  # bps → decimal
+    returns = [r - total_cost_pct for r in returns]  # Apply per-trade cost
 
     n = len(returns)
     n_years = n / trading_days if trading_days > 0 else 1.0

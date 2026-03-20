@@ -154,6 +154,22 @@ class SignalEvaluator:
                 if signal_def.strong_threshold is not None:
                     adjusted_def.strong_threshold = signal_def.strong_threshold * factor
 
+            # C4d: Growth — sector-relative growth thresholds (P2.5)
+            # Tech sectors have higher baseline growth → higher thresholds
+            elif (
+                signal_def.category == SignalCategory.GROWTH
+                and fundamental.sector_growth_adjustment != 1.0
+                and any(kw in signal_def.feature_path for kw in (
+                    "revenue_growth", "earnings_growth", "operating_leverage",
+                    "rule_of_40", "revenue_acceleration",
+                ))
+            ):
+                factor = fundamental.sector_growth_adjustment
+                adjusted_def = copy(signal_def)
+                adjusted_def.threshold = signal_def.threshold * factor
+                if signal_def.strong_threshold is not None:
+                    adjusted_def.strong_threshold = signal_def.strong_threshold * factor
+
         fired = self._check_fired(adjusted_def, value)
         strength = self._compute_strength(signal_def, value) if fired else SignalStrength.WEAK
         confidence = self._compute_confidence(signal_def, value) if fired else 0.0

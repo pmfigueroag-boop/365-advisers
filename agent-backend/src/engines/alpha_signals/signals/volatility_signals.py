@@ -19,9 +19,9 @@ VOLATILITY_SIGNALS = [
         name="Volatility Compression",
         category=SignalCategory.VOLATILITY,
         description="Narrow Bollinger Band width indicates a volatility squeeze preceding a breakout",
-        feature_path="technical.bb_upper",
+        feature_path="technical.bb_width",
         direction=SignalDirection.BELOW,
-        threshold=0.0,  # evaluated as (bb_upper - bb_lower) / bb_basis < 0.04
+        threshold=0.04,  # P1.2 fix: bb_width < 4% = compression
         weight=1.2,
         tags=["squeeze", "breakout_setup"],
     ),
@@ -42,10 +42,10 @@ VOLATILITY_SIGNALS = [
         id="volatility.bb_lower_proximity",
         name="Bollinger Lower Band Proximity",
         category=SignalCategory.VOLATILITY,
-        description="Price near lower Bollinger Band may indicate oversold conditions",
-        feature_path="technical.current_price",
+        description="Price near lower Bollinger Band may indicate oversold conditions. Fires when bb_width is high (>6%) AND price is below the 20-day SMA (negative z-score via rsi_14 < 35).",
+        feature_path="technical.rsi_14",
         direction=SignalDirection.BELOW,
-        threshold=0.0,  # evaluated relative to bb_lower
+        threshold=35.0,  # P1.2 fix: RSI < 35 = price near BB lower (proxy)
         weight=1.0,
         tags=["mean_reversion", "oversold"],
     ),

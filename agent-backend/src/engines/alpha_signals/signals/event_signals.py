@@ -43,10 +43,11 @@ EVENT_SIGNALS = [
         name="Volatility Squeeze (Event Setup)",
         category=SignalCategory.EVENT,
         description="Extremely narrow BB width preceding an event may amplify price reaction",
-        feature_path="technical.bb_upper",
+        feature_path="technical.bb_width",
         direction=SignalDirection.BELOW,
-        threshold=0.0,  # dynamically: (bb_upper - bb_lower) / bb_basis < 0.04
+        threshold=0.04,
         weight=0.9,
+        enabled=False,  # P1.3: DISABLED — redundant with volatility.bb_compression
         tags=["pre_event", "setup"],
     ),
     AlphaSignalDefinition(

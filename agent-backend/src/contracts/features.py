@@ -69,6 +69,7 @@ class FundamentalFeatureSet(BaseModel):
     sector_pe_adjustment: float = 1.0
     sector_roic_adjustment: float = 1.0   # company_roic / sector_median_roic
     sector_dte_adjustment: float = 1.0    # company_dte / sector_median_dte
+    sector_growth_adjustment: float = 1.0  # P2.5: sector median revenue growth norm
 
     # C6: Fundamental momentum / acceleration
     revenue_acceleration: float | None = None   # slope(growth_rate_series)

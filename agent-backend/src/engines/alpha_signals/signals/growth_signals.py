@@ -20,11 +20,12 @@ GROWTH_SIGNALS = [
         name="Revenue Acceleration",
         category=SignalCategory.GROWTH,
         description="Revenue growth rate increasing QoQ — second derivative positive signals expanding demand (Coatue/Tiger Global)",
-        feature_path="fundamental.revenue_growth_acceleration",
+        feature_path="fundamental.revenue_acceleration",
         direction=SignalDirection.ABOVE,
         threshold=0.02,
         strong_threshold=0.05,
         weight=1.3,
+        enabled=False,  # P1.3: DISABLED — exact duplicate of fundmom.revenue_accelerating
         tags=["acceleration", "demand_expansion"],
     ),
     AlphaSignalDefinition(

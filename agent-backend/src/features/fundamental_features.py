@@ -227,6 +227,22 @@ _SECTOR_MEDIAN_DTE = {
     "Basic Materials": 0.7,
 }
 
+# P2.5: Sector median revenue growth rate (annualized) — for sector-relative growth thresholds
+# Tech sectors have higher baseline growth norms → growth signal thresholds should be higher
+_SECTOR_MEDIAN_GROWTH = {
+    "Technology": 0.15,           # 15% annual — high organic growth norm
+    "Communication Services": 0.08,
+    "Healthcare": 0.10,
+    "Consumer Cyclical": 0.06,
+    "Consumer Defensive": 0.04,   # 4% — stable, slow-growth sector
+    "Financial Services": 0.06,
+    "Industrials": 0.05,
+    "Energy": 0.03,              # 3% — cyclical, commodity-driven
+    "Utilities": 0.03,
+    "Real Estate": 0.04,
+    "Basic Materials": 0.04,
+}
+
 
 def _compute_sector_pe_adjustment(pe_ratio: float | None, sector: str) -> float:
     """
@@ -385,6 +401,10 @@ def extract_fundamental_features(financials: FinancialStatements) -> Fundamental
     sector_dte_adj = round(
         max(0.5, min(3.0, dte / sector_dte_med)) if dte and sector_dte_med > 0 else 1.0, 4
     )
+    # P2.5: Sector-relative growth adjustment — ratio of sector growth norm to base (0.06)
+    sector_growth_med = _SECTOR_MEDIAN_GROWTH.get(financials.sector, 0.06)
+    base_growth = 0.06  # default assumption for growth thresholds
+    sector_growth_adj = round(sector_growth_med / base_growth, 4) if base_growth > 0 else 1.0
     beta = _winsorize(_to_float(q.beta), -1, 4)
     dte = _winsorize(dte, 0, 10)
     debt_to_ebitda = _winsorize(debt_to_ebitda, 0, 30)
@@ -517,6 +537,7 @@ def extract_fundamental_features(financials: FinancialStatements) -> Fundamental
         sector_pe_adjustment=sector_pe_adj,
         sector_roic_adjustment=sector_roic_adj,
         sector_dte_adjustment=sector_dte_adj,
+        sector_growth_adjustment=sector_growth_adj,
 
         # C6: Fundamental momentum
         revenue_acceleration=revenue_accel,
