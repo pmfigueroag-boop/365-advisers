@@ -21,6 +21,7 @@
 import { Activity, Zap, ShieldCheck, LineChart, Radio, Star, Search } from "lucide-react";
 import OpportunityVerdict from "@/components/terminal/OpportunityVerdict";
 import SignalEnvironmentPanel from "@/components/terminal/SignalEnvironmentPanel";
+import ConvergenceMap from "@/components/terminal/ConvergenceMap";
 import KeyCatalystsPanel from "@/components/terminal/KeyCatalystsPanel";
 import RiskSnapshotPanel from "@/components/terminal/RiskSnapshotPanel";
 import QuickActionBar from "@/components/decision/QuickActionBar";
@@ -306,6 +307,10 @@ export default function TerminalView({
                             }}
                             onRefresh={() => onAnalyze(combined.ticker ?? "")}
                         />
+                    )}
+
+                    {isComplete && (
+                        <ConvergenceMap combined={combined} />
                     )}
 
                     {/* Top Signals */}
