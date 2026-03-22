@@ -215,7 +215,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="365 Advisers API",
-    version="4.0.0",
+    version="5.0.0",
     description=(
         "Institutional-grade investment intelligence platform. "
         "Multi-agent analysis, portfolio construction, risk management, "
@@ -342,7 +342,7 @@ for _module_path, _name in _ROUTER_REGISTRY:
 app.include_router(v1)
 
 logger.info(
-    "Mounted %d/%d routers + /v1/ versioned group (v3.7)",
+    "Mounted %d/%d routers + /v1/ versioned group (v5.0)",
     len(_loaded_routers), len(_ROUTER_REGISTRY),
 )
 
