@@ -62,7 +62,8 @@ class DecisionEngine:
         """
         # ── Step 1: Classify position ─────────────────────────────────────
         fundamental_score = fundamental.committee_verdict.score
-        technical_score = technical.technical_score
+        # Prefer purified score (alpha-validated) over original
+        technical_score = technical.purified_score
 
         try:
             classification = DecisionMatrix.classify(fundamental_score, technical_score)
@@ -119,6 +120,12 @@ async def _generate_cio_memo(
         "consensus_narrative": fundamental.committee_verdict.consensus_narrative,
         "technical_score": technical.technical_score,
         "technical_signal": technical.signal,
+        "purified_tech_score": technical.purified_score,
+        "purified_tech_signal": technical.purified_signal,
+        "purified_tech_evidence": technical.purified_evidence,
+        "dynamic_fundamental_score": fundamental.dynamic_score,
+        "dynamic_fundamental_signal": fundamental.dynamic_signal,
+        "dynamic_fundamental_evidence": fundamental.dynamic_evidence,
         "opportunity_score": opportunity.opportunity_score,
         "dimensions": opportunity.dimensions.model_dump(),
         "sizing": sizing.model_dump(),

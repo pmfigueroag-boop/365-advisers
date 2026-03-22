@@ -52,6 +52,13 @@ class FundamentalResult(BaseModel):
                                        description="Evidence trail from deterministic scoring")
     data_coverage: float = Field(default=0.0, ge=0, le=1,
                                   description="Fraction of ratios available 0-1")
+    # Dynamic V3 scoring (sector-calibrated, 3-layer)
+    dynamic_score: float | None = Field(default=None, ge=0, le=10,
+                                         description="Dynamic sector-relative score 0-10")
+    dynamic_signal: str | None = Field(default=None,
+                                        description="Signal from dynamic V3 scoring")
+    dynamic_evidence: list[str] = Field(default_factory=list,
+                                         description="Evidence trail from dynamic scoring")
 
 
 class ModuleScore(BaseModel):
@@ -113,4 +120,11 @@ class TechnicalResult(BaseModel):
     position_sizing: PositionSizingResult = Field(default_factory=PositionSizingResult)
     setup_quality: float = Field(default=0.0, ge=0, le=1,
                                   description="Setup reliability proxy 0–1")
+    # Purified Technical Score (alpha-validated indicators only)
+    purified_score: float = Field(default=5.0, ge=0, le=10,
+                                   description="Purified score 0-10 from validated indicators")
+    purified_signal: str = Field(default="NEUTRAL",
+                                  description="Signal from purified scoring engine")
+    purified_evidence: list[str] = Field(default_factory=list,
+                                          description="Evidence from purified scoring")
 

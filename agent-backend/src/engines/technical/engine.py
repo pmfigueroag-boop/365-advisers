@@ -18,6 +18,7 @@ from src.contracts.analysis import (
 )
 from src.engines.technical.indicators import IndicatorEngine
 from src.engines.technical.scoring import ScoringEngine as TechScoringModule
+from src.engines.technical.purified_scoring import PurifiedScoringEngine
 from src.engines.technical.formatter import build_technical_summary
 from src.engines.technical.position_sizing import compute_position_sizing
 from src.engines.technical.calibration import get_asset_context
@@ -258,6 +259,23 @@ class TechnicalEngine:
         except Exception as exc:
             logger.warning(f"TECH: Failed to log signal: {exc}")
 
+        # ── Step 6b: Compute Purified Score (alpha-validated only) ──────
+        try:
+            purified = PurifiedScoringEngine.compute(indicator_result, features)
+            purified_score_val = purified.aggregate
+            purified_signal_val = purified.signal
+            purified_evidence_val = purified.evidence
+            logger.info(
+                f"TECH: Purified score for {features.ticker}: "
+                f"{purified.aggregate}/10 ({purified.signal}), "
+                f"confidence={purified.confidence:.0%}"
+            )
+        except Exception as exc:
+            logger.warning(f"TECH: Purified scoring failed: {exc}")
+            purified_score_val = tech_score.aggregate
+            purified_signal_val = tech_score.signal
+            purified_evidence_val = []
+
         return TechnicalResult(
             ticker=features.ticker,
             technical_score=tech_score.aggregate,
@@ -274,5 +292,8 @@ class TechnicalEngine:
             bias=bias_result,
             position_sizing=pos_sizing_result,
             setup_quality=bias_data.setup_quality,
+            purified_score=purified_score_val,
+            purified_signal=purified_signal_val,
+            purified_evidence=purified_evidence_val,
         )
 

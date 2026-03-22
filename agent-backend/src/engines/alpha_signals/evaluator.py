@@ -175,18 +175,25 @@ class SignalEvaluator:
         confidence = self._compute_confidence(signal_def, value) if fired else 0.0
         description = self._build_description(signal_def, value, fired)
 
-        # #3: Signal TTL / Data Age Decay (P1.4)
-        # Penalize confidence when underlying data is stale.
-        # Linear decay from 1.0 (fresh) to 0.3 (floor) over 72 hours.
+        # #3: Signal TTL / Data Age Decay (V4 — evidence-based decay model)
+        # Uses category-aware exponential decay from decay.py.
+        # Each category has an empirically-calibrated half-life.
+        from src.engines.alpha_signals.decay import apply_decay, compute_decay_factor
+
         data_age_hours = 0.0
         if fundamental is not None:
             data_age_hours = getattr(fundamental, "data_age_hours", 0.0)
         elif technical is not None:
             data_age_hours = getattr(technical, "data_age_hours", 0.0)
 
+        decay_factor = 1.0
         if data_age_hours > 0 and confidence > 0:
-            decay = max(0.3, 1.0 - data_age_hours / 72.0)
-            confidence *= decay
+            decay_factor = compute_decay_factor(
+                signal_def.category.value, data_age_hours,
+            )
+            confidence = apply_decay(
+                confidence, signal_def.category.value, data_age_hours,
+            )
 
         return EvaluatedSignal(
             signal_id=signal_def.id,
@@ -197,6 +204,7 @@ class SignalEvaluator:
             threshold=signal_def.threshold,
             strength=strength,
             confidence=round(confidence, 3),
+            decay_factor=round(decay_factor, 4),
             description=description,
         )
 

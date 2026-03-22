@@ -75,6 +75,13 @@ export interface PositionSizing {
     recommended_action: string;
 }
 
+export interface AlphaStackData {
+    case_score: number;
+    environment: string;
+    fired_signals: number;
+    total_signals: number;
+}
+
 export type CombinedStatus = "idle" | "fetching_data" | "fundamental" | "technical" | "decision" | "complete" | "error";
 
 export interface CombinedState {
@@ -93,6 +100,8 @@ export interface CombinedState {
     // Portfolio track
     opportunity: OpportunityScore | null;
     positionSizing: PositionSizing | null;
+    // Alpha Stack (pipeline CASE)
+    alphaStack: AlphaStackData | null;
     // Decision track
     decision: DecisionReady | null;
     // Meta
@@ -117,6 +126,7 @@ const INITIAL: CombinedState = {
     sourceCoverage: null,
     opportunity: null,
     positionSizing: null,
+    alphaStack: null,
     decision: null,
     error: null,
     fromCache: false,
@@ -211,6 +221,12 @@ export function useCombinedStream() {
         es.addEventListener("position_sizing", (e) => {
             const pos: PositionSizing = JSON.parse((e as MessageEvent).data);
             setState((prev) => ({ ...prev, positionSizing: pos }));
+        });
+
+        // alpha_stack — CASE composite score from the pipeline
+        es.addEventListener("alpha_stack", (e) => {
+            const alpha: AlphaStackData = JSON.parse((e as MessageEvent).data);
+            setState((prev) => ({ ...prev, alphaStack: alpha }));
         });
 
         // decision_ready — Final CIO Memo and Investment Position

@@ -31,7 +31,7 @@ def main():
     print("\n" + "=" * 80)
     print("V3 BACKTEST — Tech Universe (6 stocks)")
     print("=" * 80)
-    tech_report = bt.run(tickers=tech, years=2, buy_threshold=0.20)
+    tech_report = bt.run(tickers=tech, years=2, buy_threshold=0.35)
     tech_out = bt.print_report(tech_report)
     with open(os.path.join(report_dir, "v3_backtest_tech.txt"), "w", encoding="utf-8") as f:
         f.write(tech_out)
@@ -40,7 +40,7 @@ def main():
     print("\n" + "=" * 80)
     print("V3 BACKTEST — Non-Tech Universe (10 stocks)")
     print("=" * 80)
-    nontech_report = bt.run(tickers=non_tech, years=2, buy_threshold=0.20)
+    nontech_report = bt.run(tickers=non_tech, years=2, buy_threshold=0.35)
     nontech_out = bt.print_report(nontech_report)
     with open(os.path.join(report_dir, "v3_backtest_nontech.txt"), "w", encoding="utf-8") as f:
         f.write(nontech_out)
@@ -49,7 +49,7 @@ def main():
     print("\n" + "=" * 80)
     print("V3 BACKTEST — Full Universe (16 stocks)")
     print("=" * 80)
-    full_report = bt.run(tickers=full, years=2, buy_threshold=0.20)
+    full_report = bt.run(tickers=full, years=2, buy_threshold=0.35)
     full_out = bt.print_report(full_report)
     with open(os.path.join(report_dir, "v3_backtest_full.txt"), "w", encoding="utf-8") as f:
         f.write(full_out)

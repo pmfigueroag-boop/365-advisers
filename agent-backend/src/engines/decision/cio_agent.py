@@ -275,6 +275,42 @@ fundamental/technical, note the divergence explicitly.""")
     if enrichment_output_fields:
         extra_fields = f",\n{enrichment_output_fields}"
 
+    # ─── Enhanced Scoring Context Blocks ─────────────────────────────────
+    enhanced_str = ""
+
+    # Purified Technical Score (alpha-validated)
+    purified_score = technical_summary.get("purified_score") or technical_summary.get("summary", {}).get("purified_score")
+    purified_signal = technical_summary.get("purified_signal") or technical_summary.get("summary", {}).get("purified_signal")
+    purified_evidence = technical_summary.get("purified_evidence", [])
+    if purified_score is not None:
+        evidence_lines = "\n".join(f"  - {e}" for e in (purified_evidence or [])[:5])
+        enhanced_str += f"""
+[PURIFIED TECHNICAL SCORE — ALPHA-VALIDATED INDICATORS]
+- Score: {purified_score}/10
+- Signal: {purified_signal or 'N/A'}
+- Based on: Low volatility (ATR%, BB width), volume confirmation, regime (ADX, SMA spread)
+- Eliminated noise: RSI, Stochastic, MACD, MFI (empirically proven non-predictive)
+{evidence_lines}
+NOTE: This score uses ONLY indicators with statistically validated predictive power (p<0.05).
+Reference this score when discussing technical timing and conviction."""
+
+    # Dynamic Fundamental Score V3 (sector-calibrated)
+    dynamic_score = fundamental_verdict.get("dynamic_score")
+    dynamic_signal = fundamental_verdict.get("dynamic_signal")
+    dynamic_evidence = fundamental_verdict.get("dynamic_evidence", [])
+    if dynamic_score is not None:
+        evidence_lines = "\n".join(f"  - {e}" for e in (dynamic_evidence or [])[:5])
+        enhanced_str += f"""
+
+[DYNAMIC FUNDAMENTAL SCORE V3 — SECTOR-CALIBRATED]
+- Score: {dynamic_score}/10
+- Signal: {dynamic_signal or 'N/A'}
+- Calibration: 3-layer (theoretical gates → sector-relative z-score → dispersion weights)
+- Context: Metrics scored RELATIVE to sector peers, not absolute thresholds
+{evidence_lines}
+NOTE: This score adapts to the company's industry context automatically.
+Reference this score when discussing fundamental quality and valuation."""
+
     prompt = f"""You are the Chief Investment Officer (CIO) of a top-tier institutional fund.
 Your Investment Committee, Technical Desk, and Alpha Signal System just analyzed {ticker}.
 Based on our proprietary Decision Matrix, the EXACT institutional posture must be: **{investment_position}**.
@@ -295,6 +331,7 @@ CONTEXT DATA:
 - Technical Signal: {tech_signal}
 {opp_str}
 {alpha_str}
+{enhanced_str}
 {enrichment_str}
 
 OUTPUT REQUIREMENTS:

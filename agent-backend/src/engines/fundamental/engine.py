@@ -24,6 +24,7 @@ from src.engines.fundamental.scoring import (
     apply_signal_guardrail,
     validate_llm_coherence,
 )
+from src.engines.fundamental.dynamic_scoring import DynamicFundamentalScoringEngine
 
 logger = logging.getLogger("365advisers.engines.fundamental")
 
@@ -170,6 +171,29 @@ class FundamentalEngine:
             except Exception as exc:
                 logger.warning(f"Deterministic scoring failed for {features.ticker}: {exc}")
 
+        # ── Dynamic V3 Scoring (sector-calibrated) ────────────────────────
+        dynamic_score_val = None
+        dynamic_signal_val = None
+        dynamic_evidence_val: list[str] = []
+
+        if ratios:
+            try:
+                sector = data_ready.get("profile", {}).get("sector", "")
+                dyn_result = DynamicFundamentalScoringEngine.compute(
+                    ratios, sector=sector,
+                )
+                dynamic_score_val = dyn_result.aggregate
+                dynamic_signal_val = dyn_result.signal
+                dynamic_evidence_val = dyn_result.evidence
+                logger.info(
+                    f"Dynamic V3 score for {features.ticker}: "
+                    f"{dyn_result.aggregate}/10 ({dyn_result.signal}), "
+                    f"sector={dyn_result.sector_used}, "
+                    f"gates={dyn_result.gates_passed}/{dyn_result.gates_total}"
+                )
+            except Exception as exc:
+                logger.warning(f"Dynamic V3 scoring failed for {features.ticker}: {exc}")
+
         return FundamentalResult(
             ticker=features.ticker,
             data_ready=data_ready,
@@ -180,6 +204,9 @@ class FundamentalEngine:
             deterministic_signal=deterministic_signal,
             score_evidence=score_evidence,
             data_coverage=data_coverage,
+            dynamic_score=dynamic_score_val,
+            dynamic_signal=dynamic_signal_val,
+            dynamic_evidence=dynamic_evidence_val,
         )
 
 

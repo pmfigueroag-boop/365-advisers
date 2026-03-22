@@ -198,7 +198,7 @@ export default function InvestmentStory({ combined }: InvestmentStoryProps) {
                                     <TechBadge
                                         label="Score"
                                         value={techScore.toFixed(1)}
-                                        color={techScore > 60 ? "text-green-400" : techScore > 40 ? "text-yellow-400" : "text-red-400"}
+                                        color={techScore > 7.0 ? "text-green-400" : techScore > 4.0 ? "text-yellow-400" : "text-red-400"}
                                     />
                                     <TechBadge
                                         label="Trend"

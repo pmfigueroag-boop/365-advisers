@@ -230,7 +230,7 @@ class CompositeBacktest:
         all_buys = [t for t in trades if t.composite_score > buy_threshold]
 
         # STRONG BUY signals: score > 0.35
-        strong_buy_threshold = 0.35
+        strong_buy_threshold = 0.50
         all_strong = [t for t in trades if t.composite_score > strong_buy_threshold and t.fwd_return_20d is not None]
         # BUY-only: 0.20 < score <= 0.35
         all_buy_only = [t for t in trades if buy_threshold < t.composite_score <= strong_buy_threshold and t.fwd_return_20d is not None]

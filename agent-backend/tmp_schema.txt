@@ -1,0 +1,155 @@
+SF1 columns (112):
+  accoci: -4854000000
+  assets: 379297000000
+  assetsavg: None
+  assetsc: 158104000000
+  assetsnc: 221193000000
+  assetturnover: None
+  bvps: 5.98
+  calendardate: 2025-12-31 00:00:00
+  capex: -2373000000
+  cashneq: 45317000000
+  cashnequsd: 45317000000
+  consolinc: 42097000000
+  cor: 74525000000
+  currentratio: 0.974
+  datekey: 2025-12-27 00:00:00
+  de: 3.301
+  debt: 90509000000
+  debtc: 13824000000
+  debtnc: 76685000000
+  debtusd: 90509000000
+  deferredrev: 9413000000
+  depamor: 3214000000
+  deposits: 0
+  dimension: MRQ
+  divyield: 0.004
+  dps: 0.26
+  ebit: 51002000000
+  ebitda: 54216000000
+  ebitdamargin: 0.377
+  ebitdausd: 54216000000
+  ebitusd: 51002000000
+  ebt: 51002000000
+  eps: 2.85
+  epsdil: 2.84
+  epsusd: 2.85
+  equity: 88190000000
+  equityavg: None
+  equityusd: 88190000000
+  ev: 4102577910200
+  evebit: 29
+  evebitda: 26.818
+  fcf: 51552000000
+  fcfps: 3.495
+  fiscalperiod: 2026-Q1
+  fxusd: 1.0
+  gp: 69231000000
+  grossmargin: 0.482
+  intangibles: 0
+  intexp: 0
+  invcap: 262122000000
+  invcapavg: None
+  inventory: 5875000000
+  investments: 99478000000
+  investmentsc: 21590000000
+  investmentsnc: 77888000000
+  lastupdated: 2026-01-30 00:00:00
+  liabilities: 291107000000
+  liabilitiesc: 162367000000
+  liabilitiesnc: 128740000000
+  marketcap: 4039854910200
+  ncf: 9383000000
+  ncfbus: 0
+  ncfcommon: -24701000000
+  ncfdebt: -8074000000
+  ncfdiv: -3921000000
+  ncff: -39656000000
+  ncfi: -4886000000
+  ncfinv: -2359000000
+  ncfo: 53925000000
+  ncfx: 0
+  netinc: 42097000000
+  netinccmn: 42097000000
+  netinccmnusd: 42097000000
+  netincdis: 0
+  netincnci: 0
+  netmargin: 0.293
+  opex: 18379000000
+  opinc: 50852000000
+  payables: 70587000000
+  payoutratio: 0.091
+  pb: 45.809
+  pe: 34.301
+  pe1: 34.52
+  ppnenet: 50159000000
+  prefdivis: 0
+  price: 273.4
+  ps: 9.274
+  ps1: 9.256
+  receivables: 70320000000
+  reportperiod: 2025-12-27 00:00:00
+  retearn: -2177000000
+  revenue: 143756000000
+  revenueusd: 143756000000
+  rnd: 10887000000
+  roa: None
+  roe: None
+  roic: None
+  ros: None
+  sbcomp: 3594000000
+  sgna: 7492000000
+  sharefactor: 1.0
+  sharesbas: 14776353000
+  shareswa: 14748158000
+  shareswadil: 14810356000
+  sps: 9.747
+  tangibles: 379297000000
+  taxassets: 0
+  taxexp: 8905000000
+  taxliabilities: 0
+  tbvps: 25.718
+  ticker: AAPL
+  workingcapital: -4263000000
+
+SEP columns (10):
+  close: 39.435
+  closeadj: 37.462
+  closeunadj: 157.74
+  date: 2018-12-31 00:00:00
+  high: 39.84
+  lastupdated: 2026-02-10 00:00:00
+  low: 39.12
+  open: 39.633
+  ticker: AAPL
+  volume: 140014000.0
+
+TICKERS columns (28):
+  category: Domestic Common Stock Secondary Class
+  companysite: None
+  currency: USD
+  cusips: G6301L125
+  exchange: NASDAQ
+  famaindustry: Trading
+  famasector: None
+  firstadded: 2026-03-20 00:00:00
+  firstpricedate: 2026-03-19 00:00:00
+  firstquarter: None
+  industry: Shell Companies
+  isdelisted: N
+  lastpricedate: 2026-03-19 00:00:00
+  lastquarter: None
+  lastupdated: 2026-03-20 00:00:00
+  location: Nevada; U.S.A
+  name: MOUNTAIN LAKE ACQUISITION CORP II
+  permaticker: 647198
+  relatedtickers: MLAA
+  scalemarketcap: None
+  scalerevenue: None
+  secfilings: https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0002094265
+  sector: Industrials
+  siccode: 6770
+  sicindustry: Blank Checks
+  sicsector: Finance Insurance And Real Estate
+  table: SEP
+  ticker: MLAAU

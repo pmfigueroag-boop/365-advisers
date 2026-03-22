@@ -1,20 +1,29 @@
 """
 src/engines/alpha_signals/combiner.py
 ──────────────────────────────────────────────────────────────────────────────
-Combines per-category signal scores into an overall CompositeScore.
+Evidence-Based Signal Combiner V4 (Mar 2026).
 
-V3 (Sector-Adaptive, Mar 2026):
-  - Dual IC tables: tech vs non-tech (validated separately via AVS Phase 0)
-  - Sector routing: combine() accepts sector parameter
-  - 10+ signals flip sign between sectors (e.g. operating_leverage:
-    tech IC=-0.18, non-tech IC=+0.19) → now correctly weighted
-  - Preserves 2-level buy system (STRONG_BUY / BUY / HOLD)
+Hybrid approach:
+  - POSITIVE IC weights: Sharpe-normalized from per-signal backtest data
+  - NEGATIVE IC weights: Restored from V3 Phase 0 IC screen (sector-validated)
+  - ELIMINATED signals: Proven negative edge in per-signal backtest → IC = 0.0
 
-V2 improvements retained:
-  - IC-weighted scoring (not arbitrary weights)
-  - Contrarian alpha: death_cross/deep_pullback CONTRIBUTE positively
-  - Redundancy control: correlated signals de-weighted
-  - No breadth bonus
+Key insight from backtest comparison:
+  V3 system's selectivity (75 trades / 4.9% of evals) came from negative IC
+  signals SUBTRACTING from composite score. Removing them inflated trades to
+  698 (45.9%) and destroyed alpha. The negative ICs are validated penalty
+  filters, not noise.
+
+Architecture:
+  - Positive signals: weight = Sharpe@20d / max_sharpe (normalized 0-1)
+  - Negative signals: restored from Phase 0 IC screen (sector-validated)
+  - Eliminated: 7 signals with backtest-proven negative excess return
+  - Buy thresholds: STRONG_BUY > 0.35, BUY > 0.20
+
+2-Level Buy System + Position Sizing:
+  - STRONG_BUY: composite_score > 0.35  →  100% position
+  - BUY:        composite_score > 0.20  →   50% position
+  - HOLD:       composite_score ≤ 0.20  →    0% position
 """
 
 from __future__ import annotations
@@ -30,138 +39,171 @@ from src.engines.alpha_signals.models import (
 )
 
 
-# ── Sector-Adaptive IC weights (from Phase 0 per-sector IC screens) ──────────
-# Each table maps signal_id → IC_20d weight.
-# Signals with |IC| < 0.005 are set to 0.0 (no contribution).
+# ══════════════════════════════════════════════════════════════════════════════
+# IC WEIGHT TABLES — EVIDENCE-BASED V5 (Sharadar-validated)
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# Sources of evidence:
+#   1. Per-signal backtest (20 signals, 10 tickers, 2Y) → Sharpe@20d
+#   2. Phase 0 IC screen (sector-specific) → IC@20d per signal
+#   3. ★ Sharadar diagnostic (20 stocks, 3Y, 2820 evals) → alpha vs baseline
+#
+# V5 changes (Sharadar-validated):
+#   - Boosted: risk.pe_expensive, risk.ev_ebitda_expensive (contrarian alpha)
+#   - Activated: flow.mfi_oversold, pricecycle.oversold_z (mean-reversion)
+#   - Zeroed: value.fcf_yield_high, value.ebit_ev_high, value.div_yield_vs_hist
+#             volatility.bb_compression, flow.dark_pool_absorption, vol.realized_vol
+#
+# Legend:
+#   📊 = validated via per-signal backtest (strong evidence)
+#   📈 = validated via Phase 0 IC screen (moderate evidence)
+#   ★  = validated via Sharadar 20-stock diagnostic (2826 evals)
+#   🔴 = eliminated (negative alpha on Sharadar universe)
+#   ⚫ = unvalidated (IC = 0.0)
 
 _IC_WEIGHTS_TECH: dict[str, float] = {
-    # ── Strong positive (contrarian + value) ─────────────────────────
-    "risk.death_cross": 0.26,            # IC=+0.26
-    "pricecycle.deep_pullback": 0.18,    # IC=+0.18
-    "value.ev_revenue_low": 0.16,        # IC=+0.16
-    "value.ev_ebitda_low": 0.11,         # IC=+0.11
-    "value.div_yield_vs_hist": 0.05,     # IC=+0.11 (de-weighted: ρ≈1 w/ ev_ebitda)
-    "value.pe_low": 0.08,               # IC=+0.08
-    "value.ebit_ev_high": 0.04,          # IC=+0.08 (de-weighted: ρ=1 w/ pe_low)
-    "quality.piotroski_f_score": 0.08,   # IC=+0.08
-    "pricecycle.oversold_z": 0.08,       # IC=+0.08
-    "value.shareholder_yield": 0.06,     # IC=+0.06
-    "momentum.volume_surge": 0.05,       # IC=+0.05
-    "flow.unusual_volume": 0.00,          # #2: downweighted — IC flips with 5% noise (-72.5%)
-    "flow.volume_price_divergence": 0.05,# IC=+0.05
-    "momentum.rsi_bullish": 0.03,        # IC=+0.03
+    # ── 📊 CORE ALPHA ─────────────────────────────────────────────────
+    "quality.high_roic":               1.00,   # 📊 Sharpe=2.54, HR=72%
+    "value.ev_ebitda_low":             0.89,   # 📊 Sharpe=2.25, HR=81%
+    "value.pe_low":                    0.88,   # 📊 Sharpe=2.24, HR=73%
+    "quality.low_leverage":            0.79,   # 📊 ★ Sharadar alpha=+1.15%
+    "quality.high_roe":                0.79,   # 📊 Sharpe=2.01, HR=68%
+    "risk.high_leverage":              0.74,   # 📊 Sharpe=1.88, HR=83% (contrarian)
+    "value.shareholder_yield":         0.71,   # 📊 Sharpe=1.81, HR=71%
+    "quality.asset_turnover_improving": 0.69,  # 📊 Sharpe=1.76, HR=71%
 
-    # ── Near-zero / neutral ──────────────────────────────────────────
-    "event.high_beta_sector": 0.0,
-    "risk.high_beta": 0.0,
-    "risk.pe_expensive": 0.0,
-    "risk.macd_bearish": 0.0,
-    "quality.high_roic": 0.0,
-    "quality.high_roe": 0.0,
-    "quality.low_leverage": 0.0,
-    "risk.high_leverage": 0.0,
+    # ── ★ SHARADAR-BOOSTED (contrarian/mean-reversion alpha) ──────────
+    "risk.pe_expensive":               0.40,   # ★ alpha=+1.36% (was 0.0)
+    "risk.ev_ebitda_expensive":        0.35,   # ★ alpha=+1.20% (was -0.02)
+    "pricecycle.deep_pullback":        0.30,   # ★ alpha=+1.23% (was 0.18)
+    "pricecycle.oversold_z":           0.28,   # ★ alpha=+1.11% (was 0.08)
+    "flow.mfi_oversold":               0.25,   # ★ alpha=+1.21% (was 0.0)
+    "value.pb_low":                    0.22,   # ★ alpha=+0.97% (was 0.0)
 
-    # ── Inverse predictors (SUBTRACT when fired) ─────────────────────
-    "flow.dark_pool_absorption": -0.02,
-    "risk.ev_ebitda_expensive": -0.02,
-    "growth.rule_of_40": -0.04,
-    "value.fcf_yield_high": -0.05,
-    "pricecycle.near_52w_high_risk": -0.05,
-    "fundmom.margin_expanding": -0.05,
-    "flow.mfi_oversold": 0.00,            # #2: downweighted — IC flips with noise (-19.3%)
-    "quality.asset_turnover_improving": -0.06,
-    "volatility.realized_vol_regime": -0.06,
-    "growth.capex_intensity": -0.06,
-    "quality.interest_coverage_fortress": -0.08,
-    "quality.stable_margins": -0.12,
-    "risk.revenue_decline": -0.12,
-    "risk.earnings_decline": -0.12,
-    "momentum.adx_trend_strength": -0.13,
-    "momentum.price_above_ema20": -0.14,
-    "value.peg_low": -0.15,
-    "event.earnings_surprise": -0.15,
-    "event.revenue_acceleration": -0.16,
-    "growth.operating_leverage": -0.18,  # ⚡ FLIPS in non-tech!
-    "momentum.golden_cross": -0.23,
+    # ── 📊 MODERATE ALPHA ─────────────────────────────────────────────
+    "risk.macd_bearish":               0.12,   # 📊 Sharpe=0.61 (contrarian)
+    "risk.death_cross":                0.26,   # 📈 IC=+0.26 (contrarian alpha)
+    "quality.piotroski_f_score":       0.08,   # 📈 IC=+0.08
+    "momentum.volume_surge":           0.05,   # 📈 IC=+0.05
+    "flow.volume_price_divergence":    0.05,   # 📈 IC=+0.05
+    "momentum.rsi_bullish":            0.03,   # 📈 IC=+0.03
+    "value.ev_revenue_low":            0.20,   # ★ alpha=+0.64% (was 0.29)
 
-    # ── Bonus 7.1: New high-value signals (expected IC, validated on avg) ──
-    "flow.short_interest_high": 0.04,     # short squeeze contrarian
-    "event.insider_buying": 0.05,         # strong conviction signal
-    "quality.accruals_quality": 0.03,     # low accruals = quality earnings
-    "risk.high_accruals": -0.03,          # high accruals = red flag
-    "flow.put_call_extreme": 0.02,        # contrarian options flow
-    "macro.credit_spread_tightening": 0.03, # risk-on macro
-    "macro.credit_spread_widening": -0.02,  # risk-off macro
-    "growth.analyst_upgrade": 0.03,       # consensus bullish
+    # ── 📈 PENALTY FILTERS (validated negative IC) ────────────────────
+    "momentum.golden_cross":          -0.23,   # 📈 IC=-0.23
+    "growth.operating_leverage":      -0.18,   # 📈 IC=-0.18
+    "event.revenue_acceleration":     -0.16,   # 📈 IC=-0.16
+    "value.peg_low":                  -0.15,   # 📈 IC=-0.15
+    "event.earnings_surprise":        -0.15,   # 📈 IC=-0.15
+    "momentum.price_above_ema20":     -0.14,   # 📈 IC=-0.14
+    "momentum.adx_trend_strength":    -0.13,   # 📈 IC=-0.13
+    "risk.revenue_decline":           -0.12,   # 📈 IC=-0.12
+    "risk.earnings_decline":          -0.12,   # 📈 IC=-0.12
+    "quality.stable_margins":         -0.12,   # 📈 IC=-0.12
+    "quality.interest_coverage_fortress": -0.08, # 📈 IC=-0.08
+    "growth.capex_intensity":         -0.06,   # 📈 IC=-0.06
+    "fundmom.margin_expanding":       -0.05,   # 📈 IC=-0.05
+    "pricecycle.near_52w_high_risk":  -0.05,   # 📈 IC=-0.05
+    "growth.rule_of_40":              -0.04,   # 📈 IC=-0.04
+
+    # ── 🔴 ELIMINATED (Sharadar-proven negative alpha) ────────────────
+    "value.ebit_ev_high":              0.0,    # 🔴 ★ alpha=-1.11% (was 0.80)
+    "value.div_yield_vs_hist":         0.0,    # 🔴 ★ alpha=-0.89% (was 0.30)
+    "value.fcf_yield_high":            0.0,    # 🔴 ★ alpha=-0.76% (was 0.27)
+    "volatility.realized_vol_regime":  0.0,    # 🔴 ★ alpha=-1.14% (was -0.06)
+    "flow.dark_pool_absorption":       0.0,    # 🔴 ★ alpha=-0.52% (was -0.02)
+    "momentum.macd_bullish":           0.0,    # 🔴 Sharpe=-0.20
+
+    # ── Neutral / near-zero ───────────────────────────────────────────
+    "event.high_beta_sector":          0.0,
+    "risk.high_beta":                  0.0,
+    "flow.unusual_volume":             0.0,
+    "risk.negative_margin":            0.0,
+
+    # ── ⚫ Unvalidated ────────────────────────────────────────────────
+    "flow.short_interest_high":        0.0,
+    "event.insider_buying":            0.0,
+    "quality.accruals_quality":        0.0,
+    "risk.high_accruals":              0.0,
+    "flow.put_call_extreme":           0.0,
+    "macro.credit_spread_tightening":  0.0,
+    "macro.credit_spread_widening":    0.0,
+    "growth.analyst_upgrade":          0.0,
 }
 
 _IC_WEIGHTS_NON_TECH: dict[str, float] = {
-    # ── Strong positive ──────────────────────────────────────────────
-    "growth.operating_leverage": 0.19,   # ⚡ FLIPPED from tech (-0.18)!
-    "risk.high_leverage": 0.12,          # non-tech only alpha
-    "risk.death_cross": 0.10,
-    "risk.macd_bearish": 0.10,
-    "risk.revenue_decline": 0.09,        # ⚡ FLIPPED from tech (-0.12)!
-    "growth.capex_intensity": 0.09,      # ⚡ FLIPPED from tech (-0.06)!
-    "fundmom.margin_expanding": 0.08,    # ⚡ FLIPPED from tech (-0.05)!
-    "value.shareholder_yield": 0.08,
-    "event.earnings_surprise": 0.08,     # ⚡ FLIPPED from tech (-0.15)!
-    "value.div_yield_vs_hist": 0.08,
-    "quality.interest_coverage_fortress": 0.08,  # ⚡ FLIPPED from tech (-0.08)!
-    "risk.negative_margin": 0.07,
-    "momentum.adx_trend_strength": 0.06, # ⚡ FLIPPED from tech (-0.13)!
-    "risk.earnings_decline": 0.05,       # ⚡ FLIPPED from tech (-0.12)!
-    "value.pb_low": 0.04,               # non-tech only
-    "pricecycle.deep_pullback": 0.04,
-    "quality.high_roe": 0.04,
-    "flow.unusual_volume": 0.00,          # #2: downweighted — IC flips with noise
-    "pricecycle.oversold_z": 0.00,        # #2: downweighted — IC flips with noise (-12.3%)
-    "quality.low_leverage": 0.03,
-    "flow.volume_price_divergence": 0.02,
-    "flow.mfi_oversold": 0.00,            # #2: downweighted — IC flips with noise
+    # ── Non-tech IC weights (Phase 0 sector-specific validation) ────────
+    # For signals that FLIP between sectors, use the Phase 0 non-tech IC.
+    # For signals with no sector-specific data, use the per-signal backtest.
 
-    # ── Near-zero / neutral ──────────────────────────────────────────
-    "quality.piotroski_f_score": 0.01,
-    "momentum.rsi_bullish": 0.0,
-    "quality.asset_turnover_improving": 0.0,
-    "momentum.volume_surge": 0.0,
-    "event.high_beta_sector": 0.0,
-    "risk.high_beta": 0.0,
-    "value.ev_ebitda_low": 0.0,          # IC≈0 in non-tech (was +0.11 in tech)
-    "value.pe_low": 0.0,
-    "value.peg_low": 0.0,
-    "momentum.golden_cross": 0.0,        # IC≈0 in non-tech (was -0.23 in tech)
+    # ── Positive (sorted by IC) ────────────────────────────────────────
+    "growth.operating_leverage":       0.19,   # 📈 IC=+0.19 (FLIPPED from tech!)
+    "risk.high_leverage":              0.12,   # 📈 IC=+0.12 (non-tech alpha)
+    "risk.death_cross":                0.10,   # 📈 IC=+0.10
+    "risk.macd_bearish":               0.10,   # 📈 IC=+0.10
+    "risk.revenue_decline":            0.09,   # 📈 IC=+0.09 (FLIPPED from tech!)
+    "growth.capex_intensity":          0.09,   # 📈 IC=+0.09 (FLIPPED from tech!)
+    "fundmom.margin_expanding":        0.08,   # 📈 IC=+0.08 (FLIPPED from tech!)
+    "value.shareholder_yield":         0.08,   # 📈 IC=+0.08
+    "event.earnings_surprise":         0.08,   # 📈 IC=+0.08 (FLIPPED from tech!)
+    "value.div_yield_vs_hist":         0.08,   # 📈 IC=+0.08
+    "quality.interest_coverage_fortress": 0.08, # 📈 IC=+0.08 (FLIPPED from tech!)
+    "risk.negative_margin":            0.07,   # 📈 IC=+0.07
+    "momentum.adx_trend_strength":     0.06,   # 📈 IC=+0.06 (FLIPPED from tech!)
+    "risk.earnings_decline":           0.05,   # 📈 IC=+0.05 (FLIPPED from tech!)
+    "quality.high_roe":                0.04,   # 📈 IC=+0.04
+    "value.pb_low":                    0.04,   # 📈 non-tech only
+    "pricecycle.deep_pullback":        0.04,   # 📈 IC=+0.04
+    "quality.low_leverage":            0.03,   # 📈 IC=+0.03
+    "flow.volume_price_divergence":    0.02,   # 📈 IC=+0.02
+    "quality.piotroski_f_score":       0.01,   # 📈 IC=+0.01
 
-    # ── Inverse predictors ───────────────────────────────────────────
-    "value.ebit_ev_high": -0.01,         # was +0.08 in tech!
-    "event.revenue_acceleration": -0.02,
-    "value.ev_revenue_low": -0.02,       # was +0.16 in tech!
-    "risk.ev_ebitda_expensive": -0.02,
-    "quality.stable_margins": -0.02,
-    "pricecycle.stretched_above_mean": -0.04,
-    "flow.dark_pool_absorption": -0.04,
-    "quality.high_roic": -0.05,
-    "momentum.price_above_ema20": -0.05,
-    "pricecycle.near_52w_high_risk": -0.05,
-    "value.fcf_yield_high": -0.06,
-    "volatility.realized_vol_regime": -0.06,
-    "risk.rsi_overbought": -0.07,
-    "risk.pe_expensive": -0.08,
-    "growth.rule_of_40": -0.10,
-    "momentum.macd_bullish": -0.10,
+    # ── Per-signal backtest (no conflict with Phase 0) ─────────────────
+    "quality.asset_turnover_improving": 0.69,  # 📊 Sharpe=1.76
 
-    # ── Bonus 7.1: New high-value signals ────────────────────────────
-    "flow.short_interest_high": 0.04,
-    "event.insider_buying": 0.05,
-    "quality.accruals_quality": 0.04,     # even stronger in non-tech
-    "risk.high_accruals": -0.04,
-    "flow.put_call_extreme": 0.03,
-    "macro.credit_spread_tightening": 0.03,
-    "macro.credit_spread_widening": -0.02,
-    "growth.analyst_upgrade": 0.04,
+    # ── Negative (penalty filters validated in non-tech) ───────────────
+    "growth.rule_of_40":              -0.10,   # 📈 IC=-0.10
+    "momentum.macd_bullish":          -0.10,   # 📈 IC=-0.10
+    "risk.pe_expensive":              -0.08,   # 📈 IC=-0.08
+    "risk.rsi_overbought":            -0.07,   # 📈 IC=-0.07
+    "volatility.realized_vol_regime": -0.06,   # 📈 IC=-0.06
+    "value.fcf_yield_high":           -0.06,   # 📈 IC=-0.06 (penalty in non-tech!)
+    "quality.high_roic":              -0.05,   # 📈 IC=-0.05 (penalty in non-tech!)
+    "momentum.price_above_ema20":     -0.05,   # 📈 IC=-0.05
+    "pricecycle.near_52w_high_risk":  -0.05,   # 📈 IC=-0.05
+    "pricecycle.stretched_above_mean": -0.04,  # 📈 IC=-0.04
+    "flow.dark_pool_absorption":      -0.04,   # 📈 IC=-0.04
+    "quality.stable_margins":         -0.02,   # 📈 IC=-0.02
+    "event.revenue_acceleration":     -0.02,   # 📈 IC=-0.02
+    "value.ev_revenue_low":           -0.02,   # 📈 IC=-0.02 (penalty in non-tech!)
+    "risk.ev_ebitda_expensive":       -0.02,   # 📈 IC=-0.02
+    "value.ebit_ev_high":             -0.01,   # 📈 IC=-0.01 (penalty in non-tech!)
+
+    # ── Near-zero / neutral ────────────────────────────────────────────
+    "momentum.rsi_bullish":            0.0,
+    "momentum.volume_surge":           0.0,
+    "event.high_beta_sector":          0.0,
+    "risk.high_beta":                  0.0,
+    "value.ev_ebitda_low":             0.0,    # 📈 IC≈0 in non-tech
+    "value.pe_low":                    0.0,    # 📈 IC≈0 in non-tech
+    "value.peg_low":                   0.0,
+    "momentum.golden_cross":           0.0,    # 📈 IC≈0 in non-tech
+    "flow.unusual_volume":             0.0,
+    "pricecycle.oversold_z":           0.0,
+    "flow.mfi_oversold":               0.0,
+
+    # ── ⚫ New signals: unvalidated ────────────────────────────────────
+    "flow.short_interest_high":        0.0,
+    "event.insider_buying":            0.0,
+    "quality.accruals_quality":        0.0,
+    "risk.high_accruals":              0.0,
+    "flow.put_call_extreme":           0.0,
+    "macro.credit_spread_tightening":  0.0,
+    "macro.credit_spread_widening":    0.0,
+    "growth.analyst_upgrade":          0.0,
 }
 
-# Redundancy clusters (shared across sectors)
+# Redundancy clusters (unchanged — empirically validated)
 _REDUNDANCY_CLUSTERS: list[set[str]] = [
     {"value.pe_low", "value.ebit_ev_high"},
     {"value.ev_ebitda_low", "value.div_yield_vs_hist"},
@@ -169,21 +211,25 @@ _REDUNDANCY_CLUSTERS: list[set[str]] = [
     {"momentum.volume_surge", "flow.unusual_volume", "flow.volume_price_divergence"},
     {"risk.revenue_decline", "risk.earnings_decline"},
     {"value.peg_low", "event.earnings_surprise"},
-    # Bonus 7.1: accruals quality pair
     {"quality.accruals_quality", "risk.high_accruals"},
-    # Bonus 7.1: credit spread pair
     {"macro.credit_spread_tightening", "macro.credit_spread_widening"},
-    # #1 Audit-detected redundancies
-    {"event.high_beta_sector", "risk.high_beta"},                          # ρ=1.000
-    {"quality.interest_coverage_fortress", "growth.capex_intensity"},       # ρ=0.925
-    {"risk.pe_expensive", "risk.ev_ebitda_expensive"},                      # ρ=0.854
+    {"event.high_beta_sector", "risk.high_beta"},
+    {"quality.interest_coverage_fortress", "growth.capex_intensity"},
+    {"risk.pe_expensive", "risk.ev_ebitda_expensive"},
 ]
 
 _DEFAULT_IC_WEIGHT = 0.0
 
 # ── 2-Level Buy Thresholds ───────────────────────────────────────────────────
-STRONG_BUY_THRESHOLD = 0.35
-BUY_THRESHOLD = 0.20
+STRONG_BUY_THRESHOLD = 0.50
+BUY_THRESHOLD = 0.35
+
+# ── Position Sizing ─────────────────────────────────────────────────────────
+_POSITION_SIZE = {
+    SignalLevel.STRONG_BUY: 1.0,   # 100% of allocated capital
+    SignalLevel.BUY:        0.5,   # 50% of allocated capital
+    SignalLevel.HOLD:       0.0,   # no trade
+}
 
 # ── Sector classification ────────────────────────────────────────────────────
 _TECH_SECTORS = {
@@ -201,21 +247,17 @@ def _classify_sector(sector: str) -> str:
 
 class SignalCombiner:
     """
-    V3: Sector-adaptive IC-weighted signal combiner.
+    V4: Evidence-Based IC-weighted signal combiner.
 
-    Selects IC weight table based on sector classification:
-      - Tech → _IC_WEIGHTS_TECH
-      - Non-Tech → _IC_WEIGHTS_NON_TECH
+    Hybrid approach:
+      - Positive ICs from per-signal backtest (Sharpe-normalized)
+      - Negative ICs from Phase 0 IC screen (sector-validated penalties)
+      - Position sizing integrated into CompositeScore
 
     2-Level Buy System:
-      - STRONG_BUY: composite_score > 0.35
-      - BUY:        composite_score > 0.20
-      - HOLD:       composite_score <= 0.20
-
-    Usage::
-
-        combiner = SignalCombiner()
-        composite = combiner.combine(profile, sector="Technology")
+      - STRONG_BUY: composite_score > 0.35  →  position_size = 100%
+      - BUY:        composite_score > 0.20  →  position_size =  50%
+      - HOLD:       composite_score ≤ 0.20  →  position_size =   0%
     """
 
     def combine(
@@ -224,12 +266,11 @@ class SignalCombiner:
         sector: str = "",
     ) -> CompositeScore:
         """
-        Compute sector-adaptive IC-weighted composite score.
+        Compute evidence-based IC-weighted composite score.
 
         Args:
             profile: Evaluated signal profile for an asset.
-            sector: Sector string (e.g. "Technology", "Healthcare").
-                    Used to select the appropriate IC weight table.
+            sector: Sector string for IC table selection.
         """
         cat_scores = profile.category_summary
         if not cat_scores:
@@ -245,6 +286,7 @@ class SignalCombiner:
                 multi_category_bonus=False,
                 dominant_category=None,
                 active_categories=0,
+                position_size_pct=0.0,
             )
 
         # ── Select sector-appropriate IC table ────────────────────────────
@@ -303,6 +345,9 @@ class SignalCombiner:
         else:
             signal_level = SignalLevel.HOLD
 
+        # ── Position sizing ───────────────────────────────────────────────
+        position_size = _POSITION_SIZE.get(signal_level, 0.0)
+
         # ── Dominant and active categories ────────────────────────────────
         active = {k: v for k, v in cat_scores.items() if v.fired > 0}
         active_count = len(active)
@@ -334,4 +379,5 @@ class SignalCombiner:
             multi_category_bonus=False,
             dominant_category=dominant_category,
             active_categories=active_count,
+            position_size_pct=round(position_size, 2),
         )

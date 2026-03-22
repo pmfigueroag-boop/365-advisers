@@ -98,6 +98,7 @@ class EvaluatedSignal(BaseModel):
     threshold: float = 0.0
     strength: SignalStrength = SignalStrength.WEAK
     confidence: float = Field(0.0, ge=0.0, le=1.0)
+    decay_factor: float = Field(1.0, ge=0.0, le=1.0, description="Decay factor applied to confidence")
     description: str = ""
 
 
@@ -138,3 +139,7 @@ class CompositeScore(BaseModel):
     multi_category_bonus: bool = False
     dominant_category: SignalCategory | None = None
     active_categories: int = 0
+    position_size_pct: float = Field(
+        0.0, ge=0.0, le=1.0,
+        description="Recommended position size as fraction of allocated capital",
+    )

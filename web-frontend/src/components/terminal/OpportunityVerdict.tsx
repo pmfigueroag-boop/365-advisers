@@ -45,12 +45,14 @@ function verdictIcon(position: string) {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function OpportunityVerdict({ combined, alphaProfile }: OpportunityVerdictProps) {
-    const { decision, opportunity, positionSizing, committee, fundamentalDataReady, ticker } = combined;
+    const { decision, opportunity, positionSizing, committee, fundamentalDataReady, technical, alphaStack, ticker } = combined;
 
     if (!decision || !ticker) return null;
 
     const oppScore = opportunity?.opportunity_score ?? committee?.score ?? 0;
-    const caseScore = alphaProfile?.composite_alpha?.score ?? 0;
+    // Prefer pipeline CASE score (same one the CIO uses) over the separate API
+    const caseScore = alphaStack?.case_score ?? alphaProfile?.composite_alpha?.score ?? 0;
+    const techScore = (technical as any)?.summary?.technical_score ?? (technical as any)?.technical_score ?? 0;
     const confidence = (decision.confidence_score ?? 0) * 100; // backend sends 0–1, meter expects 0–100
     const allocation = positionSizing?.suggested_allocation ?? 0;
     const riskLevel = positionSizing?.risk_level ?? "unknown";
@@ -86,7 +88,7 @@ export default function OpportunityVerdict({ combined, alphaProfile }: Opportuni
                         <OpportunityScoreGauge score={oppScore} size={100} label="Opportunity" />
                     </InfoTooltip>
                     <InfoTooltip text="Composite Alpha Score Engine — aggregated score from 50+ alpha signals across 8 categories (momentum, value, quality, etc.)." showIcon={false}>
-                        {alphaProfile ? (
+                        {(alphaStack || alphaProfile) ? (
                             <ScoreRing value={caseScore} max={100} size={64} label="CASE" color="#d4af37" />
                         ) : (
                             <div className="flex flex-col items-center gap-1">
@@ -101,6 +103,9 @@ export default function OpportunityVerdict({ combined, alphaProfile }: Opportuni
                                 <span className="text-[8px] font-black uppercase tracking-widest text-gray-600">CASE</span>
                             </div>
                         )}
+                    </InfoTooltip>
+                    <InfoTooltip text="Technical Score — quantitative analysis of price, trend, momentum, and volatility conditions. Uses purified alpha-validated indicators." showIcon={false}>
+                        <ScoreRing value={techScore} max={10} size={64} label="Technical" color="#d4af37" />
                     </InfoTooltip>
                     <InfoTooltip text="Investment Committee verdict (4 AI analysts). Score 0–10 based on multi-agent fundamental analysis." showIcon={false}>
                         <ScoreRing value={committee?.score ?? 0} max={10} size={64} label="Committee" />

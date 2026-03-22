@@ -11,9 +11,11 @@ import { Radio, Layers, Shield, AlertTriangle, Activity } from "lucide-react";
 import InfoTooltip from "@/components/shared/InfoTooltip";
 import type { SignalProfileResponse } from "@/hooks/useAlphaSignals";
 import type { CrowdingAssessment } from "@/hooks/useCrowding";
+import type { AlphaStackData } from "@/hooks/useCombinedStream";
 
 interface SignalEnvironmentPanelProps {
     alphaProfile: SignalProfileResponse | null;
+    alphaStack?: AlphaStackData | null;
     crowding?: CrowdingAssessment | null;
     className?: string;
 }
@@ -26,19 +28,20 @@ const ENV_STYLE: Record<string, { color: string; bg: string; border: string }> =
     "Negative Signal Environment": { color: "text-red-400", bg: "bg-red-500/10", border: "border-red-500/30" },
 };
 
-export default function SignalEnvironmentPanel({ alphaProfile, crowding, className = "" }: SignalEnvironmentPanelProps) {
-    if (!alphaProfile) return null;
+export default function SignalEnvironmentPanel({ alphaProfile, alphaStack, crowding, className = "" }: SignalEnvironmentPanelProps) {
+    if (!alphaProfile && !alphaStack) return null;
 
-    const composite = alphaProfile.composite_alpha;
-    const environment = composite?.environment ?? "Unknown";
+    const composite = alphaProfile?.composite_alpha;
+    const environment = alphaStack?.environment ?? composite?.environment ?? "Unknown";
     const envCfg = ENV_STYLE[environment] ?? { color: "text-gray-400", bg: "bg-gray-500/10", border: "border-gray-500/30" };
 
-    const caseScore = composite?.score ?? 0;
+    // Prefer pipeline CASE score (same one the CIO uses) over the separate API
+    const caseScore = alphaStack?.case_score ?? composite?.score ?? 0;
     const activeCats = composite?.active_categories ?? 0;
     const totalCats = composite ? Object.keys(composite.subscores).length : 0;
-    const firedPct = alphaProfile.total_signals > 0
-        ? Math.round((alphaProfile.fired_signals / alphaProfile.total_signals) * 100)
-        : 0;
+    const firedPct = (alphaProfile?.total_signals ?? 0) > 0
+        ? Math.round(((alphaProfile?.fired_signals ?? 0) / (alphaProfile?.total_signals ?? 1)) * 100)
+        : alphaStack ? Math.round((alphaStack.fired_signals / Math.max(alphaStack.total_signals, 1)) * 100) : 0;
 
     const crowdingLevel = crowding?.risk_level ?? null;
     const crowdingColor = crowdingLevel === "low" ? "text-green-400" : crowdingLevel === "moderate" ? "text-yellow-400" :
@@ -93,7 +96,7 @@ export default function SignalEnvironmentPanel({ alphaProfile, crowding, classNa
                         </InfoTooltip>
                     </div>
                     <span className="text-[10px] font-mono text-gray-300">
-                        {alphaProfile.fired_signals}/{alphaProfile.total_signals} ({firedPct}%)
+                        {alphaStack?.fired_signals ?? alphaProfile?.fired_signals ?? 0}/{alphaStack?.total_signals ?? alphaProfile?.total_signals ?? 0} ({firedPct}%)
                     </span>
                 </div>
 

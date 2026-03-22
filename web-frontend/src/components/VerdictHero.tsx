@@ -127,7 +127,7 @@ interface VerdictHeroProps {
 }
 
 export default function VerdictHero({ combined, alphaProfile }: VerdictHeroProps) {
-    const { decision, opportunity, positionSizing, committee, fundamentalDataReady, agentMemos, technical } = combined;
+    const { decision, opportunity, positionSizing, committee, fundamentalDataReady, agentMemos, technical, alphaStack } = combined;
 
     const ticker = combined.ticker ?? "";
     const name = fundamentalDataReady?.name ?? ticker;
@@ -140,7 +140,8 @@ export default function VerdictHero({ combined, alphaProfile }: VerdictHeroProps
 
     // Key metrics
     const oppScore = opportunity?.opportunity_score ?? 0;
-    const compositeAlpha = alphaProfile?.composite_alpha?.score ?? 0;
+    // Prefer pipeline CASE score (same one the CIO uses) over the separate API
+    const compositeAlpha = alphaStack?.case_score ?? alphaProfile?.composite_alpha?.score ?? 0;
     const allocation = positionSizing?.suggested_allocation ?? 0;
     const risk = positionSizing?.risk_level ?? "—";
     const confidence = decision?.confidence_score ?? 0;
@@ -207,7 +208,7 @@ export default function VerdictHero({ combined, alphaProfile }: VerdictHeroProps
                     <MetricPill
                         icon={<Target size={14} />}
                         label="Allocation"
-                        value={`${(allocation * 100).toFixed(1)}%`}
+                        value={`${allocation.toFixed(1)}%`}
                         color="text-[#d4af37]"
                     />
                     <MetricPill

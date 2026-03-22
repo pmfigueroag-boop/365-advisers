@@ -119,9 +119,16 @@ async def evaluate_signals(ticker: str, force_refresh: bool = False):
     _sector = getattr(fundamental_features, "sector", "") if fundamental_features else ""
     composite = _combiner.combine(profile, sector=_sector)
 
-    # Compute Composite Alpha Score (with decay)
+    # Compute worst-case data age for freshness penalty (same as pipeline)
+    _ages = [
+        getattr(fundamental_features, 'data_age_hours', None),
+        getattr(technical_features, 'data_age_hours', None),
+    ]
+    _max_age = max((a for a in _ages if a is not None), default=None)
+
+    # Compute Composite Alpha Score (with decay + freshness penalty)
     case_result = _composite_alpha_engine.compute(
-        profile, decay_engine=_decay_engine
+        profile, decay_engine=_decay_engine, data_age_hours=_max_age
     )
 
     # Persist snapshots and CASE history

@@ -322,7 +322,7 @@ export default function TerminalView({
 
                 {/* Right: Context Column (1/3) */}
                 <div className="space-y-4">
-                    <SignalEnvironmentPanel alphaProfile={alphaProfile} crowding={crowding} />
+                    <SignalEnvironmentPanel alphaProfile={alphaProfile} alphaStack={combined.alphaStack} crowding={crowding} />
                     <KeyCatalystsPanel cioMemo={combined.decision?.cio_memo ?? null} />
                     <RiskSnapshotPanel
                         positionSizing={combined.positionSizing}
