@@ -80,31 +80,51 @@ export interface AlphaStackData {
     environment: string;
     fired_signals: number;
     total_signals: number;
+    alpha_memo?: string | null;
+    evidence_memo?: string | null;
+    signal_map_memo?: string | null;
 }
 
 export type CombinedStatus = "idle" | "fetching_data" | "fundamental" | "technical" | "decision" | "complete" | "error";
 
+/**
+ * Combined state for the 12-event SSE analysis stream.
+ *
+ * Each field maps 1:1 to an SSE event from `analysis_pipeline.py`:
+ *   data_ready        → fundamentalDataReady
+ *   agent_memo (×4)   → agentMemos[]
+ *   committee_verdict → committee
+ *   research_memo     → researchMemo
+ *   technical_ready   → technical
+ *   technical_memo    → technicalMemo
+ *   source_coverage   → sourceCoverage
+ *   opportunity_score → opportunity
+ *   position_sizing   → positionSizing
+ *   alpha_stack       → alphaStack
+ *   decision_ready    → decision
+ *   done              → status=complete, fromCache, processingMs
+ */
 export interface CombinedState {
     status: CombinedStatus;
     ticker: string | null;
-    // Fundamental track
+    // Fundamental track (events 1-4)
     fundamentalDataReady: FundamentalDataReady | null;
     agentMemos: AgentMemo[];
     committee: CommitteeVerdict | null;
     researchMemo: string | null;
-    // Technical track
+    // Technical track (events 5-6)
     technical: TechnicalAnalysisResult | null;
     technicalMemo: TechnicalMemo | null;
-    // Coverage track
+    // Coverage track (event 7)
     sourceCoverage: SourceCoverage | null;
-    // Portfolio track
+    // Portfolio track (events 8-9)
     opportunity: OpportunityScore | null;
     positionSizing: PositionSizing | null;
-    // Alpha Stack (pipeline CASE)
+    // Alpha Stack — CASE composite (event 10)
     alphaStack: AlphaStackData | null;
-    // Decision track
+    // Decision track (events 11-12)
     decision: DecisionReady | null;
-    // Meta
+    // Meta (from done event)
     error: string | null;
     fromCache: boolean;
     processingMs: number | null;
