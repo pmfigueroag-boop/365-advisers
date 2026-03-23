@@ -20,11 +20,13 @@ import logging
 import time
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 
 logger = logging.getLogger("365advisers.routes.ws_analysis")
 
-router = APIRouter(tags=["WebSocket Analysis"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(tags=["WebSocket Analysis"], dependencies=[Depends(get_current_user)])
 
 
 class AnalysisProgressTracker:

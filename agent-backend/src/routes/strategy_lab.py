@@ -15,7 +15,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from src.engines.strategy.definition import (
@@ -36,7 +36,9 @@ from src.engines.strategy_backtest.walk_forward_strategy import WalkForwardStrat
 from src.engines.strategy_backtest.benchmark import BenchmarkComparison
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/strategy-lab", tags=["Strategy Lab"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/strategy-lab", tags=["Strategy Lab"], dependencies=[Depends(get_current_user)])
 
 # Shared instances
 _registry = StrategyRegistry()

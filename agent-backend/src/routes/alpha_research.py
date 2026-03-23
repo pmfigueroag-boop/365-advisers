@@ -8,13 +8,15 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from src.research.alpha_tests.models import AlphaSpreadResult, ScoreTestComparison
 
 logger = logging.getLogger("365advisers.routes.alpha_research")
 
-router = APIRouter(prefix="/api/v1/research", tags=["Alpha Research"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/api/v1/research", tags=["Alpha Research"], dependencies=[Depends(get_current_user)])
 
 
 @router.get(

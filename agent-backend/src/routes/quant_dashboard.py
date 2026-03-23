@@ -7,11 +7,13 @@ API endpoint for the Quant Dashboard — serves institutional metrics.
 from __future__ import annotations
 
 from datetime import date, datetime, timezone
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from pydantic import BaseModel, Field
 
-router = APIRouter(prefix="/api/quant", tags=["quant-dashboard"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/api/quant", tags=["quant-dashboard"], dependencies=[Depends(get_current_user)])
 
 
 class SignalHealthRow(BaseModel):

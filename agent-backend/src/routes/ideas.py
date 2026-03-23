@@ -17,7 +17,7 @@ import json
 import logging
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from src.engines.idea_generation.engine import IdeaGenerationEngine
@@ -35,7 +35,9 @@ from src.engines.idea_generation.universe_discovery import (
 
 logger = logging.getLogger("365advisers.routes.ideas")
 
-router = APIRouter(prefix="/ideas", tags=["Ideas"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/ideas", tags=["Ideas"], dependencies=[Depends(get_current_user)])
 
 # ── Request / Response Schemas ────────────────────────────────────────────────
 

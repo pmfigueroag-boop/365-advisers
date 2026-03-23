@@ -16,7 +16,7 @@ import json
 import logging
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from src.engines.alpha_signals.evaluator import SignalEvaluator
@@ -33,7 +33,9 @@ from src.engines.idea_generation.engine import IdeaGenerationEngine
 
 logger = logging.getLogger("365advisers.routes.signals")
 
-router = APIRouter(prefix="/signals", tags=["Alpha Signals"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/signals", tags=["Alpha Signals"], dependencies=[Depends(get_current_user)])
 
 # Singletons
 _evaluator = SignalEvaluator()

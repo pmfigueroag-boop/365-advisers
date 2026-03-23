@@ -7,14 +7,16 @@ Cache management endpoints — extracted from main.py.
 from __future__ import annotations
 
 import logging
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
 from src.services.cache_manager import cache_manager
 from src.data.database import get_score_history
 
 logger = logging.getLogger("365advisers.routes.cache")
 
-router = APIRouter(tags=["Cache"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(tags=["Cache"], dependencies=[Depends(get_current_user)])
 
 cache = cache_manager.analysis
 tech_cache = cache_manager.technical

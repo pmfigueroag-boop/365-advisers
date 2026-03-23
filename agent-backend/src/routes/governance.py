@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from src.engines.governance import (
     AuditLogger,
@@ -33,7 +33,9 @@ from src.engines.governance.models import (
 
 logger = logging.getLogger("365advisers.routes.governance")
 
-router = APIRouter(prefix="/governance", tags=["governance"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/governance", tags=["governance"], dependencies=[Depends(get_current_user)])
 
 # ── Singletons ────────────────────────────────────────────────────────────────
 

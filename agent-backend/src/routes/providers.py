@@ -12,7 +12,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 
 from src.data.external.base import DataDomain, ProviderStatus
 from src.data.external.registry import ProviderRegistry
@@ -20,7 +20,9 @@ from src.data.external.health import HealthChecker
 
 logger = logging.getLogger("365advisers.routes.providers")
 
-router = APIRouter(prefix="/providers", tags=["providers"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/providers", tags=["providers"], dependencies=[Depends(get_current_user)])
 
 
 # ─── Singleton instances (initialised at startup via lifespan) ────────────────

@@ -10,12 +10,14 @@ GET /api/agents/{name}/schema — Schema for a specific agent
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
 from src.agents.registry import AgentRegistry
 from src.agents.tools import TOOL_DECLARATIONS
 
-router = APIRouter(prefix="/api/agents", tags=["Agent Registry"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/api/agents", tags=["Agent Registry"], dependencies=[Depends(get_current_user)])
 
 
 @router.get("/capabilities")

@@ -6,14 +6,16 @@ Extracted from main.py as part of audit finding #1 (APIRouter decomposition).
 """
 
 import logging
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from src.schemas import BuildPortfolioRequest, SavePortfolioRequest
 from src.engines.portfolio.portfolio_builder import PortfolioConstructionModel
 from src.data.database import SessionLocal, Portfolio, PortfolioPosition
 
 logger = logging.getLogger("365advisers.routes.portfolio")
 
-router = APIRouter(prefix="/portfolio", tags=["Portfolio"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/portfolio", tags=["Portfolio"], dependencies=[Depends(get_current_user)])
 
 
 @router.post("/build")

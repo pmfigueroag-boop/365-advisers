@@ -1,10 +1,12 @@
 """src/routes/attribution.py — Performance Attribution API."""
 from __future__ import annotations
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from src.engines.attribution.engine import AttributionEngine
 
-router = APIRouter(prefix="/alpha/attribution", tags=["Alpha: Attribution"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/alpha/attribution", tags=["Alpha: Attribution"], dependencies=[Depends(get_current_user)])
 
 class SinglePeriodRequest(BaseModel):
     portfolio_weights: dict[str, float]

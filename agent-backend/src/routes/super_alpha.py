@@ -20,7 +20,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from fastapi import APIRouter, Body, Query
+from fastapi import APIRouter, Depends, Body, Query
 from pydantic import BaseModel, Field
 
 from src.engines.super_alpha.engine import SuperAlphaEngine
@@ -29,7 +29,9 @@ from src.engines.super_alpha.models import FactorName
 
 logger = logging.getLogger("365advisers.routes.super_alpha")
 
-router = APIRouter(prefix="/super-alpha", tags=["Super Alpha Engine"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/super-alpha", tags=["Super Alpha Engine"], dependencies=[Depends(get_current_user)])
 
 # Engine instances (stateless — safe as singletons)
 _engine = SuperAlphaEngine()

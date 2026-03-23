@@ -17,7 +17,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime, timezone
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
 from src.engines.investment_brain.engine import InvestmentBrain
@@ -29,7 +29,9 @@ from src.engines.investment_brain.risk_detector import RiskDetector
 
 logger = logging.getLogger("365advisers.routes.investment_brain")
 
-router = APIRouter(prefix="/brain", tags=["Investment Brain"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/brain", tags=["Investment Brain"], dependencies=[Depends(get_current_user)])
 
 
 # ── Request models ───────────────────────────────────────────────────────────

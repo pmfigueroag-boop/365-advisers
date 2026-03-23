@@ -1,11 +1,13 @@
 """src/routes/capital_allocation.py — Capital Allocation API."""
 from __future__ import annotations
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from src.engines.capital_allocation.models import AllocationMethod, StrategyBudget
 from src.engines.capital_allocation.engine import CapitalAllocationEngine
 
-router = APIRouter(prefix="/alpha/capital", tags=["Alpha: Capital Allocation"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/alpha/capital", tags=["Alpha: Capital Allocation"], dependencies=[Depends(get_current_user)])
 
 class AllocateRequest(BaseModel):
     strategies: list[StrategyBudget]

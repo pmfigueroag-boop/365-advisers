@@ -11,7 +11,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from src.engines.pilot.runner import PilotRunner
 from src.engines.pilot.metrics import PilotMetrics
@@ -24,7 +24,9 @@ from src.engines.pilot.models import (
 )
 
 logger = logging.getLogger("365advisers.routes.pilot")
-router = APIRouter(prefix="/pilot", tags=["pilot"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/pilot", tags=["pilot"], dependencies=[Depends(get_current_user)])
 
 # ── Shared runner instance ──────────────────────────────────────────────────
 

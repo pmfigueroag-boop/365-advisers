@@ -16,7 +16,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from src.engines.ml_signals.engine import MLSignalFactory
@@ -24,7 +24,9 @@ from src.engines.ml_signals.models import MLModelConfig, ModelType
 
 logger = logging.getLogger("365advisers.routes.ml_signals")
 
-router = APIRouter(prefix="/alpha/ml", tags=["Alpha: ML Signals"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/alpha/ml", tags=["Alpha: ML Signals"], dependencies=[Depends(get_current_user)])
 
 # Shared factory instance
 _factory = MLSignalFactory()

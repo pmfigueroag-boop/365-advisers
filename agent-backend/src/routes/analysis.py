@@ -19,7 +19,7 @@ import asyncio
 import logging
 import time as _time
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
@@ -40,7 +40,9 @@ from src.utils.helpers import sanitize_data
 
 logger = logging.getLogger("365advisers.routes.analysis")
 
-router = APIRouter(tags=["Analysis"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(tags=["Analysis"], dependencies=[Depends(get_current_user)])
 
 # Cache aliases
 cache = cache_manager.analysis

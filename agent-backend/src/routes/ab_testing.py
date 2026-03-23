@@ -6,7 +6,7 @@ REST API for LLM A/B testing experiments.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from src.services.ab_testing import (
@@ -14,7 +14,9 @@ from src.services.ab_testing import (
     PromptVariant,
 )
 
-router = APIRouter(prefix="/experiments", tags=["LLM A/B Testing"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/experiments", tags=["LLM A/B Testing"], dependencies=[Depends(get_current_user)])
 _engine = get_ab_engine()
 
 

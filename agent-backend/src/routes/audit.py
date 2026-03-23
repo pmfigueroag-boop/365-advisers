@@ -9,11 +9,13 @@ GET /api/audit/stats    — Aggregated audit statistics
 
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from src.middleware.audit import get_recent_events, get_audit_stats
 
-router = APIRouter(prefix="/api/audit", tags=["Audit Trail"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/api/audit", tags=["Audit Trail"], dependencies=[Depends(get_current_user)])
 
 
 @router.get("/recent")

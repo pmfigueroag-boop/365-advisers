@@ -11,14 +11,16 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
 from src.engines.crowding.engine import CrowdingEngine
 
 logger = logging.getLogger("365advisers.routes.crowding")
 
-router = APIRouter(prefix="/crowding", tags=["crowding"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/crowding", tags=["crowding"], dependencies=[Depends(get_current_user)])
 
 _engine = CrowdingEngine()
 

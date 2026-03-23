@@ -6,12 +6,14 @@ REST API for prompt version management — list, rollback, diff.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from src.services.prompt_registry import get_prompt_registry
 
-router = APIRouter(prefix="/prompts", tags=["Prompt Versioning"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/prompts", tags=["Prompt Versioning"], dependencies=[Depends(get_current_user)])
 _registry = get_prompt_registry()
 
 

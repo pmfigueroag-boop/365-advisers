@@ -12,7 +12,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 
 from src.engines.alpha_fundamental.engine import AlphaFundamentalEngine
 from src.engines.alpha_macro.engine import AlphaMacroEngine
@@ -24,7 +24,9 @@ from src.engines.alpha_alerts.engine import AlertEngine
 
 logger = logging.getLogger("365advisers.routes.alpha_intelligence")
 
-router = APIRouter(prefix="/alpha", tags=["Alpha Intelligence"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/alpha", tags=["Alpha Intelligence"], dependencies=[Depends(get_current_user)])
 
 # Engine instances (stateless — safe as singletons)
 _fundamental = AlphaFundamentalEngine()

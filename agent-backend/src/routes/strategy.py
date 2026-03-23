@@ -8,13 +8,15 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
 from src.engines.strategy.definition import StrategyCreate, StrategyConfig, StrategyDefinition
 from src.engines.strategy.evaluator import StrategyEvaluator
 
 logger = logging.getLogger("365advisers.routes.strategy")
-router = APIRouter(prefix="/strategies", tags=["strategies"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/strategies", tags=["strategies"], dependencies=[Depends(get_current_user)])
 
 _defs = StrategyDefinition()
 _evaluator = StrategyEvaluator()

@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from src.engines.valuation.dcf import DCFModel
@@ -29,7 +29,9 @@ from src.engines.valuation.models import (
 
 logger = logging.getLogger("365advisers.routes.valuation")
 
-router = APIRouter(prefix="/alpha/valuation", tags=["Alpha: Valuation"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/alpha/valuation", tags=["Alpha: Valuation"], dependencies=[Depends(get_current_user)])
 
 
 # ── Request schemas ──────────────────────────────────────────────────────────

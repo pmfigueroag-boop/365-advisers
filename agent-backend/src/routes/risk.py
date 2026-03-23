@@ -1,6 +1,6 @@
 """src/routes/risk.py — VaR/CVaR Risk API."""
 from __future__ import annotations
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from src.engines.risk.models import VaRMethod, StressScenario
 from src.engines.risk.engine import RiskEngine
@@ -8,7 +8,9 @@ from src.engines.risk.var import VaRCalculator
 from src.engines.risk.cvar import CVaRCalculator
 from src.engines.risk.stress import StressTester
 
-router = APIRouter(prefix="/alpha/risk", tags=["Alpha: Risk"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/alpha/risk", tags=["Alpha: Risk"], dependencies=[Depends(get_current_user)])
 
 class VaRRequest(BaseModel):
     returns: list[float]

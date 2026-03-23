@@ -3,13 +3,15 @@ src/routes/options.py — API for Options Pricing Engine.
 """
 from __future__ import annotations
 import logging
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from src.engines.options_pricing.models import OptionContract, OptionType
 from src.engines.options_pricing.engine import OptionsPricingEngine
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger("365advisers.routes.options")
-router = APIRouter(prefix="/alpha/options", tags=["Alpha: Options"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/alpha/options", tags=["Alpha: Options"], dependencies=[Depends(get_current_user)])
 
 class IVRequest(BaseModel):
     market_price: float = Field(gt=0)

@@ -1,11 +1,13 @@
 """src/routes/portfolio_optimisation.py — Portfolio Optimisation API."""
 from __future__ import annotations
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from src.engines.portfolio_optimisation.models import OptimisationObjective, PortfolioConstraints
 from src.engines.portfolio_optimisation.engine import PortfolioOptimisationEngine
 
-router = APIRouter(prefix="/alpha/optimise", tags=["Alpha: Portfolio Optimisation"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/alpha/optimise", tags=["Alpha: Portfolio Optimisation"], dependencies=[Depends(get_current_user)])
 
 class OptimiseRequest(BaseModel):
     expected_returns: dict[str, float]

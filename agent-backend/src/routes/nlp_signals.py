@@ -1,11 +1,13 @@
 """src/routes/nlp_signals.py — NLP Signal Extraction API."""
 from __future__ import annotations
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from src.engines.nlp_signals.models import DocumentType
 from src.engines.nlp_signals.engine import NLPSignalEngine
 
-router = APIRouter(prefix="/alpha/nlp", tags=["Alpha: NLP Signals"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/alpha/nlp", tags=["Alpha: NLP Signals"], dependencies=[Depends(get_current_user)])
 
 class AnalyseRequest(BaseModel):
     text: str

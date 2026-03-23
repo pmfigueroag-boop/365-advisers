@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 
 from src.engines.scorecard import (
     AttributionEngine,
@@ -24,7 +24,9 @@ from src.engines.scorecard import (
 
 logger = logging.getLogger("365advisers.routes.scorecard")
 
-router = APIRouter(prefix="/scorecard", tags=["scorecard"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/scorecard", tags=["scorecard"], dependencies=[Depends(get_current_user)])
 
 # ── Singletons ────────────────────────────────────────────────────────────────
 

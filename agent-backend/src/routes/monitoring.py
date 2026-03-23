@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from src.engines.monitoring.engine import MonitoringEngine
@@ -21,7 +21,9 @@ from src.engines.monitoring.models import MonitoringConfig
 
 logger = logging.getLogger("365advisers.routes.monitoring")
 
-router = APIRouter(prefix="/monitoring", tags=["monitoring"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/monitoring", tags=["monitoring"], dependencies=[Depends(get_current_user)])
 
 _engine = MonitoringEngine()
 

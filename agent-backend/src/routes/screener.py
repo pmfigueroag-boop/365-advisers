@@ -14,14 +14,16 @@ from __future__ import annotations
 import asyncio
 import logging
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
 from src.engines.screener.contracts import ScreenerRequest
 from src.engines.screener.engine import ScreenerEngine
 
 logger = logging.getLogger("365advisers.routes.screener")
 
-router = APIRouter(tags=["Screener"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(tags=["Screener"], dependencies=[Depends(get_current_user)])
 
 # Singleton engine — lazy init on first request
 _engine: ScreenerEngine | None = None

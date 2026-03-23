@@ -1,10 +1,12 @@
 """src/routes/multi_asset.py — Multi-Asset Data Layer API."""
 from __future__ import annotations
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from src.engines.multi_asset.engine import MultiAssetEngine
 
-router = APIRouter(prefix="/alpha/multi-asset", tags=["Alpha: Multi-Asset"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/alpha/multi-asset", tags=["Alpha: Multi-Asset"], dependencies=[Depends(get_current_user)])
 _engine = MultiAssetEngine()
 
 class CorrelationRequest(BaseModel):

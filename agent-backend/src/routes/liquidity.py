@@ -8,13 +8,15 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
 from src.engines.liquidity import LiquidityEstimator, MarketImpactModel, CapacityCalculator
 from src.engines.execution import ExecutionSimulator, FillModel
 
 logger = logging.getLogger("365advisers.routes.liquidity")
-router = APIRouter(prefix="/liquidity", tags=["liquidity"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/liquidity", tags=["liquidity"], dependencies=[Depends(get_current_user)])
 
 _estimator = LiquidityEstimator()
 _impact = MarketImpactModel()

@@ -14,7 +14,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from src.engines.long_short.engine import LongShortEngine
@@ -29,7 +29,9 @@ from src.engines.long_short.models import (
 
 logger = logging.getLogger("365advisers.routes.long_short")
 
-router = APIRouter(prefix="/alpha/long-short", tags=["Alpha: Long/Short"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/alpha/long-short", tags=["Alpha: Long/Short"], dependencies=[Depends(get_current_user)])
 
 
 # ── Request / Response schemas ───────────────────────────────────────────────

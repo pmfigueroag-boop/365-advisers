@@ -1,11 +1,13 @@
 """src/routes/rl_optimisation.py — RL Portfolio Optimisation API."""
 from __future__ import annotations
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from src.engines.rl_optimisation.models import RLConfig
 from src.engines.rl_optimisation.engine import RLOptimisationEngine
 
-router = APIRouter(prefix="/alpha/rl-optimise", tags=["Alpha: RL Optimisation"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/alpha/rl-optimise", tags=["Alpha: RL Optimisation"], dependencies=[Depends(get_current_user)])
 
 class RLOptimiseRequest(BaseModel):
     returns: dict[str, list[float]]

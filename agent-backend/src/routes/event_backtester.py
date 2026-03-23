@@ -1,11 +1,13 @@
 """src/routes/event_backtester.py — Event-Driven Backtester API."""
 from __future__ import annotations
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from src.engines.event_backtester.models import BacktestConfig
 from src.engines.event_backtester.engine import EventBacktester
 
-router = APIRouter(prefix="/alpha/event-backtest", tags=["Alpha: Event Backtester"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/alpha/event-backtest", tags=["Alpha: Event Backtester"], dependencies=[Depends(get_current_user)])
 
 class EventBacktestRequest(BaseModel):
     prices: dict[str, list[float]]

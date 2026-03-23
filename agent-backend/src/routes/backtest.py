@@ -20,7 +20,7 @@ from __future__ import annotations
 import logging
 from datetime import date
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from src.engines.backtesting.engine import BacktestEngine
@@ -38,7 +38,9 @@ from src.engines.backtesting.repository import BacktestRepository
 
 logger = logging.getLogger("365advisers.routes.backtest")
 
-router = APIRouter(prefix="/backtest", tags=["backtesting"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/backtest", tags=["backtesting"], dependencies=[Depends(get_current_user)])
 
 # Shared instances
 _engine = BacktestEngine()

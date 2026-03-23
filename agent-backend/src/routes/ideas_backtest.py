@@ -19,7 +19,7 @@ import json
 import logging
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from src.engines.idea_generation.backtest.models import (
@@ -51,7 +51,9 @@ from src.engines.idea_generation.metrics import get_collector
 
 logger = logging.getLogger("365advisers.routes.ideas_backtest")
 
-router = APIRouter(prefix="/ideas/backtest", tags=["Ideas Backtest"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/ideas/backtest", tags=["Ideas Backtest"], dependencies=[Depends(get_current_user)])
 
 
 # ── Request / Response Schemas ────────────────────────────────────────────────

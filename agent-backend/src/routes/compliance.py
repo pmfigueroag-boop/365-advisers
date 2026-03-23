@@ -1,11 +1,13 @@
 """src/routes/compliance.py — Compliance Rule Engine API."""
 from __future__ import annotations
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 from src.engines.compliance.models import ComplianceRule, RuleType
 from src.engines.compliance.engine import ComplianceEngine
 
-router = APIRouter(prefix="/alpha/compliance", tags=["Alpha: Compliance"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/alpha/compliance", tags=["Alpha: Compliance"], dependencies=[Depends(get_current_user)])
 _engine = ComplianceEngine()
 
 class ComplianceCheckRequest(BaseModel):

@@ -17,7 +17,7 @@ import logging
 from datetime import datetime, timezone, timedelta
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from src.engines.event_intelligence.engine import EventIntelligenceEngine
@@ -30,7 +30,9 @@ from src.engines.event_intelligence.models import (
 
 logger = logging.getLogger("365advisers.routes.event_intelligence")
 
-router = APIRouter(prefix="/alpha/events", tags=["Alpha: Event Intelligence"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/alpha/events", tags=["Alpha: Event Intelligence"], dependencies=[Depends(get_current_user)])
 
 # Shared engine instance (in production, this would use dependency injection)
 _engine = EventIntelligenceEngine()

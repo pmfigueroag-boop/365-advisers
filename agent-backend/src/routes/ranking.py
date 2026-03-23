@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from src.engines.ranking.engine import RankingEngine
@@ -22,7 +22,9 @@ from src.engines.ranking.models import RankingConfig
 
 logger = logging.getLogger("365advisers.routes.ranking")
 
-router = APIRouter(prefix="/ranking", tags=["ranking"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/ranking", tags=["ranking"], dependencies=[Depends(get_current_user)])
 
 # Shared engine and cached result
 _engine = RankingEngine()

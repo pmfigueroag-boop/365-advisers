@@ -1,11 +1,13 @@
 """src/routes/dl_signals.py — Deep Learning Signals API."""
 from __future__ import annotations
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from src.engines.dl_signals.models import DLModelType, DLSignalConfig
 from src.engines.dl_signals.engine import DLSignalEngine
 
-router = APIRouter(prefix="/alpha/dl-signals", tags=["Alpha: DL Signals"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/alpha/dl-signals", tags=["Alpha: DL Signals"], dependencies=[Depends(get_current_user)])
 
 class DLSignalRequest(BaseModel):
     prices: dict[str, list[float]]

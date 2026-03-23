@@ -1,10 +1,12 @@
 """src/routes/factor_risk.py — Factor Risk Decomposition API."""
 from __future__ import annotations
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from src.engines.factor_risk.engine import FactorRiskEngine
 
-router = APIRouter(prefix="/alpha/factor-risk", tags=["Alpha: Factor Risk"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/alpha/factor-risk", tags=["Alpha: Factor Risk"], dependencies=[Depends(get_current_user)])
 
 
 class BuildModelRequest(BaseModel):

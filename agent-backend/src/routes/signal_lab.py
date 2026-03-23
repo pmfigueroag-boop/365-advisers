@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 
 from src.engines.signal_lab import (
     SignalEvaluator,
@@ -21,7 +21,9 @@ from src.engines.signal_lab import (
 from src.engines.research_data.signal_store import SignalStore
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/signal-lab", tags=["Signal Lab"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/signal-lab", tags=["Signal Lab"], dependencies=[Depends(get_current_user)])
 
 
 # ── Signal Evaluation ────────────────────────────────────────────────────────

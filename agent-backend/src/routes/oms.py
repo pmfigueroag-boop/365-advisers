@@ -1,13 +1,15 @@
 """src/routes/oms.py — Order Management System + Broker Integration API."""
 from __future__ import annotations
 import logging
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from src.engines.oms.engine import OMSEngine
 from src.engines.oms.brokers.base import BrokerConfig, BrokerType
 
 logger = logging.getLogger("365advisers.routes.oms")
-router = APIRouter(prefix="/alpha/oms", tags=["Alpha: OMS"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/alpha/oms", tags=["Alpha: OMS"], dependencies=[Depends(get_current_user)])
 _oms = OMSEngine()
 
 

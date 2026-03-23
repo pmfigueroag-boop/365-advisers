@@ -4,7 +4,7 @@ src/routes/portfolio_risk.py
 REST Endpoint for Portfolio Risk Analysis using Monte Carlo VaR & CVaR.
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import Dict
 
@@ -12,7 +12,9 @@ from src.engines.risk.risk_engine import StochasticRiskEngine
 import logging
 
 logger = logging.getLogger("365advisers.routes.risk")
-router = APIRouter(tags=["Portfolio Risk"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(tags=["Portfolio Risk"], dependencies=[Depends(get_current_user)])
 
 class RiskRequest(BaseModel):
     portfolio: Dict[str, float]  # e.g., {"AAPL": 0.5, "MSFT": 0.5}

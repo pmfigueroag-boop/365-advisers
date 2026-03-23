@@ -14,7 +14,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from src.engines.stat_arb.scanner import PairScanner
@@ -23,7 +23,9 @@ from src.engines.stat_arb.cointegration import engle_granger_test
 
 logger = logging.getLogger("365advisers.routes.stat_arb")
 
-router = APIRouter(prefix="/alpha/stat-arb", tags=["Alpha: Stat Arb"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/alpha/stat-arb", tags=["Alpha: Stat Arb"], dependencies=[Depends(get_current_user)])
 
 
 # ── Request schemas ──────────────────────────────────────────────────────────

@@ -1,11 +1,13 @@
 """src/routes/alt_data.py — Alternative Data API."""
 from __future__ import annotations
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 from src.engines.alt_data.models import AltDataType
 from src.engines.alt_data.engine import AltDataEngine
 
-router = APIRouter(prefix="/alpha/alt-data", tags=["Alpha: Alternative Data"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/alpha/alt-data", tags=["Alpha: Alternative Data"], dependencies=[Depends(get_current_user)])
 
 class AltDataRequest(BaseModel):
     ticker: str

@@ -12,7 +12,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, Depends, Query, HTTPException
 
 from src.data.external.base import DataDomain, ProviderRequest
 from src.data.external.fallback import FallbackRouter
@@ -20,7 +20,9 @@ from src.data.external.scheduler import SyncManager
 
 logger = logging.getLogger("365advisers.routes.market_data_api")
 
-router = APIRouter(prefix="/api/data", tags=["Market Data API"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/api/data", tags=["Market Data API"], dependencies=[Depends(get_current_user)])
 
 _fallback: FallbackRouter | None = None
 _sync_mgr: SyncManager | None = None

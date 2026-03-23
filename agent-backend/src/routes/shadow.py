@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from src.engines.shadow import (
     ShadowPerformanceCalc,
@@ -18,7 +18,9 @@ from src.engines.shadow import (
 from src.engines.shadow.models import ShadowPortfolioCreate, ShadowPortfolioType
 
 logger = logging.getLogger("365advisers.routes.shadow")
-router = APIRouter(prefix="/shadow", tags=["shadow"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/shadow", tags=["shadow"], dependencies=[Depends(get_current_user)])
 
 _manager = ShadowPortfolioManager()
 _rebalancer = ShadowRebalancer()

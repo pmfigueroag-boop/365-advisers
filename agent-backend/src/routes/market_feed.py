@@ -5,14 +5,16 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from src.engines.market_feed.models import FeedConfig, FeedType
 from src.engines.market_feed.engine import MarketFeedEngine
 
 logger = logging.getLogger("365advisers.routes.feed")
-router = APIRouter(prefix="/alpha/feed", tags=["Alpha: Market Feed"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/alpha/feed", tags=["Alpha: Market Feed"], dependencies=[Depends(get_current_user)])
 _engine = MarketFeedEngine()
 
 

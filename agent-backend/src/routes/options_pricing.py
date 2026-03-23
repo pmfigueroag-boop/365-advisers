@@ -4,7 +4,7 @@ src/routes/options_pricing.py
 REST Endpoint for Options Pricing (Black-Scholes & Greeks).
 """
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 import datetime
@@ -14,7 +14,9 @@ from src.engines.options.black_scholes import BlackScholesEngine
 import logging
 
 logger = logging.getLogger("365advisers.routes.options")
-router = APIRouter(tags=["Options Pricing"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(tags=["Options Pricing"], dependencies=[Depends(get_current_user)])
 
 class OptionPricingRequest(BaseModel):
     underlying_price: float

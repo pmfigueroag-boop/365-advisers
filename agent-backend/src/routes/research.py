@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 from src.engines.research_data.dataset_builder import DatasetBuilder
@@ -18,7 +18,9 @@ from src.engines.research_data.signal_store import SignalStore
 from src.engines.research_data.snapshot import PointInTimeSnapshot
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/research", tags=["Research Data"])
+from src.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/research", tags=["Research Data"], dependencies=[Depends(get_current_user)])
 
 
 # ── Request / Response Models ────────────────────────────────────────────────
