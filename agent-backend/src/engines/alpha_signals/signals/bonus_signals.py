@@ -69,7 +69,7 @@ BONUS_SIGNALS = [
     AlphaSignalDefinition(
         id="risk.high_accruals",
         name="High Accruals (Low Earnings Quality)",
-        category=SignalCategory.RISK,
+        category=SignalCategory.QUALITY,
         description="Sloan ratio > 0.10 means earnings greatly exceed cash flow — "
                     "potential earnings manipulation or aggressive accounting. IC: -0.03",
         feature_path="fundamental.accruals_quality",
@@ -99,7 +99,7 @@ BONUS_SIGNALS = [
     AlphaSignalDefinition(
         id="macro.credit_spread_tightening",
         name="Credit Spread Tightening",
-        category=SignalCategory.RISK,
+        category=SignalCategory.MACRO,
         description="HY credit spread narrowing > 20 bps in 30d signals improving credit "
                     "conditions and risk-on environment — bullish for equities. IC: 0.02-0.04",
         feature_path="fundamental.credit_spread_change",
@@ -113,7 +113,7 @@ BONUS_SIGNALS = [
     AlphaSignalDefinition(
         id="macro.credit_spread_widening",
         name="Credit Spread Widening (Risk-Off)",
-        category=SignalCategory.RISK,
+        category=SignalCategory.MACRO,
         description="HY credit spread widening > 30 bps in 30d signals deteriorating credit "
                     "conditions — risk-off, bearish for equities. IC: -0.02",
         feature_path="fundamental.credit_spread_change",

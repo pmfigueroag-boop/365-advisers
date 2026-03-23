@@ -8,7 +8,7 @@ from maintaining full confidence.  Half-lives are calibrated to the
 information horizon of each signal type:
 
   - Technical / flow / volatility  →  fast decay   (5 days)
-  - Event / risk                   →  medium decay  (10 days)
+  - Event                          →  medium decay  (10 days)
   - Value / quality / growth       →  slow decay    (30 days)
   - Macro                          →  very slow     (60 days)
 
@@ -41,7 +41,6 @@ HALF_LIFE_HOURS: dict[str, float] = {
     SignalCategory.FLOW.value:       120.0,   # 5 days
     SignalCategory.VOLATILITY.value: 120.0,   # 5 days
     SignalCategory.EVENT.value:      240.0,   # 10 days
-    SignalCategory.RISK.value:       240.0,   # 10 days
     SignalCategory.VALUE.value:      720.0,   # 30 days
     SignalCategory.QUALITY.value:    720.0,   # 30 days
     SignalCategory.GROWTH.value:     720.0,   # 30 days
