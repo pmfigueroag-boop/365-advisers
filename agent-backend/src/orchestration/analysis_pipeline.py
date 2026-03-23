@@ -17,6 +17,7 @@ import json
 import uuid
 
 from src.orchestration.sse_streamer import sse
+from src.orchestration.sla_monitor import sla_monitor
 from src.engines.fundamental.graph import run_fundamental_stream
 from src.data.market_data import fetch_technical_data
 from src.engines.technical.indicators import IndicatorEngine
@@ -111,6 +112,7 @@ class AnalysisPipeline:
         is_from_cache = False
 
         logger.info(f"[{analysis_id[:8]}] PIPELINE: Starting analysis for {symbol}")
+        sla_monitor.start(analysis_id, symbol)
 
         # ── Part 1: Fundamental Engine ──────────────────────────────────
         cached_fund = self.fund_cache.get(symbol) if not force else None
@@ -137,6 +139,7 @@ class AnalysisPipeline:
         fund_committee = next(
             (e["data"] for e in fund_events if e["event"] == "committee_verdict"), {}
         )
+        sla_monitor.mark_layer(analysis_id, "fundamental")
 
         # ── Part 2: Technical Engine ────────────────────────────────────
         cached_tech = self.tech_cache.get(symbol) if not force else None
@@ -234,6 +237,7 @@ class AnalysisPipeline:
             # Non-fatal: technical data is still complete without the memo
 
         yield sse("technical_ready", tech_data)
+        sla_monitor.mark_layer(analysis_id, "technical")
         await asyncio.sleep(0)
 
         # Emit technical_memo as separate event for frontend streaming
@@ -639,7 +643,15 @@ class AnalysisPipeline:
         if decision_data:
             yield sse("decision_ready", decision_data)
 
-        yield sse("done", {"from_cache": is_from_cache, "analysis_id": analysis_id})
+        sla_monitor.mark_layer(analysis_id, "decision")
+
+        trace = sla_monitor.finish(analysis_id, from_cache=is_from_cache)
+        done_data = {"from_cache": is_from_cache, "analysis_id": analysis_id}
+        if trace:
+            done_data["total_ms"] = trace.total_ms
+            done_data["sla_met"] = trace.sla_met
+            done_data["layer_timing"] = trace.layers
+        yield sse("done", done_data)
 
     # ── EDPL Enrichment Helper ────────────────────────────────────────────
 

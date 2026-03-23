@@ -27,7 +27,7 @@ _START_TIME = time.monotonic()
 def read_root():
     return {
         "message": "365 Advisers API is running",
-        "version": "3.4.0",
+        "version": "5.0.0",
         "docs": "/docs",
     }
 
@@ -131,7 +131,7 @@ def health_check():
 
     return {
         "status": overall,
-        "version": "3.4.0",
+        "version": "5.0.0",
         "uptime_seconds": uptime_s,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "checks": checks,
@@ -167,3 +167,15 @@ def readiness():
             status_code=503,
             content={"status": "not_ready", "reason": str(exc)[:100]},
         )
+
+
+@router.get("/health/sla")
+def sla_metrics():
+    """
+    Pipeline SLA observability.
+
+    Returns latency percentiles (P50/P90/P95/P99), SLA compliance rate,
+    breach count, cold-start vs cache-hit breakdown, and last 5 analyses.
+    """
+    from src.orchestration.sla_monitor import sla_monitor
+    return sla_monitor.get_stats()
