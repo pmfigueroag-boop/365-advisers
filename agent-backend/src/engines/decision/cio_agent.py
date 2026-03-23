@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 from src.utils.helpers import extract_json
 from src.config import get_settings
 from src.llm import get_llm, LLMTaskType
+from src.utils.language import get_output_language
 
 logger = logging.getLogger("365advisers.cio_agent")
 _settings = get_settings()
@@ -311,6 +312,8 @@ Reference this score when discussing technical timing and conviction."""
 NOTE: This score adapts to the company's industry context automatically.
 Reference this score when discussing fundamental quality and valuation."""
 
+    _output_lang = get_output_language()
+
     prompt = f"""You are the Chief Investment Officer (CIO) of a top-tier institutional fund.
 Your Investment Committee, Technical Desk, and Alpha Signal System just analyzed {ticker}.
 Based on our proprietary Decision Matrix, the EXACT institutional posture must be: **{investment_position}**.
@@ -335,7 +338,7 @@ CONTEXT DATA:
 {enrichment_str}
 
 OUTPUT REQUIREMENTS:
-Respond ONLY with valid JSON (NO markdown code blocks, strict JSON) containing these fields in ENGLISH:
+Respond ONLY with valid JSON (NO markdown code blocks, strict JSON) containing these fields in {_output_lang}:
 {{
   "thesis_summary": "<One very strong, executive paragraph explaining the primary reason for the {investment_position} posture and the allocation % size. Cite the Opportunity Score and Conviction.>",
   "valuation_view": "<Short analysis on the intrinsic valuation and business quality.>",

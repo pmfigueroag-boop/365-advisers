@@ -35,6 +35,7 @@ import logging
 from src.data.market_data import fetch_fundamental_data
 from src.utils.helpers import extract_json, sanitize_data
 from src.llm import get_llm, LLMTaskType
+from src.utils.language import get_output_language
 
 load_dotenv()
 
@@ -100,7 +101,7 @@ FINANCIAL DATA:
 {data}
 {f"ADDITIONAL CONTEXT:{extra_context}" if extra_context else ""}
 
-IMPORTANT: Write ALL text fields (memo, catalysts, risks) in ENGLISH.
+IMPORTANT: Write ALL text fields (memo, catalysts, risks) in {get_output_language()}.
 
 Respond ONLY with valid JSON (no markdown, no prose outside JSON):
 {{
@@ -108,7 +109,7 @@ Respond ONLY with valid JSON (no markdown, no prose outside JSON):
   "framework": "{framework}",
   "signal": "BUY|SELL|HOLD|AVOID",
   "conviction": <float 0.0-1.0>,
-  "memo": "<2-3 sentence memo in English>",
+  "memo": "<2-3 sentence memo in {get_output_language()}>",
   "key_metrics_used": ["<metric1>", "<metric2>"],
   "metric_insights": [
     {{
@@ -307,7 +308,7 @@ ANALYST MEMOS:
 {memo_summary}
 
 TASK: Synthesise these 4 memos into a final Investment Committee verdict.
-IMPORTANT: Write ALL text fields (consensus_narrative, key_catalysts, key_risks, allocation_recommendation) in ENGLISH.
+IMPORTANT: Write ALL text fields (consensus_narrative, key_catalysts, key_risks, allocation_recommendation) in {get_output_language()}.
 
 Respond ONLY with valid JSON:
 {{
@@ -315,7 +316,7 @@ Respond ONLY with valid JSON:
   "score": <float 0-10, where 10 is exceptionally attractive>,
   "confidence": <float 0.0-1.0>,
   "risk_adjusted_score": <float 0-10, discounted for risks>,
-  "consensus_narrative": "<3-4 sentence institutional narrative in English>",
+  "consensus_narrative": "<3-4 sentence institutional narrative in {get_output_language()}>",
   "key_catalysts": ["<catalyst1>", "<catalyst2>"],
   "key_risks": ["<risk1>", "<risk2>"],
   "allocation_recommendation": "Overweight|Equal Weight|Underweight|Avoid"

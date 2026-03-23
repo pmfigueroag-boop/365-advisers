@@ -23,6 +23,8 @@ from typing import Any
 
 logger = logging.getLogger("365advisers.prompt_cache")
 
+from src.utils.language import get_output_language
+
 # Module-level cache for compiled prompts
 _prompt_cache: dict[str, str] = {}
 _cache_hits = 0
@@ -53,7 +55,7 @@ def get_cached_system_prompt(agent_name: str, framework: str, focus: str) -> str
     """
     global _cache_hits, _cache_misses
 
-    cache_key = hashlib.md5(f"{agent_name}:{framework}:{focus}".encode()).hexdigest()
+    cache_key = hashlib.md5(f"{agent_name}:{framework}:{focus}:{get_output_language()}".encode()).hexdigest()
 
     if cache_key in _prompt_cache:
         _cache_hits += 1
@@ -65,7 +67,7 @@ def get_cached_system_prompt(agent_name: str, framework: str, focus: str) -> str
 Your framework: {framework}
 Your focus: {focus}
 
-IMPORTANT: Write ALL text fields (memo, catalysts, risks) in ENGLISH.
+IMPORTANT: Write ALL text fields (memo, catalysts, risks) in {get_output_language()}.
 
 Respond ONLY with valid JSON (no markdown, no prose outside JSON):
 {{
@@ -73,7 +75,7 @@ Respond ONLY with valid JSON (no markdown, no prose outside JSON):
   "framework": "{framework}",
   "signal": "BUY|SELL|HOLD|AVOID",
   "conviction": <float 0.0-1.0>,
-  "memo": "<2-3 sentence memo in English>",
+  "memo": "<2-3 sentence memo in {get_output_language()}>",
   "key_metrics_used": ["<metric1>", "<metric2>"],
   "catalysts": ["<catalyst1>"],
   "risks": ["<risk1>"]

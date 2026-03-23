@@ -15,6 +15,7 @@ from typing import TypedDict
 from src.utils.helpers import extract_json
 from src.config import get_settings
 from src.llm import get_llm, LLMTaskType
+from src.utils.language import get_output_language
 
 logger = logging.getLogger("365advisers.engines.backtesting.memo_agent")
 _settings = get_settings()
@@ -118,7 +119,7 @@ BACKTEST RESULTS FOR {ticker}:
 {results_block}
 
 INSTRUCTIONS:
-Respond ONLY with valid JSON (no markdown, no code blocks). ALL text in ENGLISH.
+Respond ONLY with valid JSON (no markdown, no code blocks). ALL text in {get_output_language()}.
 Evaluate whether the signals have real statistical edge. Are the win rate and return
 significant? Does the Sharpe justify the risk? Are there enough observations?
 

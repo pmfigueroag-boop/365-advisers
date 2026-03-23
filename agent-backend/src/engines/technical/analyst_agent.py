@@ -16,6 +16,7 @@ from typing import TypedDict
 from src.utils.helpers import extract_json
 from src.config import get_settings
 from src.llm import get_llm, LLMTaskType
+from src.utils.language import get_output_language
 
 logger = logging.getLogger("365advisers.engines.technical.analyst")
 _settings = get_settings()
@@ -190,7 +191,7 @@ DATOS TÉCNICOS DE {ticker} (PRECIO ACTUAL: ${price}):
 - Evidence Trail:{evidence_block if evidence_block else ' None available'}
 
 OUTPUT INSTRUCTIONS:
-Respond ONLY with valid JSON (no markdown, no code blocks). ALL text in ENGLISH.
+Respond ONLY with valid JSON (no markdown, no code blocks). ALL text in {get_output_language()}.
 Each specialty outputs: signal (BULLISH/BEARISH/NEUTRAL), conviction (HIGH/MEDIUM/LOW), narrative (2-3 sentences with data), key_data (2-3 key data points cited).
 The consensus synthesizes all 5 opinions into a unified thesis.
 

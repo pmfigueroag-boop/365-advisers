@@ -15,6 +15,7 @@ from typing import TypedDict
 from src.utils.helpers import extract_json
 from src.config import get_settings
 from src.llm import get_llm, LLMTaskType
+from src.utils.language import get_output_language
 
 logger = logging.getLogger("365advisers.engines.alpha.signal_map_memo")
 _settings = get_settings()
@@ -90,7 +91,7 @@ SIGNAL MAP FOR {ticker}:
 - {total - len(fired)} signals not fired
 
 INSTRUCTIONS:
-Respond ONLY with valid JSON (no markdown, no code blocks). ALL text in ENGLISH.
+Respond ONLY with valid JSON (no markdown, no code blocks). ALL text in {get_output_language()}.
 Analyze the signal map pattern: is there convergence across categories? Do strong signals
 dominate or are they mostly weak? Which categories are absent and what does it imply?
 

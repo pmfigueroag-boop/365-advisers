@@ -132,6 +132,9 @@ class Settings(BaseSettings):
     # ── Performance
     UVICORN_WORKERS: int = 1                       # Override to 4+ in docker/production
 
+    # ── Language
+    APP_LANGUAGE: str = "es"                       # LLM output language: "es" = Spanish, "en" = English
+
     model_config = {"env_file": ".env", "extra": "ignore"}
 
 

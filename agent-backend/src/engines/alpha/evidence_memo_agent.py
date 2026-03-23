@@ -15,6 +15,7 @@ from typing import TypedDict
 from src.utils.helpers import extract_json
 from src.config import get_settings
 from src.llm import get_llm, LLMTaskType
+from src.utils.language import get_output_language
 
 logger = logging.getLogger("365advisers.engines.alpha.evidence_memo")
 _settings = get_settings()
@@ -82,7 +83,7 @@ CASE DATA FOR {ticker}:
 - Expired Signals: {decay.get('expired_signals', 0)}
 
 INSTRUCTIONS:
-Respond ONLY with valid JSON (no markdown, no code blocks). ALL text in ENGLISH.
+Respond ONLY with valid JSON (no markdown, no code blocks). ALL text in {get_output_language()}.
 Interpret the CASE evidence: is there factorial convergence? Which categories are strongest/weakest?
 Does the score justify a position? Are there conflicts that reduce confidence?
 
