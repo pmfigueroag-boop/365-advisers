@@ -19,6 +19,7 @@
  */
 
 import { Activity, Zap, ShieldCheck, LineChart, Radio, Star, Search } from "lucide-react";
+import { SlideUp, ScaleIn, FadeIn, StaggerGroup, StaggerItem } from "@/components/shared/MotionWrappers";
 import OpportunityVerdict from "@/components/terminal/OpportunityVerdict";
 import SignalEnvironmentPanel from "@/components/terminal/SignalEnvironmentPanel";
 import ConvergenceMap from "@/components/terminal/ConvergenceMap";
@@ -280,91 +281,109 @@ export default function TerminalView({
 
     // ── Active Terminal — Decision First layout ─────────────────────────────
     return (
-        <div className="space-y-5 bg-grid-dense" style={{ animation: "fadeSlideIn 0.3s ease both" }}>
+        <div className="space-y-5 bg-grid-dense">
             {/* Main Grid — Verdict + Environment */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
                 {/* Left: Decision Column (2/3) */}
                 <div className="lg:col-span-2 space-y-4">
                     {/* Opportunity Verdict + Coverage Badge */}
-                    <OpportunityVerdict combined={combined} alphaProfile={alphaProfile} />
+                    <ScaleIn delay={0.05}>
+                        <OpportunityVerdict combined={combined} alphaProfile={alphaProfile} />
+                    </ScaleIn>
                     {combined.sourceCoverage && (
-                        <div style={{ marginTop: -8, display: "flex", justifyContent: "flex-end" }}>
-                            <CoverageBadge
-                                completeness={combined.sourceCoverage.analysis_completeness}
-                                label={combined.sourceCoverage.completeness_label}
-                            />
-                        </div>
+                        <FadeIn delay={0.2}>
+                            <div style={{ marginTop: -8, display: "flex", justifyContent: "flex-end" }}>
+                                <CoverageBadge
+                                    completeness={combined.sourceCoverage.analysis_completeness}
+                                    label={combined.sourceCoverage.completeness_label}
+                                />
+                            </div>
+                        </FadeIn>
                     )}
 
                     {/* Quick Actions */}
                     {isComplete && (
-                        <QuickActionBar
-                            ticker={combined.ticker ?? ""}
-                            onDeepAnalysis={onNavigateAnalysis}
-                            onExport={() => {
-                                document.body.setAttribute("data-print-date", new Date().toLocaleString());
-                                window.print();
-                            }}
-                            onRefresh={() => onAnalyze(combined.ticker ?? "")}
-                        />
+                        <SlideUp delay={0.15}>
+                            <QuickActionBar
+                                ticker={combined.ticker ?? ""}
+                                onDeepAnalysis={onNavigateAnalysis}
+                                onExport={() => {
+                                    document.body.setAttribute("data-print-date", new Date().toLocaleString());
+                                    window.print();
+                                }}
+                                onRefresh={() => onAnalyze(combined.ticker ?? "")}
+                            />
+                        </SlideUp>
                     )}
 
                     {isComplete && (
-                        <ConvergenceMap combined={combined} />
+                        <SlideUp delay={0.25}>
+                            <ConvergenceMap combined={combined} />
+                        </SlideUp>
                     )}
 
                     {/* Top Signals */}
                     {isComplete && (
-                        <div className="glass-card p-5 border-[#30363d]">
-                            <TopSignalsList
-                                signals={alphaProfile?.signals ?? []}
-                                totalFired={alphaProfile?.fired_signals}
-                                totalSignals={alphaProfile?.total_signals}
-                            />
-                        </div>
+                        <SlideUp delay={0.35}>
+                            <div className="glass-card p-5 border-[#30363d]">
+                                <TopSignalsList
+                                    signals={alphaProfile?.signals ?? []}
+                                    totalFired={alphaProfile?.fired_signals}
+                                    totalSignals={alphaProfile?.total_signals}
+                                />
+                            </div>
+                        </SlideUp>
                     )}
                 </div>
 
                 {/* Right: Context Column (1/3) */}
-                <div className="space-y-4">
-                    <SignalEnvironmentPanel alphaProfile={alphaProfile} alphaStack={combined.alphaStack} crowding={crowding} />
-                    <KeyCatalystsPanel cioMemo={combined.decision?.cio_memo ?? null} />
-                    <RiskSnapshotPanel
-                        positionSizing={combined.positionSizing}
-                        technical={combined.technical}
-                        crowding={crowding}
-                    />
-                </div>
+                <StaggerGroup className="space-y-4">
+                    <StaggerItem>
+                        <SignalEnvironmentPanel alphaProfile={alphaProfile} alphaStack={combined.alphaStack} crowding={crowding} />
+                    </StaggerItem>
+                    <StaggerItem>
+                        <KeyCatalystsPanel cioMemo={combined.decision?.cio_memo ?? null} />
+                    </StaggerItem>
+                    <StaggerItem>
+                        <RiskSnapshotPanel
+                            positionSizing={combined.positionSizing}
+                            technical={combined.technical}
+                            crowding={crowding}
+                        />
+                    </StaggerItem>
+                </StaggerGroup>
             </div>
 
             {/* Coverage Heatmap */}
             {isComplete && watchlistItems.length > 0 && (
-                <div className="glass-card p-4 border-[#30363d]">
-                    <div className="flex items-center gap-2 mb-3">
-                        <Star size={11} className="text-[#d4af37]" />
-                        <InfoTooltip text="Your watchlist of analyzed assets. Click any to switch and view its analysis." position="bottom">
-                            <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">Coverage List</span>
-                        </InfoTooltip>
+                <FadeIn delay={0.4}>
+                    <div className="glass-card p-4 border-[#30363d]">
+                        <div className="flex items-center gap-2 mb-3">
+                            <Star size={11} className="text-[#d4af37]" />
+                            <InfoTooltip text="Your watchlist of analyzed assets. Click any to switch and view its analysis." position="bottom">
+                                <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">Coverage List</span>
+                            </InfoTooltip>
+                        </div>
+                        <div className="flex gap-2 flex-wrap">
+                            {watchlistItems.map((item) => {
+                                const isActive = item.ticker === combined.ticker;
+                                return (
+                                    <button
+                                        key={item.ticker}
+                                        onClick={() => onAnalyze(item.ticker)}
+                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${isActive
+                                            ? "bg-[#d4af37]/15 border border-[#d4af37]/40 text-[#d4af37]"
+                                            : "bg-[#161b22] border border-[#30363d] text-gray-400 hover:border-[#d4af37]/30 hover:text-gray-200"
+                                            }`}
+                                    >
+                                        <span style={{ fontFamily: "var(--font-data)" }}>{item.ticker}</span>
+                                        {item.lastSignal && <SignalBadge signal={item.lastSignal} size="xs" />}
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
-                    <div className="flex gap-2 flex-wrap">
-                        {watchlistItems.map((item) => {
-                            const isActive = item.ticker === combined.ticker;
-                            return (
-                                <button
-                                    key={item.ticker}
-                                    onClick={() => onAnalyze(item.ticker)}
-                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${isActive
-                                        ? "bg-[#d4af37]/15 border border-[#d4af37]/40 text-[#d4af37]"
-                                        : "bg-[#161b22] border border-[#30363d] text-gray-400 hover:border-[#d4af37]/30 hover:text-gray-200"
-                                        }`}
-                                >
-                                    <span style={{ fontFamily: "var(--font-data)" }}>{item.ticker}</span>
-                                    {item.lastSignal && <SignalBadge signal={item.lastSignal} size="xs" />}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
+                </FadeIn>
             )}
         </div>
     );
