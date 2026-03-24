@@ -20,6 +20,8 @@ import {
     Loader2,
     Star,
     CheckCircle,
+    Crown,
+    Swords,
 } from "lucide-react";
 import type { CombinedState } from "@/hooks/useCombinedStream";
 import type { SignalProfileResponse, SignalStatus } from "@/hooks/useAlphaSignals";
@@ -28,6 +30,8 @@ import UnifiedAlphaDashboard from "@/components/analysis/UnifiedAlphaDashboard";
 import CompositeAlphaGauge from "@/components/CompositeAlphaGauge";
 import UnifiedTacticalDashboard from "@/components/analysis/UnifiedTacticalDashboard";
 import UnifiedFundamentalDashboard from "@/components/analysis/UnifiedFundamentalDashboard";
+import InvestmentCommitteeDashboard from "@/components/analysis/InvestmentCommitteeDashboard";
+import TechnicalICDashboard from "@/components/analysis/TechnicalICDashboard";
 import TradingViewChart from "@/components/TradingViewChart";
 import { CashFlowChart } from "@/components/Charts";
 import ScoreHistoryChart from "@/components/ScoreHistoryChart";
@@ -42,12 +46,14 @@ import DataFreshnessBadge from "@/components/ui/DataFreshnessBadge";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Section = "thesis" | "signals" | "technical" | "fundamental" | "evidence" | "backtest" | "signal_evidence" | "charts";
+type Section = "thesis" | "signals" | "technical" | "fundamental" | "committee" | "tech_ic" | "evidence" | "backtest" | "signal_evidence" | "charts";
 
 const SECTIONS: { id: Section; label: string; icon: React.ReactNode }[] = [
     { id: "thesis", label: "Thesis", icon: <Lightbulb size={12} /> },
     { id: "fundamental", label: "Fundamental", icon: <Users size={12} /> },
+    { id: "committee", label: "IC Debate", icon: <Crown size={12} /> },
     { id: "technical", label: "Technical", icon: <Activity size={12} /> },
+    { id: "tech_ic", label: "Technical IC", icon: <Swords size={12} /> },
     { id: "signals", label: "Alpha", icon: <Radio size={12} /> },
     { id: "evidence", label: "Evidence", icon: <BarChart3 size={12} /> },
     { id: "signal_evidence", label: "Signal Map", icon: <Radio size={12} /> },
@@ -251,6 +257,14 @@ export default function DeepAnalysisView({
                             totalAgents={4}
                             status={combined.status === "complete" ? "complete" : "analyzing"}
                         />
+                    )}
+
+                    {section === "committee" && (
+                        <InvestmentCommitteeDashboard ticker={ticker ?? null} />
+                    )}
+
+                    {section === "tech_ic" && (
+                        <TechnicalICDashboard ticker={ticker ?? null} />
                     )}
 
                     {section === "evidence" && (

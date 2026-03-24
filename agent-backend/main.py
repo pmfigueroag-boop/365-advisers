@@ -305,6 +305,8 @@ _ROUTER_REGISTRY: list[tuple[str, str]] = [
     ("src.routes.ab_testing",          "ab_testing"),
     ("src.routes.prompt_versions",     "prompt_versions"),
     ("src.routes.ws_analysis",         "ws_analysis"),
+    ("src.routes.investment_committee", "investment_committee"),
+    ("src.routes.technical_ic",          "technical_ic"),
 ]
 
 import importlib
